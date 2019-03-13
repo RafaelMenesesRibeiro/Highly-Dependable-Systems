@@ -7,5 +7,6 @@ public class Server {
     public Server(String ip, String port) {
         this.ip = ip;
         this.port = port;
+        System.out.println(String.format("Created server with ip=%s and port=%s", ip, port));
     }
 }
