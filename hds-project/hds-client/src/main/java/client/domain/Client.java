@@ -5,5 +5,6 @@ public class Client {
 
     public Client(String name) {
         this.name = name;
+        System.out.println(String.format("Created client with name=%s", name));
     }
 }
