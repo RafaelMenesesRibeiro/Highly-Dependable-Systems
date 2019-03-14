@@ -55,6 +55,22 @@
 					<exclude>**/aws-rds-db.properties</exclude>
 				</excludes>
 			</resource>
+
+			<!-- Database population queries -->
+			<resource>
+				<directory>src/main/resources/sql</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/populate.sql</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/sql</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/populate.sql</exclude>
+				</excludes>
+			</resource>
 		</resources>
 	</build>
 

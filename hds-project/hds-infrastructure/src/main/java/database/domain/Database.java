@@ -43,14 +43,11 @@ public class Database {
 	}
 
 	public Connection connecToDB() {
-		String url = "jdbc:postgresql://localhost:5432/postgres";
-		// TODO - Moved user and password to .properties when using AWS DB.
-		String user = "postgres";
-		String password = "macaco90";
+		String url = String.format("jdbc:postgresql:%s/%s", this.endpoint, this.name);
 
 		Connection conn = null;
 		try {
-			conn = DriverManager.getConnection(url, user, password);
+			conn = DriverManager.getConnection(url, this.username, this.password);
 			System.out.println("Connected to the PostgreSQL server successfully.");
 		}
 		catch (SQLException e) {
@@ -63,6 +60,7 @@ public class Database {
 		try {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
+			System.out.println("Results:");
 			while(rs.next()) {
 				System.out.println(String.format("RESULT: %s", rs.getString("userid")));
 			}
@@ -73,5 +71,9 @@ public class Database {
 		catch (SQLException ex) {
 			System.out.println(ex.getMessage());
 		}
+	}
+
+	private void PopulateDB(String populationFilename) {
+		
 	}
 }
