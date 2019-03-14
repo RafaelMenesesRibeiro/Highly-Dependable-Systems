@@ -11,8 +11,8 @@ public class Application {
     	Client client = new Client("client1");
     	Database db = new Database();
 
-    	Connection conn = server.connecToDB();
+    	Connection conn = db.connecToDB();
     	String query = "SELECT * FROM users";
-    	server.QueryDB(conn, query);
+    	db.QueryDB(conn, query);
     }
 }
