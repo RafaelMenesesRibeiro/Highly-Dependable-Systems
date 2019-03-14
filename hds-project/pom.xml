@@ -18,5 +18,6 @@
         <module>hds-server</module>
         <module>hds-client</module>
         <module>hds-puppetmaster</module>
+        <module>hds-infrastructure</module>
     </modules>
 </project>

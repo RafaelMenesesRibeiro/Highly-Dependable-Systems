@@ -3,3 +3,4 @@
 .vscode
 *.iml
 .class
+hds-project/hds-infrastructure/src/main/resources/aws-rds-db.properties
