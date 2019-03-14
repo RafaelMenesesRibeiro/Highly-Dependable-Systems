@@ -6,6 +6,8 @@ import java.sql.*;
 import java.util.Properties;
 
 public class Database {
+	private final String populationFilename = "populate.sql";
+
 	private String endpoint;
 	private String name;
 	private String username;
