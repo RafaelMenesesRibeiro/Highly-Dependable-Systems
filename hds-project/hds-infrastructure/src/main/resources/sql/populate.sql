@@ -1,0 +1,17 @@
+/* Populating users table*/
+insert into users values ('user1');
+insert into users values ('user2');
+insert into users values ('user3');
+insert into users values ('user4');
+
+/* Populating goods table */
+insert into goods values ('good1', false);
+insert into goods values ('good2', false);
+insert into goods values ('good3', true);
+insert into goods values ('good4', true);
+
+/* Populating ownership table */
+insert into ownership values ('user1', 'good1');
+insert into ownership values ('user2', 'good2');
+insert into ownership values ('user3', 'good3');
+insert into ownership values ('user4', 'good4');
