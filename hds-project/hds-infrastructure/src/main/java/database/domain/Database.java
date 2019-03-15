@@ -1,12 +1,17 @@
 package database.domain;
 
+import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class Database {
+	private Connection conn;
 	private String endpoint;
 	private String name;
 	private String username;
@@ -14,13 +19,14 @@ public class Database {
 
 	public Database() {
 		FetchProperties("aws-rds-db.properties");
-		Connection conn = connecToDB();
+		conn = connecToDB();
 
 		// TODO - Find out why postgres doesn't create tables with this. //
 		//String creationQuery = GetQuery("schemas.sql");
 		//QueryDB(conn, creationQuery);
-		String populateQuery = GetQuery("populate.sql");
-		QueryDB(conn, populateQuery);
+		// TODO - Move to own function and only call once in Main or in PuppetMaster Main. //
+		//String populateQuery = GetQuery("populate.sql");
+		//QueryDB(conn, populateQuery, "userId");
 
 		System.out.println(String.format("Database instance %s created. Endpoint is %s.", name, endpoint));
 	}
@@ -61,18 +67,20 @@ public class Database {
 		return conn;
 	}
 
-	public void QueryDB(Connection conn, String query) {
+	public List<String> QueryDB(Connection conn, String query, String returnColumn) {
+		List<String> results = new ArrayList<String>();
 		try {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			System.out.println("Results:");
 			while(rs.next()) {
-				System.out.println(String.format("RESULT: %s", rs.getString("userid")));
+				results.add(rs.getString(returnColumn));
+				System.out.println(String.format("RESULT: %s", rs.getString(returnColumn)));
 			}
 			stmt.close();
 			rs.close();
 		}
 		catch (SQLException ex) { System.out.println(ex.getMessage()); }
+		return results;
 	}
 
 	private String GetQuery(String filename) {
@@ -90,5 +98,19 @@ public class Database {
 			e.printStackTrace();
 			return "";
 		}
+	}
+
+	public String getCurrentOwner(String goodID) {
+		String query = "select (ownership.userId) from ownership where ownership.goodId = '" + goodID + "'";
+		System.out.println(query);
+		List<String> results = QueryDB(this.conn, query, "userId");
+		return results.get(0);
+	}
+
+	public Boolean getIsOnSale(String goodID) {
+		String query = "select (goods.onSale) from goods where goods.goodId = " + goodID;
+		System.out.println(query);
+		List<String> results = QueryDB(this.conn, query, "onSale");
+		return results.get(0) == "true";
 	}
 }
