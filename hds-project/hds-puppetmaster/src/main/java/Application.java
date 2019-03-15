@@ -10,9 +10,5 @@ public class Application {
     	Server server = new Server("localhost", "8014");
     	Client client = new Client("client1");
     	Database db = new Database();
-
-    	Connection conn = db.connecToDB();
-    	String query = "SELECT * FROM users";
-    	db.QueryDB(conn, query);
     }
 }
