@@ -1,13 +1,12 @@
 package database.domain;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Properties;
 
 public class Database {
-	private final String populationFilename = "populate.sql";
-
 	private String endpoint;
 	private String name;
 	private String username;
@@ -15,6 +14,14 @@ public class Database {
 
 	public Database() {
 		FetchProperties("aws-rds-db.properties");
+		Connection conn = connecToDB();
+
+		// TODO - Find out why postgres doesn't create tables with this. //
+		//String creationQuery = GetQuery("schemas.sql");
+		//QueryDB(conn, creationQuery);
+		String populateQuery = GetQuery("populate.sql");
+		QueryDB(conn, populateQuery);
+
 		System.out.println(String.format("Database instance %s created. Endpoint is %s.", name, endpoint));
 	}
 
@@ -50,9 +57,7 @@ public class Database {
 			conn = DriverManager.getConnection(url, this.username, this.password);
 			System.out.println("Connected to the PostgreSQL server successfully.");
 		}
-		catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
+		catch (SQLException e) { System.out.println(e.getMessage()); }
 		return conn;
 	}
 
@@ -64,16 +69,26 @@ public class Database {
 			while(rs.next()) {
 				System.out.println(String.format("RESULT: %s", rs.getString("userid")));
 			}
-			conn.close();
 			stmt.close();
 			rs.close();
 		}
-		catch (SQLException ex) {
-			System.out.println(ex.getMessage());
-		}
+		catch (SQLException ex) { System.out.println(ex.getMessage()); }
 	}
 
-	private void PopulateDB(String populationFilename) {
-		
+	private String GetQuery(String filename) {
+		try {
+			InputStream input = getClass().getClassLoader().getResourceAsStream(filename);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(input, Charset.forName(StandardCharsets.UTF_8.name())));
+			String data = "";
+			String line;
+			while ((line = reader.readLine()) != null) {
+				data += line;
+			}
+			return data;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
 	}
 }
