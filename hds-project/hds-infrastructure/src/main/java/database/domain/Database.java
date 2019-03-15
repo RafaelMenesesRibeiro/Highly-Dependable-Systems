@@ -37,8 +37,10 @@ public class Database {
 		try {
 			input = getClass().getClassLoader().getResourceAsStream(propertiesFilename);
 			if (input == null) {
-				System.out.println("Unable to read properties file: " + propertiesFilename);
-				return;
+				throw new IOException("Unable to properties file. Can't access database.\n " +
+						"A file called 'aws-rds-db.properties' must exist in src/main/resources.\n" +
+						"Follow the instructions of 'aws-rds-db.properties.example' in the same directory.\n" +
+						"Exiting.\n");
 			}
 			properties.load(input);
 			endpoint = properties.getProperty("dbEndpoint");
@@ -46,11 +48,17 @@ public class Database {
 			username = properties.getProperty("dbUsername");
 			password = properties.getProperty("dbPassword");
 		}
-		catch (IOException ex) { ex.printStackTrace(); }
+		catch (IOException ex) {
+			System.out.println(ex.getMessage());
+			System.exit(1);
+		}
 		finally {
 			if (input != null) {
 				try { input.close(); }
-				catch (IOException e) { e.printStackTrace(); }
+				catch (IOException ex) {
+					System.out.println(ex.getMessage());
+					System.exit(1);
+				}
 			}
 		}
 	}
