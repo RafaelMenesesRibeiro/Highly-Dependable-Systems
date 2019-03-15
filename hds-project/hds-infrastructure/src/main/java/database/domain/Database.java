@@ -43,7 +43,7 @@ public class Database {
 		try {
 			input = getClass().getClassLoader().getResourceAsStream(propertiesFilename);
 			if (input == null) {
-				throw new IOException("Unable to properties file. Can't access database.\n " +
+				throw new IOException("Unable to properties file. Can't access database.\n" +
 						"A file called 'aws-rds-db.properties' must exist in src/main/resources.\n" +
 						"Follow the instructions of 'aws-rds-db.properties.example' in the same directory.\n" +
 						"Exiting.\n");
