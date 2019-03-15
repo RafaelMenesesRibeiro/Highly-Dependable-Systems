@@ -56,6 +56,22 @@
 				</excludes>
 			</resource>
 
+			<!-- Database tables creation queries-->
+			<resource>
+				<directory>src/main/resources/sql</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/schemas.sql</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/sql</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/schemas.sql</exclude>
+				</excludes>
+			</resource>
+
 			<!-- Database population queries -->
 			<resource>
 				<directory>src/main/resources/sql</directory>
