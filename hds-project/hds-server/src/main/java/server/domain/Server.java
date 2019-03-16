@@ -24,7 +24,7 @@ public class Server {
 
 	private boolean IsSellerOwner(String sellerID, String goodID) {
 		String currentOwner = database.getCurrentOwner(goodID);
-		return currentOwner == sellerID;
+		return currentOwner.equals(sellerID);
 	}
 
 	private boolean IsGoodOnSale(String goodID) {
