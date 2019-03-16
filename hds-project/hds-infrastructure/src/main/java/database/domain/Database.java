@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import database.domain.DatabaseInterface;
 import database.exception.*;
 
 public class Database {
@@ -19,7 +20,7 @@ public class Database {
 
 	public Database() {
 		FetchProperties("aws-rds-db.properties");
-		this.conn = connecToDB();
+		this.conn = DatabaseInterface.connectToDB(this.endpoint, this.name, this.username, this.password);
 		System.out.println("Connected to the PostgreSQL server successfully.");
 
 		// TODO - Find out why postgres doesn't create tables with this. //
@@ -73,59 +74,6 @@ public class Database {
 		}
 	}
 
-	private Connection connecToDB() {
-		String url = String.format("jdbc:postgresql:%s/%s", this.endpoint, this.name);
-		try {
-			return DriverManager.getConnection(url, this.username, this.password);
-		}
-		catch (SQLException sqlex) {
-			System.out.println(sqlex.getMessage());
-			System.exit(1);
-		}
-		return null;
-	}
-
-	private List<String> QueryDB(Connection conn, String query, String returnColumn)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
-		List<String> results = new ArrayList<String>();
-		try {
-			// TODO - Create pre prepared statements. //
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-			while(rs.next()) {
-				results.add(rs.getString(returnColumn));
-				System.out.println(String.format("RESULT: %s", rs.getString(returnColumn)));
-			}
-			stmt.close();
-			rs.close();
-		}
-		// TODO - Is exiting the best approach for this exception? //
-		catch (SQLTimeoutException sqltex) {
-			System.out.println(sqltex.getMessage());
-			System.exit(1);
-		}
-		catch (SQLException sqlex) {
-			switch (String.valueOf((sqlex.getErrorCode()))) {
-				case "08000": // connection_exception
-				case "08003": // connection_does_not_exist
-				case "08006": // connection_failure
-				case "08001": // qlclient_unable_to_establish_sqlconnection
-					throw new DBClosedConnectionException(sqlex.getMessage());
-				case "08004": // sqlserver_rejected_establishment_of_sqlconnection
-				case "08007": // transaction_resolution_unknown
-				case "08P01": // protocol_violation
-					throw new DBConnectionRefusedException(sqlex.getMessage());
-				case "2F000": // sql_routine_exception
-				case "2F003": // prohibited_sql_statement_attempted
-					throw new DBSQLException(sqlex.getMessage());
-				default:
-					System.out.println(sqlex.getMessage());
-					System.exit(1);
-			}
-		}
-		return results;
-	}
-
 	private String GetQuery(String filename) {
 		try {
 			if (filename == null) {
@@ -150,37 +98,41 @@ public class Database {
 		return "";
 	}
 
-	public String getCurrentOwner(String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getCurrentOwner' is either null or an empty string.");
-		}
-		String query = "select (ownership.userId) from ownership where ownership.goodId = '" + goodID + "'";
+	public String getCurrentOwner(String goodID) {
 		try {
-			List<String> results = QueryDB(this.conn, query, "userId");
-			return results.get(0);
+			return TransactionValidityChecker.getCurrentOwner(this.conn, goodID);
 		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBSQLException are ignored to be
-		// caught up the chain.
-		catch (IndexOutOfBoundsException ioobex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		catch (DBClosedConnectionException dbccex) {
+			// TODO - Implement retry operation.
 		}
+		catch (DBConnectionRefusedException dbcrex) {
+			// TODO - Implementation needed from other modules to decide what to do here.
+		}
+		catch (DBSQLException dbsqlex) {
+			// TODO - Return MalformedSQLData msg to client.
+		}
+		catch (InvalidQueryParameterException iqpex) {
+			// TODO - Return NoResultsData msg to client.
+		}
+		return ""; // This can be removed after TODOs are implemented.
 	}
 
-	public Boolean getIsOnSale(String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getIsOnSale' is either null or an empty string.");
-		}
-		String query = "select (goods.onSale) from goods where goods.goodId = " + goodID;
+	public Boolean getIsOnSale(String goodID) {
 		try {
-			List<String> results = QueryDB(this.conn, query, "onSale");
-			return results.get(0).equals("true");
+			return TransactionValidityChecker.getIsOnSale(this.conn, goodID);
 		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBSQLException are ignored to be
-		// caught up the chain.
-		catch (IndexOutOfBoundsException ioobex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		catch (DBClosedConnectionException dbccex) {
+			// TODO - Implement retry operation.
 		}
+		catch (DBConnectionRefusedException dbcrex) {
+			// TODO - Implementation needed from other modules to decide what to do here.
+		}
+		catch (DBSQLException dbsqlex) {
+			// TODO - Return MalformedSQLData msg to client.
+		}
+		catch (InvalidQueryParameterException iqpex) {
+			// TODO - Return NoResultsData msg to client.
+		}
+		return false; // This can be removed after TODOs are implemented.
 	}
 }

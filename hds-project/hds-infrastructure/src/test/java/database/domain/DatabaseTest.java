@@ -1,12 +1,16 @@
 package database.domain;
 
+import java.io.IOException;
+import java.sql.Connection;
+
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import database.domain.DatabaseInterface;
+
 import database.exception.InvalidPropertyException;
 import database.exception.InvalidQueryParameterException;
-import org.junit.Test;
 
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
+import javax.xml.crypto.Data;
 
 public class DatabaseTest {
 	private static final String ENDPOINT = "//localhost:5432";
@@ -41,24 +45,29 @@ public class DatabaseTest {
 	@Test(expected = InvalidQueryParameterException.class)
 	public void nullGooID_GetCurrentOwner() {
 		Database db = new Database();
-		db.getCurrentOwner(null);
+		Connection conn = DatabaseInterface.connectToDB(db.getEndpoint(), db.getName(), db.getUsername(), db.getPassword());
+		TransactionValidityChecker.getCurrentOwner(conn, null);
 	}
 
 	@Test(expected = InvalidQueryParameterException.class)
 	public void emptyGooID_GetCurrentOwner() {
 		Database db = new Database();
-		db.getCurrentOwner("");
+		Connection conn = DatabaseInterface.connectToDB(db.getEndpoint(), db.getName(), db.getUsername(), db.getPassword());
+		TransactionValidityChecker.getCurrentOwner(conn, "");
 	}
 
 	@Test(expected = InvalidQueryParameterException.class)
 	public void nullGooID_GetIsOnSale() {
 		Database db = new Database();
-		db.getIsOnSale("");
+		Connection conn = DatabaseInterface.connectToDB(db.getEndpoint(), db.getName(), db.getUsername(), db.getPassword());
+		TransactionValidityChecker.getIsOnSale(conn, null);
+
 	}
 
 	@Test(expected = InvalidQueryParameterException.class)
 	public void emptyGooID_GetIsOnSale() {
 		Database db = new Database();
-		db.getIsOnSale("");
+		Connection conn = DatabaseInterface.connectToDB(db.getEndpoint(), db.getName(), db.getUsername(), db.getPassword());
+		TransactionValidityChecker.getIsOnSale(conn, "");
 	}
 }
