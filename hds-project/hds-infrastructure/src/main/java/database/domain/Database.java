@@ -21,16 +21,7 @@ public class Database {
 	public Database() {
 		FetchProperties("aws-rds-db.properties");
 		this.conn = DatabaseInterface.connectToDB(this.endpoint, this.name, this.username, this.password);
-		System.out.println("Connected to the PostgreSQL server successfully.");
-
-		// TODO - Find out why postgres doesn't create tables with this. //
-		//String creationQuery = GetQuery("schemas.sql");
-		//QueryDB(conn, creationQuery);
-		// TODO - Move to own function and only call once in Main or in PuppetMaster Main. //
-		//String populateQuery = GetQuery("populate.sql");
-		//QueryDB(conn, populateQuery, "userId");
-
-		System.out.println(String.format("Database instance %s created. Endpoint is %s.", name, endpoint));
+		System.out.println("Connected to the PostgreSQL server successfully. Endpoint is " + this.endpoint);
 	}
 
 	String getEndpoint() {return this.endpoint; }
@@ -98,6 +89,45 @@ public class Database {
 		return "";
 	}
 
+	private void ExecuteQuery(String query, String returnColumn) {
+		try {
+			DatabaseInterface.QueryDB(conn, query, "");
+		}
+		catch (DBClosedConnectionException dbccex) {
+			// TODO - Implement retry operation.
+			System.out.println("Database connection closed.");
+			System.exit(1);
+		}
+		catch (DBConnectionRefusedException dbcrex) {
+			// TODO - Implementation needed from other modules to decide what to do here.
+			System.out.println("Database connection refused.");
+			System.exit(1);
+		}
+		catch (DBSQLException dbsqlex) {
+			// TODO - Return MalformedSQLData msg to client.
+			System.out.println("SQL Query malformed.");
+			System.exit(1);
+		}
+		catch (InvalidQueryParameterException | DBNoResultsException ex) {
+			// TODO - Return NoResultsData msg to client.
+			System.out.println("Invalid query parameters or no results.");
+			System.exit(1);
+		}
+	}
+
+	public void CreateTables() {
+		// TODO - Find out why postgres doesn't create tables with this. //
+		String creationQuery = GetQuery("schemas.sql");
+		// DatabaseInterface.QueryDB(conn, creationQuery, "");
+		ExecuteQuery(creationQuery, "");
+	}
+
+	public void PopulateTables() {
+		String populateQuery = GetQuery("populate.sql");
+		// DatabaseInterface.QueryDB(conn, populateQuery, "");
+		ExecuteQuery(populateQuery, "");
+	}
+
 	public String getCurrentOwner(String goodID) {
 		try {
 			return TransactionValidityChecker.getCurrentOwner(this.conn, goodID);
@@ -111,7 +141,7 @@ public class Database {
 		catch (DBSQLException dbsqlex) {
 			// TODO - Return MalformedSQLData msg to client.
 		}
-		catch (InvalidQueryParameterException iqpex) {
+		catch (InvalidQueryParameterException | DBNoResultsException ex) {
 			// TODO - Return NoResultsData msg to client.
 		}
 		return ""; // This can be removed after TODOs are implemented.
@@ -130,7 +160,7 @@ public class Database {
 		catch (DBSQLException dbsqlex) {
 			// TODO - Return MalformedSQLData msg to client.
 		}
-		catch (InvalidQueryParameterException iqpex) {
+		catch (InvalidQueryParameterException | DBNoResultsException ex) {
 			// TODO - Return NoResultsData msg to client.
 		}
 		return false; // This can be removed after TODOs are implemented.

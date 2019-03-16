@@ -6,6 +6,7 @@ import java.util.List;
 
 import database.exception.DBClosedConnectionException;
 import database.exception.DBConnectionRefusedException;
+import database.exception.DBNoResultsException;
 import database.exception.DBSQLException;
 
 public class DatabaseInterface {
@@ -33,7 +34,7 @@ public class DatabaseInterface {
 	}
 
 	static List<String> QueryDB(Connection conn, String query, String returnColumn)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
 		List<String> results = new ArrayList<String>();
 		try {
 			// TODO - Create pre prepared statements. //
@@ -66,6 +67,11 @@ public class DatabaseInterface {
 				case "42703": // undefined_column
 				case "42P01": // undefined_table
 					throw new DBSQLException(sqlex.getMessage());
+				case "02000": // no_data
+					if (!returnColumn.equals("")) {
+						throw new DBNoResultsException(sqlex.getMessage());
+					}
+					break;
 				default:
 					System.out.println(sqlex.getSQLState());
 					System.out.println(sqlex.getMessage());
