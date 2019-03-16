@@ -11,7 +11,7 @@ insert into goods values ('good3', true);
 insert into goods values ('good4', true);
 
 /* Populating ownership table */
-insert into ownership values ('user1', 'good1');
-insert into ownership values ('user2', 'good2');
-insert into ownership values ('user3', 'good3');
-insert into ownership values ('user4', 'good4');
+insert into ownership values ('good1', 'user1');
+insert into ownership values ('good2', 'user2');
+insert into ownership values ('good3', 'user3');
+insert into ownership values ('good4', 'user4');
