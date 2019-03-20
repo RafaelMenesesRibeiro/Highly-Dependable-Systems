@@ -1,0 +1,3 @@
+[submodule "hds-notary-server"]
+	path = hds-notary-server
+	url = https://git.heroku.com/hds-notary-server.git
