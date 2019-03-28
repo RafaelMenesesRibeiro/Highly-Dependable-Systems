@@ -8,6 +8,9 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+;import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 
 
 public class SecurityManager {
@@ -20,7 +23,13 @@ public class SecurityManager {
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
     private SecurityManager() {
-        // This is here so the class can't be instantiated. //
+    }
+
+    /**
+     * Makes constructor of this class not directly accessible
+     */
+    private static class SecurityManagerHolder {
+        private static final SecurityManager INSTANCE = new SecurityManager();
     }
 
     // -------------------------------------------------------------------------------------------------------------- //
@@ -102,4 +111,23 @@ public class SecurityManager {
         }
     }
 
+    /**
+     * Creates as a new timestamp representing a Java EPOCH starting on 1970-01-01T00:00:00Z.
+     * @return long timestamp
+     */
+    public static long generateTimestamp() {
+        Instant instant = Instant.now();
+        return instant.getEpochSecond();
+    }
+
+    /**
+     * @param sentTimestamp long timestamp retrieved from received message
+     * @param timeToLive int representing how long a message can be before being considered old.
+     * @return boolean acknowleding or denying freshness of a message
+     */
+    private boolean isFreshTimestamp(long sentTimestamp, int timeToLive) {
+        Instant instantNow = Instant.now();
+        Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
+        return sentInstant.plus(timeToLive, ChronoUnit.SECONDS).isBefore(instantNow);
+    }
 }
