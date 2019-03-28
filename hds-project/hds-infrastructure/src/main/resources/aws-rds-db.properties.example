@@ -1,6 +1,0 @@
-// Create a file aws-rds-db.properties
-// with the following properties
-dbEndpoint=
-dbName=
-dbUsername=
-dbPassword=
