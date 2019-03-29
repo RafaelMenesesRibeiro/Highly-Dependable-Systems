@@ -1,16 +1,14 @@
 package hds.security;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 ;import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
 
 
 public class SecurityManager {
@@ -32,24 +30,34 @@ public class SecurityManager {
         private static final SecurityManager INSTANCE = new SecurityManager();
     }
 
-    // -------------------------------------------------------------------------------------------------------------- //
-    // -------------------------------------------------------------------------------------------------------------- //
-    // PUBLIC / PRIVATE KEYS LOADING																				  //
-    // -------------------------------------------------------------------------------------------------------------- //
-    // -------------------------------------------------------------------------------------------------------------- //
-
-    private static byte[] getBytesFromFile(String filename) throws IOException {
-        Path path = Paths.get(filename);
-        return Files.readAllBytes(path);
+    private String getResourcePath(String filename, boolean isPublicKey) {
+        StringBuilder filePath = new StringBuilder("keys/");
+        if (isPublicKey) {
+            filePath.append(PUBLIC_KEY_BASE_FILENAME);
+            filePath.append(filename);
+            filePath.append(PUBLIC_KEY_FILE_EXTENSION);
+        }
+        else {
+            filePath.append(PRIVATE_KEY_BASE_FILENAME);
+            filePath.append(filename);
+            filePath.append(PRIVATE_KEY_FILE_EXTENSION);
+        }
+        return filePath.toString();
     }
 
-    public static PublicKey loadPublicKeyFromID(String id) throws IOException, InvalidKeySpecException {
-        return loadPublicKeyFromFile(PUBLIC_KEY_BASE_FILENAME + id + PUBLIC_KEY_FILE_EXTENSION);
+    private File getResourceFile(String filename, boolean isPublicKey) throws IOException {
+        String filePath = getResourcePath(filename, isPublicKey);
+        ClassLoader classLoader = getClass().getClassLoader();
+        return new File(classLoader.getResource(fileName).getFile());
     }
 
-    public static PublicKey loadPublicKeyFromFile(String filename) throws IOException, InvalidKeySpecException {
+    private static byte[] getResourceFileBytes(File resourceFile) throws IOException {
+        return Files.readAllBytes(resourceFile.toPath());
+    }
+
+    public PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
-            byte[] bytes = getBytesFromFile(filename);
+            byte[] bytes = getResourceFileBytes(getResourceFile(resourceId, true));
             X509EncodedKeySpec ks = new X509EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePublic(ks);
@@ -59,14 +67,10 @@ public class SecurityManager {
         }
     }
 
-    public static PrivateKey loadPrivateKeyFromID(String id) throws IOException, InvalidKeySpecException {
-        return loadPrivateKeyFromFile(PRIVATE_KEY_BASE_FILENAME + id + PRIVATE_KEY_FILE_EXTENSION);
-    }
-
-    public static PrivateKey loadPrivateKeyFromFile(String filename)
+    public PrivateKey getPrivateKeyFromResource(String resourceId)
             throws IOException, InvalidKeySpecException {
         try {
-            byte[] bytes = getBytesFromFile(filename);
+            byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
             PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePrivate(ks);
@@ -76,13 +80,7 @@ public class SecurityManager {
         }
     }
 
-
-    // -------------------------------------------------------------------------------------------------------------- //
-    // -------------------------------------------------------------------------------------------------------------- //
-    // PRIVATE KEY SIGNING																							  //
-    // -------------------------------------------------------------------------------------------------------------- //
-    // -------------------------------------------------------------------------------------------------------------- //
-    public static byte[] privateKeySigning(PrivateKey pk, byte[] data)
+    public byte[] privateKeySigning(PrivateKey pk, byte[] data)
             throws InvalidKeyException, SignatureException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
@@ -95,7 +93,7 @@ public class SecurityManager {
         }
     }
 
-    public static boolean publicKeySignatureVerify(PublicKey pk, byte[] signedData, byte[] testData)
+    public boolean publicKeySignatureVerify(PublicKey pk, byte[] signedData, byte[] testData)
             throws SignatureException, InvalidKeyException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
@@ -112,7 +110,7 @@ public class SecurityManager {
      * Creates as a new timestamp representing a Java EPOCH starting on 1970-01-01T00:00:00Z.
      * @return long timestamp
      */
-    public static long generateTimestamp() {
+    public long generateTimestamp() {
         Instant instant = Instant.now();
         return instant.getEpochSecond();
     }
