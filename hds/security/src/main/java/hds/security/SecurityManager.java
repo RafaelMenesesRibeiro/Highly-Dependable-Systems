@@ -30,25 +30,25 @@ public class SecurityManager {
         private static final SecurityManager INSTANCE = new SecurityManager();
     }
 
-    private String getResourcePath(String filename, boolean isPublicKey) {
+    private String getResourcePath(String resourceId, boolean isPublicKey) {
         StringBuilder filePath = new StringBuilder("keys/");
         if (isPublicKey) {
             filePath.append(PUBLIC_KEY_BASE_FILENAME);
-            filePath.append(filename);
+            filePath.append(resourceId);
             filePath.append(PUBLIC_KEY_FILE_EXTENSION);
         }
         else {
             filePath.append(PRIVATE_KEY_BASE_FILENAME);
-            filePath.append(filename);
+            filePath.append(resourceId);
             filePath.append(PRIVATE_KEY_FILE_EXTENSION);
         }
         return filePath.toString();
     }
 
-    private File getResourceFile(String filename, boolean isPublicKey) throws IOException {
-        String filePath = getResourcePath(filename, isPublicKey);
+    private File getResourceFile(String resourceId, boolean isPublicKey) throws IOException {
+        String filePath = getResourcePath(resourceId, isPublicKey);
         ClassLoader classLoader = getClass().getClassLoader();
-        return new File(classLoader.getResource(fileName).getFile());
+        return new File(classLoader.getResource(resourceId).getFile());
     }
 
     private static byte[] getResourceFileBytes(File resourceFile) throws IOException {
@@ -62,46 +62,40 @@ public class SecurityManager {
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePublic(ks);
         } catch (NoSuchAlgorithmException nSAExc) {
-            // Should never be here. The algorithm is a constant and known to work. //
             return null;
         }
     }
 
-    public PrivateKey getPrivateKeyFromResource(String resourceId)
-            throws IOException, InvalidKeySpecException {
+    public PrivateKey getPrivateKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
             byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
             PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePrivate(ks);
         } catch (NoSuchAlgorithmException nSAExc) {
-            // Should never be here. The algorithm is a constant and known to work. //
             return null;
         }
     }
 
-    public byte[] privateKeySigning(PrivateKey pk, byte[] data)
-            throws InvalidKeyException, SignatureException {
+    public byte[] signData(PrivateKey key, byte[] data) throws InvalidKeyException, SignatureException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-            sign.initSign(pk);
+            sign.initSign(key);
             sign.update(data);
             return sign.sign();
         } catch (NoSuchAlgorithmException nsaex) {
-            // Should never be here. The algorithm is a constant and known to work. //
             return new byte[0];
         }
     }
 
-    public boolean publicKeySignatureVerify(PublicKey pk, byte[] signedData, byte[] testData)
+    public boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
             throws SignatureException, InvalidKeyException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-            sign.initVerify(pk);
+            sign.initVerify(key);
             sign.update(testData);
             return sign.verify(signedData);
         } catch (NoSuchAlgorithmException nsaex) {
-            // Should never be here. The algorithm is a constant and known to work. //
             return false;
         }
     }
