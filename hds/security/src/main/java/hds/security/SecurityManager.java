@@ -43,26 +43,23 @@ public class SecurityManager {
         return Files.readAllBytes(path);
     }
 
-    public static PublicKey loadPublicKeyFromID(String id)
-            throws IOException, InvalidKeySpecException {
+    public static PublicKey loadPublicKeyFromID(String id) throws IOException, InvalidKeySpecException {
         return loadPublicKeyFromFile(PUBLIC_KEY_BASE_FILENAME + id + PUBLIC_KEY_FILE_EXTENSION);
     }
 
-    public static PublicKey loadPublicKeyFromFile(String filename)
-            throws IOException, InvalidKeySpecException {
+    public static PublicKey loadPublicKeyFromFile(String filename) throws IOException, InvalidKeySpecException {
         try {
             byte[] bytes = getBytesFromFile(filename);
             X509EncodedKeySpec ks = new X509EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePublic(ks);
-        } catch (NoSuchAlgorithmException nsaex) {
+        } catch (NoSuchAlgorithmException nSAExc) {
             // Should never be here. The algorithm is a constant and known to work. //
             return null;
         }
     }
 
-    public static PrivateKey loadPrivateKeyFromID(String id)
-            throws IOException, InvalidKeySpecException {
+    public static PrivateKey loadPrivateKeyFromID(String id) throws IOException, InvalidKeySpecException {
         return loadPrivateKeyFromFile(PRIVATE_KEY_BASE_FILENAME + id + PRIVATE_KEY_FILE_EXTENSION);
     }
 
@@ -73,7 +70,7 @@ public class SecurityManager {
             PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePrivate(ks);
-        } catch (NoSuchAlgorithmException nsaex) {
+        } catch (NoSuchAlgorithmException nSAExc) {
             // Should never be here. The algorithm is a constant and known to work. //
             return null;
         }
@@ -122,12 +119,13 @@ public class SecurityManager {
 
     /**
      * @param sentTimestamp long timestamp retrieved from received message
-     * @param timeToLive int representing how long a message can be before being considered old.
-     * @return boolean acknowleding or denying freshness of a message
+     * @param tolerance int representing the start of the time window in which the received message is fresh.
+     * @return boolean acknowledging or denying freshness of a message
      */
-    private boolean isFreshTimestamp(long sentTimestamp, int timeToLive) {
+    private boolean isFreshTimestamp(long sentTimestamp, int tolerance) {
         Instant instantNow = Instant.now();
         Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
-        return sentInstant.plus(timeToLive, ChronoUnit.SECONDS).isBefore(instantNow);
+        // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
+        return sentInstant.isAfter(instantNow.minus(tolerance, ChronoUnit.SECONDS));
     }
 }
