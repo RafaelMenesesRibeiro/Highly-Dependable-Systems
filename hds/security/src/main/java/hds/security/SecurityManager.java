@@ -1,5 +1,6 @@
 package hds.security;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -41,16 +42,9 @@ public class SecurityManager {
 
     private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) throws IOException {
         String filePath = getResourcePath(resourceId, isPublicKey);
-        System.out.println("...");
-        System.out.println("...");
-        System.out.println(filePath);
-        System.out.println("...");
-        System.out.println("...");
-        Path resourceRelativePath = Paths.get(filePath);
-        System.out.println(resourceRelativePath);
-        System.out.println("...");
-        System.out.println("...");
-        return resourceRelativePath;
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        File file = new File(classLoader.getResource(filePath).getFile());
+        return file.toPath();
     }
 
     private static byte[] getResourceFileBytes(Path resourceRelativePath) throws IOException {
