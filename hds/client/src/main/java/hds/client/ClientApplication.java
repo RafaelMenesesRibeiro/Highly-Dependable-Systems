@@ -12,10 +12,11 @@ public class ClientApplication {
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(ClientApplication.class);
 
-        String port = args[0];
-        ClientProperties.setPort(port);
-
-        app.setDefaultProperties(Collections.singletonMap("server.port", port));
+        String portId = args[0];
+        String maxPortId = args[1];
+        ClientProperties.setPort(portId);
+        ClientProperties.setMaxPortId(maxPortId);
+        app.setDefaultProperties(Collections.singletonMap("server.port", portId));
         app.run(args);
     }
  }

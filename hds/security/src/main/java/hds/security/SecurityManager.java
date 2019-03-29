@@ -22,7 +22,6 @@ public class SecurityManager {
     private static final String PUBLIC_KEY_FILE_EXTENSION = ".pub";
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
-
     private SecurityManager() {
     }
 
