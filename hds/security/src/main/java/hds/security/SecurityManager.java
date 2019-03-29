@@ -56,44 +56,38 @@ public class SecurityManager {
             X509EncodedKeySpec ks = new X509EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePublic(ks);
-        } catch (NoSuchAlgorithmException nSAExc) {
-            return null;
         }
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public static PrivateKey getPrivateKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
-        try {
-            byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
-            PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
-            KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
-            return kf.generatePrivate(ks);
-        } catch (NoSuchAlgorithmException nSAExc) {
-            return null;
-        }
+    public static PrivateKey getPrivateKeyFromResource(String resourceId)
+            throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+
+        byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
+        PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
+        KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
+        return kf.generatePrivate(ks);
     }
 
-    public static byte[] signData(PrivateKey key, byte[] data) throws InvalidKeyException, SignatureException {
-        try {
-            Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-            sign.initSign(key);
-            sign.update(data);
-            return sign.sign();
-        } catch (NoSuchAlgorithmException nsaex) {
-            return new byte[0];
-        }
+    public static byte[] signData(PrivateKey key, byte[] data)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+
+        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
+        sign.initSign(key);
+        sign.update(data);
+        return sign.sign();
     }
 
     public static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
-            throws SignatureException, InvalidKeyException {
+            throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 
-        try {
-            Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-            sign.initVerify(key);
-            sign.update(testData);
-            return sign.verify(signedData);
-        } catch (NoSuchAlgorithmException nsaex) {
-            return false;
-        }
+        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
+        sign.initVerify(key);
+        sign.update(testData);
+        return sign.verify(signedData);
     }
 
     /**

@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -22,23 +24,21 @@ import java.util.Base64;
 @RestController
 public class HelloWorld {
 
-    @GetMapping(value = "/")
-    public String signUpHandle() {
+    @GetMapping(value = "/hello")
+    public String HelloWorldHandle() {
         String resourceId = ClientProperties.getPort();
         String resourceContent = "None";
         PublicKey resourcePublicKey;
 
         try {
             resourcePublicKey = SecurityManager.getPublicKeyFromResource(resourceId);
-        } catch (Exception e) {
-            return e.getMessage();
+            byte[] encodedPublicKey = resourcePublicKey.getEncoded();
+            String b64PublicKey = Base64.getEncoder().encodeToString(encodedPublicKey);
+            return b64PublicKey;
+        } catch (IOException | InvalidKeySpecException e) {
+            e.printStackTrace();
         }
 
-        byte[] encodedPublicKey = resourcePublicKey.getEncoded();
-        String b64PublicKey = Base64.getEncoder().encodeToString(encodedPublicKey);
-
-        System.out.println(b64PublicKey);
-
-        return b64PublicKey;
+        return "failed";
     }
 }
