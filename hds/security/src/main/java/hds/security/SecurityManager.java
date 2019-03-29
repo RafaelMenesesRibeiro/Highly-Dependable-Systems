@@ -120,4 +120,19 @@ public class SecurityManager {
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
         return sentInstant.isAfter(instantNow.minus(tolerance, ChronoUnit.SECONDS));
     }
+
+    /**
+     * Computes the SHA-1 hash over a true-random seed value concatenated with a
+     * 64-bit counter which is incremented by 1 for each operation.
+     * This method is used to generate a random secure number string, in order to
+     * avoid attack by repetition. Client outgoing messages place one of these in
+     * their headers.
+     */
+    public String generateSecureNumber() throws NoSuchAlgorithmException {
+        SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+        final byte array[] = new byte[32];
+        random.nextBytes(array);
+        return printHexBinary(array);
+    }
+
 }
