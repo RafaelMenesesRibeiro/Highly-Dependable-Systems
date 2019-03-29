@@ -1,17 +1,16 @@
 package hds.security;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 ;import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 public class SecurityManager {
 
@@ -40,19 +39,29 @@ public class SecurityManager {
         return filePath.toString();
     }
 
-    private static File getResourceFile(String resourceId, boolean isPublicKey) throws IOException {
+    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) throws IOException {
         String filePath = getResourcePath(resourceId, isPublicKey);
-        ClassLoader classLoader = SecurityManager.class.getClassLoader();
-        return new File(classLoader.getResource(resourceId).getFile());
+        System.out.println("...");
+        System.out.println("...");
+        System.out.println(filePath);
+        System.out.println("...");
+        System.out.println("...");
+        Path resourceRelativePath = Paths.get(filePath);
+        System.out.println(resourceRelativePath);
+        System.out.println("...");
+        System.out.println("...");
+        return resourceRelativePath;
     }
 
-    private static byte[] getResourceFileBytes(File resourceFile) throws IOException {
-        return Files.readAllBytes(resourceFile.toPath());
+    private static byte[] getResourceFileBytes(Path resourceRelativePath) throws IOException {
+        return Files.readAllBytes(resourceRelativePath);
     }
 
-    public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
+    public static PublicKey getPublicKeyFromResource(String resourceId)
+            throws IOException, InvalidKeySpecException {
+
         try {
-            byte[] bytes = getResourceFileBytes(getResourceFile(resourceId, true));
+            byte[] bytes = getResourceFileBytes(getResourceRelativePath(resourceId, true));
             X509EncodedKeySpec ks = new X509EncodedKeySpec(bytes);
             KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
             return kf.generatePublic(ks);
@@ -66,7 +75,7 @@ public class SecurityManager {
     public static PrivateKey getPrivateKeyFromResource(String resourceId)
             throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
 
-        byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
+        byte[] bytes = getResourceFileBytes(getResourceRelativePath(resourceId, false));
         PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
         KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
         return kf.generatePrivate(ks);
