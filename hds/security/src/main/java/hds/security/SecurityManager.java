@@ -42,7 +42,7 @@ public class SecurityManager {
 
     private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) throws IOException {
         String filePath = getResourcePath(resourceId, isPublicKey);
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        ClassLoader classLoader = SecurityManager.class.getClassLoader();
         File file = new File(classLoader.getResource(filePath).getFile());
         return file.toPath();
     }
