@@ -9,6 +9,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 ;import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class SecurityManager {
@@ -20,17 +22,11 @@ public class SecurityManager {
     private static final String PUBLIC_KEY_FILE_EXTENSION = ".pub";
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
+
     private SecurityManager() {
     }
 
-    /**
-     * Makes constructor of this class not directly accessible
-     */
-    private static class SecurityManagerHolder {
-        private static final SecurityManager INSTANCE = new SecurityManager();
-    }
-
-    private String getResourcePath(String resourceId, boolean isPublicKey) {
+    private static String getResourcePath(String resourceId, boolean isPublicKey) {
         StringBuilder filePath = new StringBuilder("keys/");
         if (isPublicKey) {
             filePath.append(PUBLIC_KEY_BASE_FILENAME);
@@ -45,9 +41,9 @@ public class SecurityManager {
         return filePath.toString();
     }
 
-    private File getResourceFile(String resourceId, boolean isPublicKey) throws IOException {
+    private static File getResourceFile(String resourceId, boolean isPublicKey) throws IOException {
         String filePath = getResourcePath(resourceId, isPublicKey);
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = SecurityManager.class.getClassLoader();
         return new File(classLoader.getResource(resourceId).getFile());
     }
 
@@ -55,7 +51,7 @@ public class SecurityManager {
         return Files.readAllBytes(resourceFile.toPath());
     }
 
-    public PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
+    public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
             byte[] bytes = getResourceFileBytes(getResourceFile(resourceId, true));
             X509EncodedKeySpec ks = new X509EncodedKeySpec(bytes);
@@ -66,7 +62,7 @@ public class SecurityManager {
         }
     }
 
-    public PrivateKey getPrivateKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
+    public static PrivateKey getPrivateKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
             byte[] bytes = getResourceFileBytes(getResourceFile(resourceId,false));
             PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
@@ -77,7 +73,7 @@ public class SecurityManager {
         }
     }
 
-    public byte[] signData(PrivateKey key, byte[] data) throws InvalidKeyException, SignatureException {
+    public static byte[] signData(PrivateKey key, byte[] data) throws InvalidKeyException, SignatureException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
             sign.initSign(key);
@@ -88,8 +84,9 @@ public class SecurityManager {
         }
     }
 
-    public boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
+    public static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
             throws SignatureException, InvalidKeyException {
+
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
             sign.initVerify(key);
@@ -104,7 +101,7 @@ public class SecurityManager {
      * Creates as a new timestamp representing a Java EPOCH starting on 1970-01-01T00:00:00Z.
      * @return long timestamp
      */
-    public long generateTimestamp() {
+    public static long generateTimestamp() {
         Instant instant = Instant.now();
         return instant.getEpochSecond();
     }
@@ -114,7 +111,7 @@ public class SecurityManager {
      * @param tolerance int representing the start of the time window in which the received message is fresh.
      * @return boolean acknowledging or denying freshness of a message
      */
-    private boolean isFreshTimestamp(long sentTimestamp, int tolerance) {
+    private static boolean isFreshTimestamp(long sentTimestamp, int tolerance) {
         Instant instantNow = Instant.now();
         Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
@@ -128,11 +125,11 @@ public class SecurityManager {
      * avoid attack by repetition. Client outgoing messages place one of these in
      * their headers.
      */
-    public String generateSecureNumber() throws NoSuchAlgorithmException {
+    public static String generateSecureNumber() throws NoSuchAlgorithmException {
         SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
         final byte array[] = new byte[32];
         random.nextBytes(array);
-        return printHexBinary(array);
+        return "boo";
     }
 
 }
