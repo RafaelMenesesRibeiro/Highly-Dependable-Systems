@@ -10,12 +10,13 @@ import java.util.Properties;
 @SpringBootApplication
 public class ClientApplication {
     public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(ClientApplication.class);
-
         String portId = args[0];
         String maxPortId = args[1];
+        System.out.println(portId);
+        System.out.println(maxPortId);
         ClientProperties.setPort(portId);
         ClientProperties.setMaxPortId(maxPortId);
+        SpringApplication app = new SpringApplication(ClientApplication.class);
         app.setDefaultProperties(Collections.singletonMap("server.port", portId));
         app.run(args);
     }
