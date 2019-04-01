@@ -1,16 +1,21 @@
 package hds.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import jdk.internal.util.xml.impl.Input;
+import hds.security.domain.GoodState;
+import hds.security.domain.SecureResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+
+import static hds.client.helpers.ConnectionManager.getSecureResponse;
+import static hds.client.helpers.ConnectionManager.initiateGETConnection;
+import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
@@ -30,6 +35,7 @@ public class ClientApplication {
 
         while(acceptingCommands) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
+
             try {
                 input = inputScanner.nextInt();
             } catch (NoSuchElementException | IllegalStateException exc) {
@@ -67,34 +73,28 @@ public class ClientApplication {
 
     private static void getStateOfGood() {
         try {
-            String goodId = requestGoodId();
-            String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", goodId);
-            URL url = new URL(requestUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.setDoOutput(false);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Accept", "application/json");
+            String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
+            HttpURLConnection connection = initiateGETConnection(requestUrl);
+            SecureResponse secureResponse = getSecureResponse(connection);
+            PublicKey HDSPublicKey = getPublicKeyFromResource(HDS_NOTARY_HOST);
 
-            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                // Car car = objectMapper.readValue(json, Car.class);
+            if (verifySignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload())) {
+                switch (connection.getResponseCode()) {
+                    case(HttpURLConnection.HTTP_OK):
+                        print(((GoodState)secureResponse.getPayload()).toString());
+                        break;
+                    case(HttpURLConnection.HTTP_NOT_FOUND):
+                        printError("Specified good does not exist in the notary system;");
+                        break;
+                    default:
+                        printError("Notary suffered from an internal error, please try again later;");
+                        break;
+                }
+            } else {
+                printError("This message was not sent produced by Notary Server!;");
             }
-            else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                printError("Specified good does not exist in the notary system;");
-            }
-            else {
-                printError("Notary suffered from an internal error, please try again later;");
-            }
-
-        } catch (MalformedURLException exc) {
-            printError("MalformedURLException: could not resolve notary server host;");
-        } catch (ProtocolException exc) {
-            printError("ProtocolException: invalid request method;");
-        } catch (IOException exc) {
-            printError("IOException: " + exc.getMessage() + ";");
-        } catch (IllegalStateException exc) {
-            printError("IllegalStateException: connection was unintentionally opened twice;");
+        } catch (Exception exc) {
+            printError(exc.getMessage());
         }
     }
 
