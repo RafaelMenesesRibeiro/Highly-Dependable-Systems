@@ -1,7 +1,9 @@
 package hds.security;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +16,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.temporal.ChronoUnit;
 
 public class SecurityManager {
-
+    private static final String SERVER_RESERVED_PORT = "8000";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
@@ -23,6 +25,14 @@ public class SecurityManager {
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
     private SecurityManager() {
+    }
+
+    public static byte[] getByteArray(Object object) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(object);
+            return bos.toByteArray();
+        }
     }
 
     private static String getResourcePath(String resourceId, boolean isPublicKey) {
@@ -73,6 +83,16 @@ public class SecurityManager {
         PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
         KeyFactory kf = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
         return kf.generatePrivate(ks);
+    }
+
+    public static byte[] signData(byte[] data)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidKeySpecException {
+
+        PrivateKey key = getPrivateKeyFromResource(SERVER_RESERVED_PORT);
+        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
+        sign.initSign(key);
+        sign.update(data);
+        return sign.sign();
     }
 
     public static byte[] signData(PrivateKey key, byte[] data)

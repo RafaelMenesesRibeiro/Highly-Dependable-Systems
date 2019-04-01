@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 public class WantToBuyController {
@@ -25,7 +23,14 @@ public class WantToBuyController {
         String goodID = transactionData.getGoodID();
 
         try {
-            SecurityManager.verifySignature(SecurityManager.getPublicKeyFromResource(ClientProperties.getPort()), buyerSignature, SecurityManager.getByteArray(transactionData));
+            byte[] transactionDataBytes = SecurityManager.getByteArray(transactionData);
+            PublicKey buyerPublicKey = SecurityManager.getPublicKeyFromResource(buyerID);
+            PrivateKey sellerPrivateKey = SecurityManager.getPrivateKeyFromResource(ClientProperties.getPort());
+            byte[] sellerSignature = SecurityManager.signData(sellerPrivateKey, transactionDataBytes);
+
+            SecurityManager.verifySignature(buyerPublicKey, buyerSignature, transactionDataBytes);
+            signedTransactionData.setSellerSignature(sellerSignature);
+            //TODO: SEND TO NOTARY
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (SignatureException e) {

@@ -29,42 +29,47 @@ public class ClientApplication {
         app.run(args);
 
         while(acceptingCommands) {
-
-            System.out.print("[o] Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit... \n");
-
+            print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
             try {
                 input = inputScanner.nextInt();
-                switch (input) {
-                    case 1:
-                        getStateOfGood();
-                        break;
-                    case 2:
-                        buyGood();
-                        break;
-                    case 3:
-                        intentToSell();
-                    case 4:
-                        acceptingCommands = false;
-                        break;
-                    default:
-                        break;
-                }
             } catch (NoSuchElementException | IllegalStateException exc) {
                 continue;
+            }
+
+            switch (input) {
+                case 1:
+                    getStateOfGood();
+                    break;
+                case 2:
+                    buyGood();
+                    break;
+                case 3:
+                    intentionToSell();
+                case 4:
+                    acceptingCommands = false;
+                    break;
+                default:
+                    break;
             }
         }
 
         acceptingCommands = true;
     }
 
+    private static void buyGood() {
+        // TODO
+    }
+
+
+    private static  void intentionToSell() {
+        // TODO
+    }
 
     private static void getStateOfGood() {
-        String goodId = scanString("Provide good identifier: ");
         try {
+            String goodId = requestGoodId();
             String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", goodId);
-
-            URL url = new URL(requestUrl.toString());
-
+            URL url = new URL(requestUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
@@ -73,7 +78,13 @@ public class ClientApplication {
             connection.setRequestProperty("Accept", "application/json");
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                // ...
+                // Car car = objectMapper.readValue(json, Car.class);
+            }
+            else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                printError("Specified good does not exist in the notary system;");
+            }
+            else {
+                printError("Notary suffered from an internal error, please try again later;");
             }
 
         } catch (MalformedURLException exc) {
@@ -87,22 +98,16 @@ public class ClientApplication {
         }
     }
 
-    private static void buyGood() {
-        String goodId = scanString("Provide good identifier: ");
-        String sellerId = scanString("Provide seller identifier: ");
-    }
-
-    private static void intentToSell() {
-        String goodId = scanString("Provide good identifier: ");
+    private static String requestGoodId() {
+        return scanString("Provide good identifier: ");
     }
 
     private static String scanString(String requestString) {
         print(requestString);
-
         try {
             return inputScanner.next();
         } catch (NoSuchElementException | IllegalStateException exc) {
-            return null;
+            return scanString(requestString);
         }
     }
 
