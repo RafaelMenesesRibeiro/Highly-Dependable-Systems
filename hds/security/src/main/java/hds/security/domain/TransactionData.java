@@ -11,24 +11,28 @@ public class TransactionData {
         this.goodID = goodID;
     }
 
+    public TransactionData() {
+
+    }
+    
     public String getSellerID() {
-        return this.sellerID;
-    }
-
-    public String getBuyerID() {
-        return this.buyerID;
-    }
-
-    public String getGoodID() {
-        return this.goodID;
+        return sellerID;
     }
 
     public void setSellerID(String sellerID) {
         this.sellerID = sellerID;
     }
 
+    public String getBuyerID() {
+        return buyerID;
+    }
+
     public void setBuyerID(String buyerID) {
         this.buyerID = buyerID;
+    }
+
+    public String getGoodID() {
+        return goodID;
     }
 
     public void setGoodID(String goodID) {

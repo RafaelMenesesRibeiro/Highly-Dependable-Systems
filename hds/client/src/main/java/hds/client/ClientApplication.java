@@ -16,7 +16,8 @@ import static hds.security.SecurityManager.*;
 @SpringBootApplication
 public class ClientApplication {
     private static int input;
-    private static final String HDS_NOTARY_HOST = "http://localhost:8000/";
+    // private static final String HDS_NOTARY_HOST = "http://localhost:8000/";
+    private static final String HDS_NOTARY_HOST = "http://hds-notary-server-production.herokuapp.com/";
     private static boolean acceptingCommands = true;
     private static Scanner inputScanner = new Scanner(System.in);
 

@@ -19,6 +19,10 @@ public class SecureResponse {
 		this.signature = signature;
 	}
 
+	public SecureResponse() {
+
+	}
+
 	public SecureResponse(BasicResponse response) {
 		try {
 			byte[] data = SecurityManager.getByteArray(response);
@@ -38,8 +42,16 @@ public class SecureResponse {
 		return payload;
 	}
 
+	public void setPayload(BasicResponse payload) {
+		this.payload = payload;
+	}
+
 	public byte[] getSignature() {
 		return signature;
+	}
+
+	public void setSignature(byte[] signature) {
+		this.signature = signature;
 	}
 
 	@Override

@@ -1,8 +1,8 @@
 package hds.security.domain;
 
 public class GoodState extends BasicResponse{
-	private final String ownerId;
-	private final boolean onSale;
+	private String ownerId;
+	private boolean onSale;
 
 	public GoodState(int code, String message, String operation, String ownerId, boolean onSale) {
 		super(code, message, operation);
@@ -10,12 +10,24 @@ public class GoodState extends BasicResponse{
 		this.onSale = onSale;
 	}
 
+	public GoodState() {
+
+	}
+
 	public String getOwnerId() {
 		return ownerId;
 	}
 
-	public boolean getOnSale() {
+	public void setOwnerId(String ownerId) {
+		this.ownerId = ownerId;
+	}
+
+	public boolean isOnSale() {
 		return onSale;
+	}
+
+	public void setOnSale(boolean onSale) {
+		this.onSale = onSale;
 	}
 
 	@Override

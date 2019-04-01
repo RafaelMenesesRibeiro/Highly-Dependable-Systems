@@ -3,9 +3,9 @@ package hds.security.domain;
 import java.io.Serializable;
 
 public class BasicResponse implements Serializable {
-	private final int code;
-	private final String operation;
-	private final String message;
+	private int code;
+	private String operation;
+	private String message;
 
 	public BasicResponse(int code, String message, String operation) {
 		this.code = code;
@@ -13,16 +13,32 @@ public class BasicResponse implements Serializable {
 		this.operation = operation;
 	}
 
+	public BasicResponse() {
+
+
+	}
 	public int getCode() {
 		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	public String getOperation() {
+		return operation;
+	}
+
+	public void setOperation(String operation) {
+		this.operation = operation;
 	}
 
 	public String getMessage() {
 		return message;
 	}
 
-	public String getOperation() {
-		return operation;
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	@Override
