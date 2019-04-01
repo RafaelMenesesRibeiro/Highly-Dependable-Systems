@@ -11,11 +11,23 @@ public class SignedOwnerData {
 		this.payload = data;
 	}
 
+	public SignedOwnerData() {
+
+	}
+
 	public byte[] getSignature() {
 		return signature;
 	}
 
+	public void setSignature(byte[] signature) {
+		this.signature = signature;
+	}
+
 	public OwnerData getPayload() {
 		return payload;
+	}
+
+	public void setPayload(OwnerData payload) {
+		this.payload = payload;
 	}
 }

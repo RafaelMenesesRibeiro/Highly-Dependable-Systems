@@ -7,6 +7,10 @@ public class SignedTransactionData {
 	private byte[] buyerSignature;
 	private byte[] sellerSignature;
 
+	public SignedTransactionData() {
+
+	}
+
 	public SignedTransactionData(TransactionData data, String buyerSignature) {
 		this.payload = data;
 		this.buyerSignature = Base64.getDecoder().decode(buyerSignature);
