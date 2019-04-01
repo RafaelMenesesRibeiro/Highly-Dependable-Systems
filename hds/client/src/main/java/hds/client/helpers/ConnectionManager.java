@@ -13,6 +13,7 @@ import java.security.spec.InvalidKeySpecException;
 import static hds.security.SecurityManager.isAuthenticResponse;
 
 public class ConnectionManager {
+    private static final int MAX_WAIT = 8000;
 
     public static HttpURLConnection initiateGETConnection(String requestUrl) throws IOException {
         URL url = new URL(requestUrl);
@@ -22,6 +23,7 @@ public class ConnectionManager {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("Accept", "application/json");
+        connection.setConnectTimeout(MAX_WAIT);
         return connection;
     }
 
@@ -33,7 +35,7 @@ public class ConnectionManager {
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("Accept", "application/json");
-
+        connection.setConnectTimeout(MAX_WAIT);
         return connection;
     }
 

@@ -18,8 +18,8 @@ import static hds.security.SecurityManager.*;
 @SpringBootApplication
 public class ClientApplication {
     private static int input;
-    private static boolean acceptingCommands = true;
     private static final String HDS_NOTARY_HOST = "http://localhost:8000/";
+    private static boolean acceptingCommands = true;
     private static Scanner inputScanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -82,6 +82,8 @@ public class ClientApplication {
             sendPostRequest(connection, request);
             processResponse(connection, HDS_NOTARY_HOST);
 
+        } catch (SocketTimeoutException exc) {
+            printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
@@ -93,6 +95,8 @@ public class ClientApplication {
             HttpURLConnection connection = initiateGETConnection(requestUrl);
             processResponse(connection, HDS_NOTARY_HOST);
             printError("Could not verify Notary signature...");
+        } catch (SocketTimeoutException exc) {
+            printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
