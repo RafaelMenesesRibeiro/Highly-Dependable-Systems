@@ -41,4 +41,12 @@ public class SecureResponse {
 	public byte[] getSignature() {
 		return signature;
 	}
+
+	@Override
+	public String toString() {
+		return "SecureResponse{" +
+				"payload=" + payload.toString() +
+				", signature=" + Arrays.toString(signature) +
+				'}';
+	}
 }

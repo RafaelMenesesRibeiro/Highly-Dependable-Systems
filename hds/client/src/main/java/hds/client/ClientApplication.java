@@ -1,20 +1,23 @@
 package hds.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
 import hds.security.domain.GoodState;
 import hds.security.domain.SecureResponse;
+
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import org.apache.http.message.BasicNameValuePair;
+
 import java.io.*;
 import java.net.*;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
-import static hds.client.helpers.ConnectionManager.getSecureResponse;
-import static hds.client.helpers.ConnectionManager.initiateGETConnection;
+import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
@@ -68,34 +71,64 @@ public class ClientApplication {
 
 
     private static  void intentionToSell() {
-        // TODO
+        String clientId = ClientProperties.getPort();
+        try {
+            String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
+            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
+            PrivateKey clientPrivateKey = getPrivateKeyFromResource(clientId);
+
+            JSONObject payload = new JSONObject();
+            payload.put("sellerID", clientId);
+            payload.put("goodID", requestGoodId());
+
+            JSONObject request = new JSONObject();
+            request.put("signature", signData(clientPrivateKey, getByteArray(payload)));
+            request.put("payload", payload);
+
+            sendPostRequest(connection, request);
+            processResponse(connection, HDS_NOTARY_HOST);
+
+        } catch (Exception exc) {
+            printError(exc.getMessage());
+        }
     }
 
     private static void getStateOfGood() {
         try {
             String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
             HttpURLConnection connection = initiateGETConnection(requestUrl);
-            SecureResponse secureResponse = getSecureResponse(connection);
-            PublicKey HDSPublicKey = getPublicKeyFromResource(HDS_NOTARY_HOST);
-
-            if (verifySignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload())) {
-                switch (connection.getResponseCode()) {
-                    case(HttpURLConnection.HTTP_OK):
-                        print(((GoodState)secureResponse.getPayload()).toString());
-                        break;
-                    case(HttpURLConnection.HTTP_NOT_FOUND):
-                        printError("Specified good does not exist in the notary system;");
-                        break;
-                    default:
-                        printError("Notary suffered from an internal error, please try again later;");
-                        break;
-                }
-            } else {
-                printError("This message was not sent produced by Notary Server!;");
-            }
+            processResponse(connection, HDS_NOTARY_HOST);
+            printError("Could not verify Notary signature...");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
+    }
+
+    private static void processResponse(HttpURLConnection connection, String nodeId) throws InvalidKeySpecException, IOException {
+        SecureResponse secureResponse = getSecureResponse(connection);
+        if (isAuthenticResponse(secureResponse, nodeId)) {
+            switch (connection.getResponseCode()) {
+                case(HttpURLConnection.HTTP_OK):
+                    print(secureResponse.toString());
+                    break;
+                case(HttpURLConnection.HTTP_NOT_FOUND):
+                    printError("One of the specified parameters not exist in the notary system; For instance goodID");
+                    break;
+                default:
+                    printError("Notary suffered from an internal error, please try again later;");
+                    break;
+            }
+        } else {
+            printError(String.format("Could not validate nodeId: %s, signature...", nodeId));
+        }
+    }
+
+    private static void print(String msg) {
+        System.out.println("[o] " + msg);
+    }
+
+    private static void printError(String msg) {
+        System.out.println("    [x] " + msg);
     }
 
     private static String requestGoodId() {
@@ -111,11 +144,5 @@ public class ClientApplication {
         }
     }
 
-    private static void print(String msg) {
-        System.out.println("[o] " + msg);
-    }
 
-    private static void printError(String msg) {
-        System.out.println("    [x] " + msg);
-    }
 }
