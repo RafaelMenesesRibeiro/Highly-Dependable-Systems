@@ -24,7 +24,7 @@ import java.util.Base64;
 @RestController
 public class HelloWorld {
 
-    @GetMapping(value = "/hello")
+    @GetMapping(value = "/wantToBuy")
     public String HelloWorldHandle() {
         String resourceId = ClientProperties.getPort();
         String resourceContent = "None";
