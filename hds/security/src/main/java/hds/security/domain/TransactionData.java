@@ -14,7 +14,7 @@ public class TransactionData {
     public TransactionData() {
 
     }
-    
+
     public String getSellerID() {
         return sellerID;
     }
