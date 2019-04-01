@@ -1,9 +1,7 @@
 package hds.security;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -102,6 +100,15 @@ public class SecurityManager {
         sign.initSign(key);
         sign.update(data);
         return sign.sign();
+    }
+
+    public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
+        try {
+            return verifySignature(key, signedData, getByteArray(payload));
+        } catch (Exception exc) {
+            System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
+            return false;
+        }
     }
 
     public static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
