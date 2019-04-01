@@ -1,5 +1,7 @@
 package hds.security;
 
+import hds.security.domain.SecureResponse;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -102,6 +104,13 @@ public class SecurityManager {
         return sign.sign();
     }
 
+    public static boolean isAuthenticResponse(SecureResponse secureResponse, String nodeId)
+            throws IOException, InvalidKeySpecException {
+
+        PublicKey HDSPublicKey = getPublicKeyFromResource(nodeId);
+        return verifySignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload());
+    }
+
     public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
         try {
             return verifySignature(key, signedData, getByteArray(payload));
@@ -111,7 +120,7 @@ public class SecurityManager {
         }
     }
 
-    public static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
+    private static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 
         Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);

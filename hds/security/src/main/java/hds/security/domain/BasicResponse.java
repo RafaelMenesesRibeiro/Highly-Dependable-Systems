@@ -24,4 +24,13 @@ public class BasicResponse implements Serializable {
 	public String getOperation() {
 		return operation;
 	}
+
+	@Override
+	public String toString() {
+		return "BasicResponse{" +
+				"code=" + code +
+				", operation='" + operation + '\'' +
+				", message='" + message + '\'' +
+				'}';
+	}
 }

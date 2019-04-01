@@ -15,27 +15,19 @@ import java.security.spec.InvalidKeySpecException;
 public class WantToBuyController {
     private static final String OPERATION = "wantToBuy";
 
-    @PostMapping(value = "/wantToBuy") //TODO: IT'S NOT VOID!!!!!!!!!!!
+    @PostMapping(value = "/wantToBuy")
     public BasicResponse wantToBuy(@RequestBody SignedTransactionData signedTransactionData) {
         TransactionData transactionData = signedTransactionData.getPayload();
         String sellerID = transactionData.getSellerID();
         String buyerID = transactionData.getBuyerID();
         String goodID = transactionData.getGoodID();
-        BasicResponse payload;
+        BasicResponse payload = null;
 
         try {
             payload = execute(signedTransactionData, sellerID, buyerID, goodID);
 
             //TODO: SEND TO NOTARY
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (SignatureException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | IOException | InvalidKeySpecException e) {
             e.printStackTrace();
         }
 
@@ -55,6 +47,9 @@ public class WantToBuyController {
         }
 
         signedTransactionData.setSellerSignature(sellerSignature);
+
+
+        return null;
     }
 
 }

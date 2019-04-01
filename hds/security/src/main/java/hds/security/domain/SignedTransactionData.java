@@ -8,18 +8,25 @@ public class SignedTransactionData {
 	private byte[] buyerSignature;
 	private byte[] sellerSignature;
 
-	public SignedTransactionData(TransactionData data, String buyerSignature, String sellerSignature) {
+	public SignedTransactionData(TransactionData data, String buyerSignature) {
 		this.payload = data;
 		this.buyerSignature = Base64.getDecoder().decode(buyerSignature);
-		this.sellerSignature = Base64.getDecoder().decode(sellerSignature);
 	}
 
 	public TransactionData getPayload() {
 		return payload;
 	}
 
+	public void setPayload(TransactionData payload) {
+		this.payload = payload;
+	}
+
 	public byte[] getBuyerSignature() {
 		return buyerSignature;
+	}
+
+	public void setBuyerSignature(byte[] buyerSignature) {
+		this.buyerSignature = buyerSignature;
 	}
 
 	public byte[] getSellerSignature() {
