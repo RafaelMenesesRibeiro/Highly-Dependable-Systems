@@ -3,6 +3,7 @@ package hds.security.domain;
 import java.util.Base64;
 
 public class SignedTransactionData {
+
 	private TransactionData payload;
 	private byte[] buyerSignature;
 	private byte[] sellerSignature;
@@ -37,6 +38,6 @@ public class SignedTransactionData {
 	}
 
 	public void setSellerSignature(byte[] sellerSignature) {
-		this.sellerSignature = sellerSignature;
-	}
+	    this.sellerSignature = sellerSignature;
+    }
 }

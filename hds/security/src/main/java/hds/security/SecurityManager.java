@@ -111,7 +111,7 @@ public class SecurityManager {
         return verifySignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload());
     }
 
-    private static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
+    public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
         try {
             return verifySignature(key, signedData, getByteArray(payload));
         } catch (Exception exc) {
