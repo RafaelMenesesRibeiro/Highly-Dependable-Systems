@@ -1,12 +1,16 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hds.client.ClientApplication;
 import hds.security.domain.SecureResponse;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.spec.InvalidKeySpecException;
+
+import static hds.security.SecurityManager.isAuthenticResponse;
 
 public class ConnectionManager {
 
@@ -42,7 +46,7 @@ public class ConnectionManager {
         outputStream.close();
     }
 
-    public static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
+    private static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = getJSONStringFromHttpResponse(connection);
         SecureResponse secureResponse = objectMapper.readValue(jsonResponse, SecureResponse.class);
@@ -64,5 +68,26 @@ public class ConnectionManager {
         inputStream.close();
 
         return jsonResponse.toString();
+    }
+
+    public static void processResponse(HttpURLConnection connection, String nodeId)
+            throws InvalidKeySpecException, IOException {
+
+        SecureResponse secureResponse = getSecureResponse(connection);
+        if (isAuthenticResponse(secureResponse, nodeId)) {
+            switch (connection.getResponseCode()) {
+                case(HttpURLConnection.HTTP_OK):
+                    System.out.println("[o] " + secureResponse.toString());
+                    break;
+                case(HttpURLConnection.HTTP_NOT_FOUND):
+                    System.out.println("    [x] One of the specified parameters not exist in the notary system;");
+                    break;
+                default:
+                    System.out.println("    [x] Notary suffered from an internal error, please try again later;");
+                    break;
+            }
+        } else {
+            System.out.println(String.format("    [x] Could not validate nodeId: %s, signature...", nodeId));
+        }
     }
 }
