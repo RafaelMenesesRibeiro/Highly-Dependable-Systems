@@ -6,8 +6,6 @@ import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import org.apache.http.message.BasicNameValuePair;
-
 import java.net.*;
 import java.security.PrivateKey;
 import java.util.*;
@@ -61,7 +59,33 @@ public class ClientApplication {
     }
 
     private static void buyGood() {
-        // TODO
+        String buyerId = ClientProperties.getPort();
+        String sellerId = String.format("http://localhost:%s/", requestSellerId());
+        String goodId = requestGoodId();
+
+        try {
+            String requestUrl = String.format("%s%s", sellerId, "wantToBuy");
+            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
+            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
+
+            JSONObject payload = new JSONObject();
+            payload.put("sellerID", sellerId);
+            payload.put("buyerID", buyerId);
+            payload.put("goodID", goodId);
+
+            JSONObject request = new JSONObject();
+            request.put("buyerSignature", signData(clientPrivateKey, getByteArray(payload)));
+            request.put("sellerSignature", null);
+            request.put("payload", payload);
+
+            sendPostRequest(connection, request);
+            processResponse(connection, sellerId);
+
+        } catch (SocketTimeoutException exc) {
+            printError("Target node did not respond within expected limits. Try again at your discretion.");
+        } catch (Exception exc) {
+            printError(exc.getMessage());
+        }
     }
 
     private static  void intentionToSell() {
@@ -104,6 +128,10 @@ public class ClientApplication {
 
     private static String requestGoodId() {
         return scanString("Provide good identifier: ");
+    }
+
+    private static String requestSellerId() {
+        return scanString("Provide the owner of the good you want to buy.");
     }
 
     private static String scanString(String requestString) {
