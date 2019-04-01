@@ -1,4 +1,4 @@
-package com.security.domain;
+package hds.security.domain;
 
 public class OwnerData {
 	private final String sellerID;

@@ -1,4 +1,4 @@
-package com.security.domain;
+package hds.security.domain;
 
 public class TransactionData {
     private String sellerID;
