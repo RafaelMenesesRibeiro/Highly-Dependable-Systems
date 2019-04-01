@@ -91,23 +91,7 @@ public class ClientApplication {
 
 
     }
-
-    private String encodeValue(String value) throws UnsupportedEncodingException {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException exc) {
-            printError("UnsupportedEncodingException: " + exc.getMessage());
-        }
-    }
-
-    public void givenRequestParam_whenUTF8Scheme_thenEncode(URL url, HashMap<String, String> requesParametersMap) {
-
-            return requesParametersMap.keySet().stream().map(
-                    key -> key + "=" + encodeValue(requesParametersMap.get(key))
-            ).collect(joining("&", "http://www.baeldung.com?", ""));
-
-    }
-
+    
 
     private static void buyGood() {
     }
