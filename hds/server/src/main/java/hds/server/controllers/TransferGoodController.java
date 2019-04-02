@@ -79,9 +79,12 @@ public class TransferGoodController {
 		if (buyerID == null || buyerID.equals("")) {
 			throw new InvalidQueryParameterException("The parameter 'buyerID' in query 'transferGood' is either null or an empty string.");
 		}
+		if (goodID == null || goodID.equals("")) {
+			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
+		}
 		try (Connection conn = DatabaseManager.getConnection()) {
 			if (TransactionValidityChecker.isValidTransaction(conn, signedData)) {
-				TransferGood.TransferGood(conn, sellerID, buyerID, goodID);
+				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
 				return new BasicResponse(200, "ok", OPERATION);
 			}
 			else {

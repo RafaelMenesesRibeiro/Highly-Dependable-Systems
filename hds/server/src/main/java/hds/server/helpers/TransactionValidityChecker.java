@@ -16,6 +16,10 @@ import java.util.List;
 import static hds.security.SecurityManager.*;
 
 public class TransactionValidityChecker {
+	private TransactionValidityChecker() {
+		// This is here so the class can't be instantiated. //
+	}
+
 	public static boolean isValidTransaction(Connection conn, SignedTransactionData signedData)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException,
 					IOException, SignatureException, IncorrectSignatureException {
