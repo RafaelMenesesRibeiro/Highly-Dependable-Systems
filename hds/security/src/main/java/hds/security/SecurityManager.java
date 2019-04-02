@@ -1,20 +1,24 @@
 package hds.security;
 
+import hds.security.domain.SecureResponse;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-;import java.time.Instant;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-public class SecurityManager {
+;
 
+public class SecurityManager {
+    private static final String SERVER_RESERVED_PORT = "8000";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
@@ -23,6 +27,14 @@ public class SecurityManager {
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
     private SecurityManager() {
+    }
+
+    public static byte[] getByteArray(Object object) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(object);
+            return bos.toByteArray();
+        }
     }
 
     private static String getResourcePath(String resourceId, boolean isPublicKey) {
@@ -75,6 +87,16 @@ public class SecurityManager {
         return kf.generatePrivate(ks);
     }
 
+    public static byte[] signData(byte[] data)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException, InvalidKeySpecException {
+
+        PrivateKey key = getPrivateKeyFromResource(SERVER_RESERVED_PORT);
+        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
+        sign.initSign(key);
+        sign.update(data);
+        return sign.sign();
+    }
+
     public static byte[] signData(PrivateKey key, byte[] data)
             throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
@@ -84,7 +106,23 @@ public class SecurityManager {
         return sign.sign();
     }
 
-    public static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
+    public static boolean isAuthenticResponse(SecureResponse secureResponse, String nodeId)
+            throws IOException, InvalidKeySpecException {
+
+        PublicKey HDSPublicKey = getPublicKeyFromResource(nodeId);
+        return verifySignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload());
+    }
+
+    public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
+        try {
+            return verifySignature(key, signedData, getByteArray(payload));
+        } catch (Exception exc) {
+            System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
+            return false;
+        }
+    }
+
+    private static boolean verifySignature(PublicKey key, byte[] signedData, byte[] testData)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 
         Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);

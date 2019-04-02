@@ -1,6 +1,5 @@
 package hds.client.config;
 
-import ch.qos.logback.core.net.server.Client;
 import hds.client.helpers.ClientProperties;
 import org.springframework.boot.web.server.ConfigurableWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
