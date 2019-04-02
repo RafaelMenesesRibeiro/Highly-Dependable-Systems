@@ -8,11 +8,12 @@ import hds.server.msgtypes.BasicResponse;
 import hds.server.msgtypes.ErrorResponse;
 import hds.server.msgtypes.SecureResponse;
 import hds.server.msgtypes.StateOfGood;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -21,13 +22,11 @@ public class GetStateOfGoodController {
 	private static final String OPERATION = "getStateOfGood";
 
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
-	public SecureResponse getStateOfGood(@RequestParam("goodID") String goodID) {
+	public ResponseEntity<SecureResponse> getStateOfGood(@RequestParam("goodID") String goodID) {
 		BasicResponse payload;
 		try {
 			payload = execute(goodID);
-		}
-		catch (URISyntaxException urisex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_URI, OPERATION, urisex.getMessage());
+			return sendResponse(payload, true);
 		}
 		catch (InvalidQueryParameterException iqpex) {
 			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage());
@@ -44,22 +43,29 @@ public class GetStateOfGoodController {
 		catch (DBSQLException | SQLException sqlex) {
 			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
 		}
-		//noinspection Duplicates
-		try {
-			return new SecureResponse(payload);
-		}
-		catch (SignatureException se) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, se.getMessage());
-			return new SecureResponse(payload, true);
-		}
+		return sendResponse(payload, false);
 	}
 
 	private StateOfGood execute(String goodID)
-			throws URISyntaxException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
 			return new StateOfGood(200, "ok", OPERATION, ownerID, state);
+		}
+	}
+
+	private ResponseEntity<SecureResponse> sendResponse(BasicResponse payload, boolean isSuccess) {
+		//noinspection Duplicates
+		try {
+			if (isSuccess) {
+				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
+			}
+			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(payload.getCode()));
+		}
+		catch (SignatureException ex) {
+			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(payload.getCode()));
 		}
 	}
 }
