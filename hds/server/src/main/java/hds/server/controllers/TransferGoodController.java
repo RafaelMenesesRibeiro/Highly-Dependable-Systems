@@ -52,6 +52,7 @@ public class TransferGoodController {
 		catch (DBSQLException | SQLException sqlex) {
 			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
 		}
+		//noinspection Duplicates
 		try {
 			return new SecureResponse(payload);
 		}
