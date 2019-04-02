@@ -55,8 +55,8 @@ public class GetStateOfGoodController {
 		}
 	}
 
+	@SuppressWarnings("Duplicates")
 	private ResponseEntity<SecureResponse> sendResponse(BasicResponse payload, boolean isSuccess) {
-		//noinspection Duplicates
 		try {
 			if (isSuccess) {
 				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);

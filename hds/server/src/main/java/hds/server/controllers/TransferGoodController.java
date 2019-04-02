@@ -10,6 +10,8 @@ import hds.server.helpers.TransferGood;
 import hds.server.msgtypes.BasicResponse;
 import hds.server.msgtypes.ErrorResponse;
 import hds.server.msgtypes.SecureResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +28,7 @@ public class TransferGoodController {
 	private static final String OPERATION = "transferGood";
 
 	@PostMapping(value = "/transferGood")
-	public SecureResponse transferGood(@RequestBody SignedTransactionData signedData) {
+	public ResponseEntity<SecureResponse> transferGood(@RequestBody SignedTransactionData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
 
@@ -52,14 +54,7 @@ public class TransferGoodController {
 		catch (DBSQLException | SQLException sqlex) {
 			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
 		}
-		//noinspection Duplicates
-		try {
-			return new SecureResponse(payload);
-		}
-		catch (SignatureException se) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, se.getMessage());
-			return new SecureResponse(payload, true);
-		}
+		return sendResponse(payload, false);
 	}
 
 	private BasicResponse execute(SignedTransactionData signedData)
@@ -91,6 +86,20 @@ public class TransferGoodController {
 		}
 		catch (IncorrectSignatureException is){
 			return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage());
+		}
+	}
+
+	@SuppressWarnings("Duplicates")
+	private ResponseEntity<SecureResponse> sendResponse(BasicResponse payload, boolean isSuccess) {
+		try {
+			if (isSuccess) {
+				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
+			}
+			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(payload.getCode()));
+		}
+		catch (SignatureException ex) {
+			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(payload.getCode()));
 		}
 	}
 }
