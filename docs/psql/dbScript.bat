@@ -13,7 +13,7 @@ ECHO * This script creates a database for HDS_Server and it's tables *
 ECHO *****************************************************************
 ECHO.
 ECHO.
-SET /p DUMMY=Hit ENTER to continue...
+SET /p CONTINUE_DUMMY=Hit ENTER to continue...
 ECHO.
 ECHO.
 :: psql -d <dbname> -U <host>
@@ -26,4 +26,4 @@ SET DB_HOST="localhost"
 psql -d %DB_NAME% -U %DB_USER% -f batSetup.sql
 ECHO.
 ECHO.
-SET /p DUMMY=Hit ENTER to quit...
+SET /p EXIT_DUMMY=Hit ENTER to quit...
