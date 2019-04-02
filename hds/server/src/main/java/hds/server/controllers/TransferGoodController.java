@@ -37,9 +37,6 @@ public class TransferGoodController {
 		catch (IOException e) {
 			payload = new ErrorResponse(403, ControllerErrorConsts.CANCER, OPERATION, e.getMessage());
 		}
-		catch (URISyntaxException urisex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_URI, OPERATION, urisex.getMessage());
-		}
 		catch (InvalidQueryParameterException iqpex) {
 			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage());
 		}
@@ -65,7 +62,7 @@ public class TransferGoodController {
 	}
 
 	private BasicResponse execute(SignedTransactionData signedData)
-			throws URISyntaxException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
 					InvalidQueryParameterException, DBNoResultsException, IOException {
 
 		TransactionData transactionData = signedData.getPayload();
@@ -88,7 +85,7 @@ public class TransferGoodController {
 				return new BasicResponse(200, "ok", OPERATION);
 			}
 			else {
-				return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "NOT IMPLEMENTED YET.");
+				return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The transaction is not valid.");
 			}
 		}
 		catch (IncorrectSignatureException is){
