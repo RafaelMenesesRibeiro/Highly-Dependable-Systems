@@ -55,7 +55,7 @@ public class GetStateOfGoodController {
 
 	private StateOfGood execute(String goodID)
 			throws URISyntaxException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
-		try (Connection conn = DatabaseManager.getJDBCConnection()) {
+		try (Connection conn = DatabaseManager.getConnection()) {
 			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
 			return new StateOfGood(200, "ok", OPERATION, ownerID, state);

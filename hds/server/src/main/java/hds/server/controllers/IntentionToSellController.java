@@ -77,7 +77,7 @@ public class IntentionToSellController {
 		if (sellerID == null || sellerID.equals("")) {
 			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
 		}
-		try (Connection conn = DatabaseManager.getJDBCConnection()) {
+		try (Connection conn = DatabaseManager.getConnection()) {
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
 				return new ErrorResponse(403, "You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'.");
