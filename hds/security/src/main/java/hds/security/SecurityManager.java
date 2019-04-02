@@ -2,18 +2,20 @@ package hds.security;
 
 import hds.security.domain.SecureResponse;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-;import java.time.Instant;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+;
 
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";

@@ -1,14 +1,16 @@
 package hds.client;
 
 import hds.client.helpers.ClientProperties;
-
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.security.PrivateKey;
-import java.util.*;
+import java.util.Collections;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.*;

@@ -1,7 +1,6 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.client.ClientApplication;
 import hds.security.domain.SecureResponse;
 import org.json.JSONObject;
 
