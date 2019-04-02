@@ -13,6 +13,7 @@
         <module>puppetmaster</module>
         <module>security</module>
         <module>client</module>
+		<module>server</module>
     </modules>
 
 </project>
