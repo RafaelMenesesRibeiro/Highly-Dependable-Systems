@@ -2,7 +2,7 @@ package hds.client.controllers;
 
 import hds.client.helpers.ClientProperties;
 import hds.security.SecurityManager;
-import hds.security.domain.BasicResponse;
+import hds.security.msgtypes.BasicResponse;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
 import org.springframework.web.bind.annotation.PostMapping;

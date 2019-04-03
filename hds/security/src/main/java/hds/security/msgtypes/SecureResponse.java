@@ -1,14 +1,13 @@
-package hds.security.domain;
+package hds.security.msgtypes;
 
 import hds.security.SecurityManager;
+import hds.security.exceptions.SignatureException;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 public class SecureResponse {
 	private BasicResponse payload;
@@ -29,13 +28,14 @@ public class SecureResponse {
 			this.payload = response;
 			this.signature = SecurityManager.signData(data);
 		}
-		catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | IOException | InvalidKeySpecException e) {
-			// TODO - Remove this. //
-			Logger logger = Logger.getAnonymousLogger();
-			logger.warning(e.toString());
-			logger.warning(Arrays.toString(e.getStackTrace()));
-			logger.warning("Caught exception: " + e.getMessage());
-		}
+		catch (NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException | IOException | InvalidKeySpecException e) {
+				throw new SignatureException(e.getMessage());
+			}
+	}
+
+	public SecureResponse(BasicResponse response, boolean isException) {
+		this.payload = response;
+		this.signature = new byte[0];
 	}
 
 	public BasicResponse getPayload() {

@@ -1,7 +1,7 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.security.domain.SecureResponse;
+import hds.security.msgtypes.SecureResponse;
 import org.json.JSONObject;
 
 import java.io.*;

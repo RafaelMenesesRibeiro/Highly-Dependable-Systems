@@ -1,6 +1,9 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
+import hds.security.msgtypes.BasicResponse;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
@@ -8,9 +11,6 @@ import hds.server.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
-import hds.server.msgtypes.BasicResponse;
-import hds.server.msgtypes.ErrorResponse;
-import hds.server.msgtypes.SecureResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,6 +1,6 @@
 package hds.server.domain;
 
-import hds.server.msgtypes.BasicResponse;
+import hds.security.msgtypes.BasicResponse;
 
 public class MetaResponse {
 	private final int statusCode;
