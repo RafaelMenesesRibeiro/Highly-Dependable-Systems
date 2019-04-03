@@ -5,6 +5,7 @@ import hds.security.domain.TransactionData;
 import hds.security.msgtypes.BasicResponse;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SecureResponse;
+import hds.security.SecurityManager;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.ControllerErrorConsts;
@@ -75,6 +76,14 @@ public class TransferGoodController {
 		if (goodID == null || goodID.equals("")) {
 			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
 		}
+
+		if (sellerID.equals(SecurityManager.SELLER_EXCEPTION_ID)) {
+			return new MetaResponse(424, new ErrorResponse(ControllerErrorConsts.BAD_SELLER, OPERATION, "The seller does not specify the reason."));
+		}
+		if (sellerID.equals(SecurityManager.SELLER_INCORRECT_BUYER_SIGNATURE)) {
+			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_SIGNATURE, OPERATION, "The seller thinks your signature is incorrect."));
+		}
+
 		try (Connection conn = DatabaseManager.getConnection()) {
 			if (TransactionValidityChecker.isValidTransaction(conn, signedData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);

@@ -17,6 +17,8 @@ import java.time.temporal.ChronoUnit;
 
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";
+    public static final String SELLER_EXCEPTION_ID = "-1";
+    public static final String SELLER_INCORRECT_BUYER_SIGNATURE = "-2";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
@@ -24,8 +26,7 @@ public class SecurityManager {
     private static final String PUBLIC_KEY_FILE_EXTENSION = ".pub";
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
-    private SecurityManager() {
-    }
+    private SecurityManager() {}
 
     public static byte[] getByteArray(Object object) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
