@@ -1,28 +1,18 @@
-package hds.security.domain;
+package hds.security.msgtypes;
 
 import java.io.Serializable;
 
 public class BasicResponse implements Serializable {
-	private int code;
 	private String operation;
 	private String message;
 
-	public BasicResponse(int code, String message, String operation) {
-		this.code = code;
+	public BasicResponse(String message, String operation) {
 		this.message = message;
 		this.operation = operation;
 	}
 
 	public BasicResponse() {
-
-
-	}
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
+		// This is here so the class can't be instantiated. //
 	}
 
 	public String getOperation() {
@@ -44,7 +34,6 @@ public class BasicResponse implements Serializable {
 	@Override
 	public String toString() {
 		return "BasicResponse{" +
-				"code=" + code +
 				", operation='" + operation + '\'' +
 				", message='" + message + '\'' +
 				'}';

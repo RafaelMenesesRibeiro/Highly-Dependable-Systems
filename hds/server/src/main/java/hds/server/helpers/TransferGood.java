@@ -7,19 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransferGood {
+	private TransferGood() {
+		// This is here so the class can't be instantiated. //
+	}
 
-	public static void TransferGood(Connection conn, String sellerID, String buyerID, String goodID)
+	public static void transferGood(Connection conn, String sellerID, String buyerID, String goodID)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
-
-		if (sellerID == null || sellerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'transferGood' is either null or an empty string.");
-		}
-		if (buyerID == null || buyerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'buyerID' in query 'transferGood' is either null or an empty string.");
-		}
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
-		}
 
 		String query = "UPDATE goods SET onSale = ? WHERE goodID = ?";
 		List<String> args = new ArrayList<>();

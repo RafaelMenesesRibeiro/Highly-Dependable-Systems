@@ -1,17 +1,17 @@
-package hds.security.domain;
+package hds.security.msgtypes;
 
-public class GoodState extends BasicResponse{
+public class GoodState extends BasicResponse {
 	private String ownerId;
 	private boolean onSale;
 
-	public GoodState(int code, String message, String operation, String ownerId, boolean onSale) {
-		super(code, message, operation);
+	public GoodState(String message, String operation, String ownerId, boolean onSale) {
+		super(message, operation);
 		this.ownerId = ownerId;
 		this.onSale = onSale;
 	}
 
 	public GoodState() {
-
+		// This is here so the class can't be instantiated. //
 	}
 
 	public String getOwnerId() {

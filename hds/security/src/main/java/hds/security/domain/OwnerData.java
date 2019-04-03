@@ -1,16 +1,18 @@
 package hds.security.domain;
 
-public class OwnerData {
+import java.io.Serializable;
+
+public class OwnerData implements Serializable {
 	private String sellerID;
 	private String goodID;
+
+	public OwnerData() {}
 
 	public OwnerData(String sellerID, String goodID) {
 		super();
 		this.sellerID = sellerID;
 		this.goodID = goodID;
 	}
-
-	public OwnerData() {}
 
 	public String getSellerID() {
 		return sellerID;

@@ -1,21 +1,23 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
+import hds.security.msgtypes.BasicResponse;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SecureResponse;
+import hds.server.domain.MetaResponse;
 import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
 import hds.server.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
-import hds.server.msgtypes.BasicResponse;
-import hds.server.msgtypes.ErrorResponse;
-import hds.server.msgtypes.SecureResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -28,46 +30,37 @@ public class IntentionToSellController {
 	private static final String OPERATION = "markForSale";
 
 	@PostMapping(value = "/intentionToSell")
-	public SecureResponse intentionToSell(@RequestBody SignedOwnerData signedData) {
+	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
 
-		BasicResponse payload;
+		MetaResponse metaResponse;
 		try {
-			payload = execute(signedData);
+			metaResponse = execute(signedData);
 		}
 		catch (IOException e) {
-			payload = new ErrorResponse(403, ControllerErrorConsts.CANCER, OPERATION, e.getMessage());
-		}
-		catch (URISyntaxException urisex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_URI, OPERATION, urisex.getMessage());
+			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
 		}
 		catch (InvalidQueryParameterException iqpex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage());
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
-			payload = new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage());
+			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
 		}
 		catch (DBClosedConnectionException dbccex) {
-			payload = new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage());
+			metaResponse = new MetaResponse(503, new ErrorResponse(ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
 		}
 		catch (DBNoResultsException dbnrex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
 		}
 		catch (DBSQLException | SQLException sqlex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
 		}
-		try {
-			return new SecureResponse(payload);
-		}
-		catch (SignatureException se) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, se.getMessage());
-			return new SecureResponse(payload, true);
-		}
+		return sendResponse(metaResponse, false);
 	}
 
-	private BasicResponse execute(SignedOwnerData signedData)
-			throws URISyntaxException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
+	private MetaResponse execute(SignedOwnerData signedData)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
 					DBSQLException, InvalidQueryParameterException, DBNoResultsException, IOException {
 
 		OwnerData ownerData = signedData.getPayload();
@@ -80,17 +73,32 @@ public class IntentionToSellController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
-				return new ErrorResponse(403, "You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'.");
+				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
 			}
 			boolean res = TransactionValidityChecker.isClientWilling(sellerID, signedData.getSignature(), getByteArray(ownerData));
 			if (!res) {
-				return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid.");
+				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
 			}
 			MarkForSale.markForSale(conn, goodID);
-			return new BasicResponse(200, "ok", OPERATION);
+			return new MetaResponse(new BasicResponse("ok", OPERATION));
 		}
 		catch (SignatureException is){
-			return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage());
+			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage()));
+		}
+	}
+
+	@SuppressWarnings("Duplicates")
+	private ResponseEntity<SecureResponse> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
+		BasicResponse payload = metaResponse.getPayload();
+		try {
+			if (isSuccess) {
+				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
+			}
+			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
+		}
+		catch (SignatureException ex) {
+			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

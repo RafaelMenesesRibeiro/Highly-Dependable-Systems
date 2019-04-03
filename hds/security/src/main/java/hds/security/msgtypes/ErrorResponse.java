@@ -1,15 +1,15 @@
-package hds.security.domain;
+package hds.security.msgtypes;
 
 public class ErrorResponse extends BasicResponse {
 	private String reason;
 
-	public ErrorResponse(int code, String message, String operation, String reason) {
-		super(code, message, operation);
+	public ErrorResponse(String message, String operation, String reason) {
+		super(message, operation);
 		this.reason = reason;
 	}
 
 	public ErrorResponse() {
-
+		// This is here so the class can't be instantiated. //
 	}
 
 	public String getReason() {

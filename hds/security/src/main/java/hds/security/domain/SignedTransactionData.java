@@ -3,14 +3,11 @@ package hds.security.domain;
 import java.util.Base64;
 
 public class SignedTransactionData {
-
 	private TransactionData payload;
 	private byte[] buyerSignature;
 	private byte[] sellerSignature;
 
-	public SignedTransactionData() {
-
-	}
+	public SignedTransactionData() {}
 
 	public SignedTransactionData(TransactionData data, String buyerSignature) {
 		this.payload = data;
