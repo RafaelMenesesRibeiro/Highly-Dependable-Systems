@@ -2,6 +2,7 @@ package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
 import hds.security.domain.SignedOwnerData;
+import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -34,29 +34,29 @@ public class IntentionToSellController {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
 
-		BasicResponse payload;
+		MetaResponse metaResponse;
 		try {
-			payload = execute(signedData);
+			metaResponse = new MetaResponse(execute(signedData));
 		}
 		catch (IOException e) {
-			payload = new ErrorResponse(403, ControllerErrorConsts.CANCER, OPERATION, e.getMessage());
+			metaResponse = new MetaResponse(403, new ErrorResponse(403, ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
 		}
 		catch (InvalidQueryParameterException iqpex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage());
+			metaResponse = new MetaResponse(400, new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
-			payload = new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage());
+			metaResponse = new MetaResponse(401, new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
 		}
 		catch (DBClosedConnectionException dbccex) {
-			payload = new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage());
+			metaResponse = new MetaResponse(503, new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
 		}
 		catch (DBNoResultsException dbnrex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
 		}
 		catch (DBSQLException | SQLException sqlex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
 		}
-		return sendResponse(payload, false);
+		return sendResponse(metaResponse, false);
 	}
 
 	private BasicResponse execute(SignedOwnerData signedData)
@@ -88,16 +88,17 @@ public class IntentionToSellController {
 	}
 
 	@SuppressWarnings("Duplicates")
-	private ResponseEntity<SecureResponse> sendResponse(BasicResponse payload, boolean isSuccess) {
+	private ResponseEntity<SecureResponse> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
+		BasicResponse payload = metaResponse.getPayload();
 		try {
 			if (isSuccess) {
 				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
 			}
-			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(payload.getCode()));
+			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException ex) {
 			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(payload.getCode()));
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 	}
 }
