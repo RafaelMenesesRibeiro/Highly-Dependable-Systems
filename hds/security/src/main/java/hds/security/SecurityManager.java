@@ -17,7 +17,6 @@ import java.time.temporal.ChronoUnit;
 
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";
-    public static final String SELLER_EXCEPTION_ID = "-1";
     public static final String SELLER_INCORRECT_BUYER_SIGNATURE = "-2";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";

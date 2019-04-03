@@ -47,11 +47,10 @@ public class ConnectionManager {
         outputStream.close();
     }
 
-    private static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
+    public static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = getJSONStringFromHttpResponse(connection);
-        SecureResponse secureResponse = objectMapper.readValue(jsonResponse, SecureResponse.class);
-        return secureResponse;
+        return objectMapper.readValue(jsonResponse, SecureResponse.class);
     }
 
     private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {

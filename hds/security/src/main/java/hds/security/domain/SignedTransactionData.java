@@ -9,9 +9,10 @@ public class SignedTransactionData {
 
 	public SignedTransactionData() {}
 
-	public SignedTransactionData(TransactionData data, String buyerSignature) {
+	public SignedTransactionData(TransactionData data, String buyerSignature, String sellerSignature) {
 		this.payload = data;
 		this.buyerSignature = Base64.getDecoder().decode(buyerSignature);
+		this.sellerSignature = Base64.getDecoder().decode(sellerSignature);
 	}
 
 	public TransactionData getPayload() {

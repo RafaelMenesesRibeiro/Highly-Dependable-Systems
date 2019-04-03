@@ -12,14 +12,12 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
-    private static int input;
-    // private static final String HDS_NOTARY_HOST = "http://localhost:8000/";
-    private static final String HDS_NOTARY_HOST = "http://hds-notary-server-production.herokuapp.com/";
     private static boolean acceptingCommands = true;
     private static Scanner inputScanner = new Scanner(System.in);
 
@@ -35,6 +33,7 @@ public class ClientApplication {
         while(acceptingCommands) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
 
+            int input;
             try {
                 input = inputScanner.nextInt();
             } catch (NoSuchElementException | IllegalStateException exc) {

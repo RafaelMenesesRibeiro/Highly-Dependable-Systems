@@ -5,51 +5,68 @@ import hds.security.SecurityManager;
 import hds.security.msgtypes.BasicResponse;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
+import hds.security.msgtypes.SecureResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
+import static hds.client.helpers.ConnectionManager.*;
+
 public class WantToBuyController {
-    private static final String OPERATION = "wantToBuy";
 
     @PostMapping(value = "/wantToBuy")
-    public BasicResponse wantToBuy(@RequestBody SignedTransactionData signedTransactionData) {
+    public SecureResponse wantToBuy(@RequestBody SignedTransactionData signedTransactionData) {
         TransactionData transactionData = signedTransactionData.getPayload();
         String sellerID = transactionData.getSellerID();
         String buyerID = transactionData.getBuyerID();
         String goodID = transactionData.getGoodID();
-        BasicResponse payload = null;
+        SecureResponse payload = null;
 
         try {
             payload = execute(signedTransactionData, sellerID, buyerID, goodID);
-
-            //TODO: SEND TO NOTARY
-        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | IOException | InvalidKeySpecException e) {
-            e.printStackTrace();
+        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | IOException | InvalidKeySpecException | JSONException e) {
+            //TODO: CHECK CONTROLLERERRORCONSTS
         }
 
         return payload;
     }
 
-    private BasicResponse execute(SignedTransactionData signedTransactionData, String sellerID, String buyerID, String goodID)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    private SecureResponse execute(SignedTransactionData signedTransactionData, String sellerID, String buyerID, String goodID)
+            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, JSONException {
         byte[] buyerSignature = signedTransactionData.getBuyerSignature();
         byte[] transactionDataBytes = SecurityManager.getByteArray(signedTransactionData.getPayload());
         PublicKey buyerPublicKey = SecurityManager.getPublicKeyFromResource(buyerID);
         PrivateKey sellerPrivateKey = SecurityManager.getPrivateKeyFromResource(ClientProperties.getPort());
-        byte[] sellerSignature = SecurityManager.signData(sellerPrivateKey, transactionDataBytes);
 
         if (!SecurityManager.verifySignature(buyerPublicKey, buyerSignature, transactionDataBytes)) {
-
+            signedTransactionData.getPayload().setBuyerID(SecurityManager.SELLER_INCORRECT_BUYER_SIGNATURE);
+            transactionDataBytes = SecurityManager.getByteArray(signedTransactionData.getPayload());
         }
 
+        byte[] sellerSignature = SecurityManager.signData(sellerPrivateKey, transactionDataBytes);
         signedTransactionData.setSellerSignature(sellerSignature);
 
+        String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
+        HttpURLConnection connection = initiatePOSTConnection(requestUrl);
 
-        return null;
+        JSONObject payload = new JSONObject();
+        payload.put("sellerID", signedTransactionData.getPayload().getSellerID());
+        payload.put("buyerID", signedTransactionData.getPayload().getBuyerID());
+        payload.put("goodID", signedTransactionData.getPayload().getGoodID());
+
+        JSONObject request = new JSONObject();
+        request.put("buyerSignature", signedTransactionData.getBuyerSignature());
+        request.put("sellerSignature", signedTransactionData.getSellerSignature());
+        request.put("payload", payload);
+
+        sendPostRequest(connection, request);
+        return getSecureResponse(connection);
     }
 
 }
