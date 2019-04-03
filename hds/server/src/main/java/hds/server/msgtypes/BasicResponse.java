@@ -3,18 +3,12 @@ package hds.server.msgtypes;
 import java.io.Serializable;
 
 public class BasicResponse implements Serializable {
-	private final int code;
 	private final String operation;
 	private final String message;
 
-	public BasicResponse(int code, String message, String operation) {
-		this.code = code;
+	public BasicResponse(String message, String operation) {
 		this.message = message;
 		this.operation = operation;
-	}
-
-	public int getCode() {
-		return code;
 	}
 
 	public String getMessage() {

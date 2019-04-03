@@ -4,8 +4,8 @@ public class StateOfGood extends BasicResponse{
 	private final String ownerId;
 	private final boolean onSale;
 
-	public StateOfGood(int code, String message, String operation, String ownerId, boolean onSale) {
-		super(code, message, operation);
+	public StateOfGood(String message, String operation, String ownerId, boolean onSale) {
+		super(message, operation);
 		this.ownerId = ownerId;
 		this.onSale = onSale;
 	}

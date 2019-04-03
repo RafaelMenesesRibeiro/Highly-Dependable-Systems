@@ -34,30 +34,30 @@ public class TransferGoodController {
 
 		MetaResponse metaResponse;
 		try {
-			metaResponse = new MetaResponse(execute(signedData));
+			metaResponse = execute(signedData);
 		}
 		catch (IOException e) {
-			metaResponse = new MetaResponse(403, new ErrorResponse(403, ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
+			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
 		}
 		catch (InvalidQueryParameterException iqpex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
-			metaResponse = new MetaResponse(401, new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
+			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
 		}
 		catch (DBClosedConnectionException dbccex) {
-			metaResponse = new MetaResponse(503, new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
+			metaResponse = new MetaResponse(503, new ErrorResponse(ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
 		}
 		catch (DBNoResultsException dbnrex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
+			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
 		}
 		catch (DBSQLException | SQLException sqlex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
+			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
 		}
 		return sendResponse(metaResponse, false);
 	}
 
-	private BasicResponse execute(SignedTransactionData signedData)
+	private MetaResponse execute(SignedTransactionData signedData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
 					InvalidQueryParameterException, DBNoResultsException, IOException {
 
@@ -78,14 +78,14 @@ public class TransferGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			if (TransactionValidityChecker.isValidTransaction(conn, signedData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
-				return new BasicResponse(200, "ok", OPERATION);
+				return new MetaResponse(new BasicResponse("ok", OPERATION));
 			}
 			else {
-				return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The transaction is not valid.");
+				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The transaction is not valid."));
 			}
 		}
 		catch (IncorrectSignatureException is){
-			return new ErrorResponse(403, ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage());
+			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage()));
 		}
 	}
 
@@ -99,8 +99,8 @@ public class TransferGoodController {
 			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException ex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(metaResponse.getStatusCode()));
+			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
