@@ -2,9 +2,11 @@ package hds.client.controllers;
 
 import hds.client.helpers.ClientProperties;
 import hds.security.SecurityManager;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicResponse;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
+import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SecureResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +22,8 @@ import static hds.client.helpers.ConnectionManager.*;
 
 public class WantToBuyController {
 
+    private static final String OPERATION = "wantToBuy";
+
     @PostMapping(value = "/wantToBuy")
     public SecureResponse wantToBuy(@RequestBody SignedTransactionData signedTransactionData) {
         TransactionData transactionData = signedTransactionData.getPayload();
@@ -31,7 +35,7 @@ public class WantToBuyController {
         try {
             payload = execute(signedTransactionData, sellerID, buyerID, goodID);
         } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | IOException | InvalidKeySpecException | JSONException e) {
-            //TODO: CHECK CONTROLLERERRORCONSTS
+            payload = new SecureResponse(new ErrorResponse(ControllerErrorConsts.BAD_SELLER, OPERATION, "The seller node has thrown an exception"));
         }
 
         return payload;

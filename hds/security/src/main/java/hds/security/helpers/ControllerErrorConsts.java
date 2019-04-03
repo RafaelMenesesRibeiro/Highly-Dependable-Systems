@@ -1,4 +1,4 @@
-package hds.server.helpers;
+package hds.security.helpers;
 
 public class ControllerErrorConsts {
 

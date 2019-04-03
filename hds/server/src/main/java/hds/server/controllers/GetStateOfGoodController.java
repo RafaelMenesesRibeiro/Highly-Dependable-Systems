@@ -6,7 +6,7 @@ import hds.security.msgtypes.GoodState;
 import hds.security.msgtypes.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.server.helpers.ControllerErrorConsts;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.HttpStatus;

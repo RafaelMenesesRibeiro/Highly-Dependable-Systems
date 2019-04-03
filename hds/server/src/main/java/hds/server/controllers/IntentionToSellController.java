@@ -7,7 +7,7 @@ import hds.security.msgtypes.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
-import hds.server.helpers.ControllerErrorConsts;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
