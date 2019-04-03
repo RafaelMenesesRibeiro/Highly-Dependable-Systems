@@ -7,7 +7,7 @@ public class ControllerErrorConsts {
 	}
 
 	public static final String CANCER = "The server cannot continue.";
-	public static final String BAD_SELLER = "The Seller threw an exception at the NOTARY";
+	public static final String BAD_SELLER = "The Seller threw an exception at the NOTARY.";
 	public static final String BAD_TRANSACTION = "The transaction is not valid.";
 	public static final String BAD_SIGNATURE = "The signatures do not match the received data.";
 
