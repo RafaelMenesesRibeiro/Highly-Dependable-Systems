@@ -15,8 +15,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-;
-
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
