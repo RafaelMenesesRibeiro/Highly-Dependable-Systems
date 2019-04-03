@@ -6,13 +6,11 @@ public class SignedOwnerData {
 	private byte[] signature;
 	private OwnerData payload;
 
+	public SignedOwnerData() {}
+
 	public SignedOwnerData(String signature, OwnerData data) {
 		this.signature = Base64.getDecoder().decode(signature);
 		this.payload = data;
-	}
-
-	public SignedOwnerData() {
-
 	}
 
 	public byte[] getSignature() {
