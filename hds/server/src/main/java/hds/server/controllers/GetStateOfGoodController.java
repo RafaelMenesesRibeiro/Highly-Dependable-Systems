@@ -1,5 +1,6 @@
 package hds.server.controllers;
 
+import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
@@ -23,27 +24,27 @@ public class GetStateOfGoodController {
 
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
 	public ResponseEntity<SecureResponse> getStateOfGood(@RequestParam("goodID") String goodID) {
-		BasicResponse payload;
+		MetaResponse metaResponse;
 		try {
-			payload = execute(goodID);
-			return sendResponse(payload, true);
+			metaResponse = new MetaResponse(execute(goodID));
+			return sendResponse(metaResponse, true);
 		}
 		catch (InvalidQueryParameterException iqpex) {
-			payload = new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage());
+			metaResponse = new MetaResponse(400, new ErrorResponse(400, ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
-			payload = new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage());
+			metaResponse = new MetaResponse(401, new ErrorResponse(401, ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
 		}
 		catch (DBClosedConnectionException dbccex) {
-			payload = new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage());
+			metaResponse = new MetaResponse(503, new ErrorResponse(503, ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
 		}
 		catch (DBNoResultsException dbnrex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
 		}
 		catch (DBSQLException | SQLException sqlex) {
-			payload = new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage());
+			metaResponse = new MetaResponse(500, new ErrorResponse(500, ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
 		}
-		return sendResponse(payload, false);
+		return sendResponse(metaResponse, false);
 	}
 
 	private StateOfGood execute(String goodID)
@@ -56,16 +57,17 @@ public class GetStateOfGoodController {
 	}
 
 	@SuppressWarnings("Duplicates")
-	private ResponseEntity<SecureResponse> sendResponse(BasicResponse payload, boolean isSuccess) {
+	private ResponseEntity<SecureResponse> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
+		BasicResponse payload = metaResponse.getPayload();
 		try {
 			if (isSuccess) {
 				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
 			}
-			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(payload.getCode()));
+			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException ex) {
 			payload = new ErrorResponse(500, ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(payload.getCode()));
+			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 	}
 }
