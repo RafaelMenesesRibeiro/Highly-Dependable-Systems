@@ -1,8 +1,8 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
-import hds.security.domain.SignedOwnerData;
 import hds.server.domain.MetaResponse;
+import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
 import hds.server.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
