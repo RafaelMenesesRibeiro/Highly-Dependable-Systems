@@ -1,6 +1,6 @@
 package hds.client.domain;
 
-import hds.security.msgtypes.response.ErrorResponse;
+import hds.security.msgtypes.responses.ErrorResponse;
 
 public class SecureErrorResponse extends SecureResponse {
     private ErrorResponse payload;
@@ -9,22 +9,22 @@ public class SecureErrorResponse extends SecureResponse {
         super();
     }
 
-    @Override
-    public byte[] getSignature() {
-        return super.getSignature();
-    }
-
-    @Override
-    public void setSignature(byte[] signature) {
-        super.setSignature(signature);
-    }
-
     public ErrorResponse getPayload() {
         return payload;
     }
 
     public void setPayload(ErrorResponse payload) {
         this.payload = payload;
+    }
+
+    @Override
+    public String getSignature() {
+        return super.getSignature();
+    }
+
+    @Override
+    public void setSignature(String signature) {
+        super.setSignature(signature);
     }
 
     @Override

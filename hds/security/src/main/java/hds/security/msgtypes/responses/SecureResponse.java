@@ -1,13 +1,6 @@
-package hds.security.msgtypes.response;
+package hds.security.msgtypes.responses;
 
-import hds.security.SecurityManager;
 import hds.security.exceptions.SignatureException;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 
 import static hds.security.SecurityManager.*;
 

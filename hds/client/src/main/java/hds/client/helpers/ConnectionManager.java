@@ -91,7 +91,7 @@ public class ConnectionManager {
             throws InvalidKeySpecException, IOException {
 
         hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
-        hds.security.msgtypes.response.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
+        hds.security.msgtypes.responses.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
 
         if (isAuthenticResponse(secureResponse, nodeId)) {
             switch (connection.getResponseCode()) {

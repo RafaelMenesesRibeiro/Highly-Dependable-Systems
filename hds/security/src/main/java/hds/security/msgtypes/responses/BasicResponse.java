@@ -1,4 +1,4 @@
-package hds.security.msgtypes.response;
+package hds.security.msgtypes.responses;
 
 import java.io.Serializable;
 

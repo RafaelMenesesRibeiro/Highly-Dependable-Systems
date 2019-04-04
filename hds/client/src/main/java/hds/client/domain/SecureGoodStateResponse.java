@@ -1,5 +1,5 @@
 package hds.client.domain;
-import hds.security.msgtypes.response.GoodState;
+import hds.security.msgtypes.responses.GoodState;
 
 public class SecureGoodStateResponse extends SecureResponse{
     private GoodState payload;
@@ -17,12 +17,12 @@ public class SecureGoodStateResponse extends SecureResponse{
     }
 
     @Override
-    public byte[] getSignature() {
+    public String getSignature() {
         return super.getSignature();
     }
 
     @Override
-    public void setSignature(byte[] signature) {
+    public void setSignature(String signature) {
         super.setSignature(signature);
     }
 }

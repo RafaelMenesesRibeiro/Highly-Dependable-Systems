@@ -1,4 +1,4 @@
-package hds.security.msgtypes.response;
+package hds.security.msgtypes.responses;
 
 public class GoodState extends BasicResponse {
 	private String ownerId;

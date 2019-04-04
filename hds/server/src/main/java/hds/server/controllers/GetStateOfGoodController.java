@@ -1,9 +1,9 @@
 package hds.server.controllers;
 
-import hds.security.msgtypes.response.BasicResponse;
-import hds.security.msgtypes.response.ErrorResponse;
-import hds.security.msgtypes.response.GoodState;
-import hds.security.msgtypes.response.SecureResponse;
+import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.responses.ErrorResponse;
+import hds.security.msgtypes.responses.GoodState;
+import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.security.helpers.ControllerErrorConsts;

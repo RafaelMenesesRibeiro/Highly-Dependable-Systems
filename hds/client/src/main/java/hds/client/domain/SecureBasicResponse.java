@@ -1,6 +1,6 @@
 package hds.client.domain;
 
-import hds.security.msgtypes.response.BasicResponse;
+import hds.security.msgtypes.responses.BasicResponse;
 
 public class SecureBasicResponse extends SecureResponse{
     private BasicResponse payload;
@@ -18,17 +18,12 @@ public class SecureBasicResponse extends SecureResponse{
     }
 
     @Override
-    public void setSignature(byte[] signature) {
-        super.setSignature(signature);
-    }
-
-    @Override
-    public byte[] getSignature() {
+    public String getSignature() {
         return super.getSignature();
     }
 
     @Override
-    public String toString() {
-        return super.toString();
+    public void setSignature(String signature) {
+        super.setSignature(signature);
     }
 }

@@ -18,5 +18,5 @@ public class ControllerErrorConsts {
 	public static final String CONN_REF = "The connection to the database was refused.";
 	public static final String CONN_CLOSED = "The connection to the database was closed.";
 
-	public static final String NO_RESP = "The database did not return a response for the query.";
+	public static final String NO_RESP = "The database did not return a responses for the query.";
 }
