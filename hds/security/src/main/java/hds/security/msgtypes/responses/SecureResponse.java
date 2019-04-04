@@ -8,18 +8,13 @@ public class SecureResponse {
 	private BasicResponse payload;
 	private String signature;
 
+	public SecureResponse() {
+
+	}
+
 	public SecureResponse(BasicResponse response, String b64signature) {
 		this.payload = response;
 		this.signature = b64signature;
-	}
-
-	public SecureResponse(BasicResponse response, boolean isException) {
-		this.payload = response;
-		this.signature = "";
-	}
-
-	public SecureResponse() {
-
 	}
 
 	public SecureResponse(BasicResponse response) {
