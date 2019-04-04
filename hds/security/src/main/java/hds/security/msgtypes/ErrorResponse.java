@@ -1,9 +1,16 @@
 package hds.security.msgtypes;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ErrorResponse extends BasicResponse {
 	private String reason;
 
-	public ErrorResponse(String message, String operation, String reason) {
+	@JsonCreator
+	public ErrorResponse(@JsonProperty("message") String message,
+						 @JsonProperty("operation") String operation,
+						 String reason) {
+
 		super(message, operation);
 		this.reason = reason;
 	}
