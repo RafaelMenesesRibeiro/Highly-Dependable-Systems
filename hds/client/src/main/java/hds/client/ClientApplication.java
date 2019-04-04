@@ -86,7 +86,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc.getMessage());
+            printError(exc);
         }
     }
 
@@ -111,7 +111,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc.getMessage());
+            printError(exc);
         }
     }
 
@@ -124,7 +124,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc.getMessage());
+            printError(exc);
         }
     }
 
@@ -151,5 +151,10 @@ public class ClientApplication {
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+
+    private static void printError(Exception exc) {
+        System.out.print("   [x]");
+        exc.printStackTrace();
     }
 }

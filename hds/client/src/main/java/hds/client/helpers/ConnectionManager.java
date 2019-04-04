@@ -50,6 +50,7 @@ public class ConnectionManager {
     public static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = getJSONStringFromHttpResponse(connection);
+        //TODO: HERE!!!!
         return objectMapper.readValue(jsonResponse, SecureResponse.class);
     }
 
