@@ -1,0 +1,6 @@
+server.port=SERVER_PORT
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.datasource.platform=postgres
+spring.datasource.url=jdbc:postgresql://IP:PORT/DB_NAME
+spring.datasource.username=DB_USER
+spring.datasource.password=BD_PASSWORD
