@@ -4,7 +4,7 @@ public class ClientProperties {
 
     private static String portId;
     private static String maxPortId;
-    public static final String HDS_NOTARY_HOST = "http://hds-notary-server-production.herokuapp.com/";
+    public static final String HDS_NOTARY_HOST = "http://localhost:8000/";
     private ClientProperties() {}
 
     public static String getPort() {
