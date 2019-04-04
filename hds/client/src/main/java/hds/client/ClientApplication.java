@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
+import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.*;
 
@@ -81,7 +82,7 @@ public class ClientApplication {
             request.put("payload", payload);
 
             sendPostRequest(connection, request);
-            processResponse(connection, sellerId);
+            processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
@@ -106,7 +107,7 @@ public class ClientApplication {
             request.put("payload", payload);
 
             sendPostRequest(connection, request);
-            processResponse(connection, HDS_NOTARY_HOST);
+            processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
@@ -119,8 +120,7 @@ public class ClientApplication {
         try {
             String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
             HttpURLConnection connection = initiateGETConnection(requestUrl);
-            processResponse(connection, HDS_NOTARY_HOST);
-            printError("Could not verify Notary signature...");
+            processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {

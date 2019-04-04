@@ -50,7 +50,7 @@ public class SecurityManager {
         return filePath.toString();
     }
 
-    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) throws IOException {
+    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) {
         String filePath = getResourcePath(resourceId, isPublicKey);
         ClassLoader classLoader = SecurityManager.class.getClassLoader();
         File file = new File(classLoader.getResource(filePath).getFile());
