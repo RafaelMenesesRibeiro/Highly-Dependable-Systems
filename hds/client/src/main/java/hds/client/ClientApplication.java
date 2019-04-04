@@ -32,7 +32,7 @@ public class ClientApplication {
         app.setDefaultProperties(Collections.singletonMap("server.port", portId));
         app.run(args);
 
-        while(acceptingCommands) {
+        while (acceptingCommands) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
 
             try {
@@ -91,7 +91,7 @@ public class ClientApplication {
         }
     }
 
-    private static  void intentionToSell() {
+    private static void intentionToSell() {
         String clientId = ClientProperties.getPort();
         try {
             String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
