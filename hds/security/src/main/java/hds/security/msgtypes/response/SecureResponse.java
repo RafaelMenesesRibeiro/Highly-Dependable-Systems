@@ -20,6 +20,11 @@ public class SecureResponse {
 		this.signature = b64signature;
 	}
 
+	public SecureResponse(BasicResponse response, boolean isException) {
+		this.payload = response;
+		this.signature = "";
+	}
+
 	public SecureResponse() {
 
 	}
