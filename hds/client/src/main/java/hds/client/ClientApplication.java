@@ -2,6 +2,8 @@ package hds.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.domain.OwnerData;
+import hds.security.domain.SignedOwnerData;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
 import org.json.JSONException;
@@ -12,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.security.PrivateKey;
+import java.security.acl.Owner;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -71,12 +74,10 @@ public class ClientApplication {
         String goodId = requestGoodId();
 
         try {
+            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
             TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
             SignedTransactionData signedTransactionData = new SignedTransactionData();
-
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
             String signedPayload = bytesToBase64String(signData(clientPrivateKey, getByteArray(payload)));
-
             signedTransactionData.setPayload(payload);
             signedTransactionData.setBuyerSignature(signedPayload);
             signedTransactionData.setSellerSignature("");
@@ -98,21 +99,22 @@ public class ClientApplication {
     }
 
     private static void intentionToSell() {
-        String clientId = ClientProperties.getPort();
+        String sellerId = ClientProperties.getPort();
         try {
+            PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
+            OwnerData payload = new OwnerData(sellerId, requestGoodId());
+            SignedOwnerData signedOwnerData = new SignedOwnerData();
+            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, getByteArray(payload)));
+            signedOwnerData.setPayload(payload);
+            signedOwnerData.setSignature("");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedOwnerData));
+
             String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
             HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(clientId);
+            sendPostRequest(connection, requestData);
 
-            JSONObject payload = new JSONObject();
-            payload.put("sellerID", clientId);
-            payload.put("goodID", requestGoodId());
-
-            JSONObject request = new JSONObject();
-            request.put("signature", signData(clientPrivateKey, getByteArray(payload)));
-            request.put("payload", payload);
-
-            sendPostRequest(connection, request);
             processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
