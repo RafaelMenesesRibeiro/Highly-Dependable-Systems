@@ -7,12 +7,7 @@ public class GoodState extends BasicResponse {
 	private String ownerId;
 	private boolean onSale;
 
-	@JsonCreator
-	public GoodState(@JsonProperty("message") String message,
-					 @JsonProperty("operation") String operation,
-					 String ownerId,
-					 boolean onSale) {
-
+	public GoodState(String message, String operation, String ownerId, boolean onSale) {
 		super(message, operation);
 		this.ownerId = ownerId;
 		this.onSale = onSale;

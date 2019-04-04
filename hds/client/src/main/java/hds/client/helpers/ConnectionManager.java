@@ -1,7 +1,8 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.security.msgtypes.SecureResponse;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import hds.client.domain.SecureResponse;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -47,10 +48,14 @@ public class ConnectionManager {
         outputStream.close();
     }
 
-    public static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
+    public static hds.client.domain.SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = getJSONStringFromHttpResponse(connection);
-        return objectMapper.readValue(jsonResponse, SecureResponse.class);
+        try {
+            return objectMapper.readValue(jsonResponse, hds.client.domain.SecureGoodStateResponse.class);
+        } catch (UnrecognizedPropertyException upe) {
+            return objectMapper.readValue(jsonResponse, hds.client.domain.SecureErrorResponse.class);
+        }
     }
 
     private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
@@ -73,7 +78,9 @@ public class ConnectionManager {
     public static void processResponse(HttpURLConnection connection, String nodeId)
             throws InvalidKeySpecException, IOException {
 
-        SecureResponse secureResponse = getSecureResponse(connection);
+        hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
+        hds.security.msgtypes.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
+
         if (isAuthenticResponse(secureResponse, nodeId)) {
             switch (connection.getResponseCode()) {
                 case(HttpURLConnection.HTTP_OK):

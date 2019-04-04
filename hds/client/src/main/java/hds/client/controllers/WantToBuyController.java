@@ -3,7 +3,6 @@ package hds.client.controllers;
 import hds.client.helpers.ClientProperties;
 import hds.security.SecurityManager;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.msgtypes.BasicResponse;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
 import hds.security.msgtypes.ErrorResponse;
@@ -70,7 +69,8 @@ public class WantToBuyController {
         request.put("payload", payload);
 
         sendPostRequest(connection, request);
-        return getSecureResponse(connection);
+        hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
+        return domainSecureResponse.translateSecureResponse();
     }
 
 }
