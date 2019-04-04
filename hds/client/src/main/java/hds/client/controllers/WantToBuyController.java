@@ -18,6 +18,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.SecurityManager.*;
 
 public class WantToBuyController {
 
@@ -42,22 +43,26 @@ public class WantToBuyController {
 
     private SecureResponse execute(SignedTransactionData signedTransactionData, String sellerID, String buyerID, String goodID)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, JSONException {
-        byte[] buyerSignature = signedTransactionData.getBuyerSignature();
-        byte[] transactionDataBytes = SecurityManager.getByteArray(signedTransactionData.getPayload());
-        PublicKey buyerPublicKey = SecurityManager.getPublicKeyFromResource(buyerID);
-        PrivateKey sellerPrivateKey = SecurityManager.getPrivateKeyFromResource(ClientProperties.getPort());
+        PublicKey buyerPublicKey = getPublicKeyFromResource(buyerID);
+        String buyerSignature = signedTransactionData.getBuyerSignature();
 
-        if (!SecurityManager.verifySignature(buyerPublicKey, buyerSignature, transactionDataBytes)) {
-            signedTransactionData.getPayload().setBuyerID(SecurityManager.SELLER_INCORRECT_BUYER_SIGNATURE);
-            transactionDataBytes = SecurityManager.getByteArray(signedTransactionData.getPayload());
+        // TODO Sign Transaction data and buyer signature
+        PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
+        byte[] transactionDataBytes = getByteArray(signedTransactionData.getPayload());
+
+        if (!verifySignature(buyerPublicKey, buyerSignature, transactionDataBytes)) {
+            signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
+            transactionDataBytes = getByteArray(signedTransactionData.getPayload());
         }
 
-        byte[] sellerSignature = SecurityManager.signData(sellerPrivateKey, transactionDataBytes);
-        signedTransactionData.setSellerSignature(sellerSignature);
+        byte[] sellerSignature = signData(sellerPrivateKey, transactionDataBytes);
+        signedTransactionData.setSellerSignature(bytesToBase64String(sellerSignature));
 
         String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
         HttpURLConnection connection = initiatePOSTConnection(requestUrl);
 
+        // TODO use buyGood methodology create an Object representing the payload, it must implement Serializable
+        // TODO... then use ObjectMapper.writeAsStringValue or whatever the name of the method is.
         JSONObject payload = new JSONObject();
         payload.put("sellerID", signedTransactionData.getPayload().getSellerID());
         payload.put("buyerID", signedTransactionData.getPayload().getBuyerID());

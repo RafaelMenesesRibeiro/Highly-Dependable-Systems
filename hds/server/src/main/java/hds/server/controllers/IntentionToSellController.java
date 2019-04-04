@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import static hds.security.SecurityManager.getByteArray;
+import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
+import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
 @SuppressWarnings("Duplicates")
 @RestController
@@ -71,11 +73,11 @@ public class IntentionToSellController {
 			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
 		}
 		try (Connection conn = DatabaseManager.getConnection()) {
-			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
+			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
 				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
 			}
-			boolean res = TransactionValidityChecker.isClientWilling(sellerID, signedData.getSignature(), getByteArray(ownerData));
+			boolean res = isClientWilling(sellerID, signedData.getSignature(), getByteArray(ownerData));
 			if (!res) {
 				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
 			}

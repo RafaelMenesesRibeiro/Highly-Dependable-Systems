@@ -80,7 +80,7 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	public static boolean isClientWilling(String clientID, byte[] buyerSignature, byte[] payloadBytes)
+	public static boolean isClientWilling(String clientID, String buyerSignature, byte[] payloadBytes)
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);

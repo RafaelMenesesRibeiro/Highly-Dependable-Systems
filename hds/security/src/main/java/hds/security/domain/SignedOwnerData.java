@@ -1,23 +1,15 @@
 package hds.security.domain;
 
-import java.util.Base64;
+import java.io.Serializable;
 
-public class SignedOwnerData {
-	private byte[] signature;
+public class SignedOwnerData implements Serializable {
 	private OwnerData payload;
+	private String signature;
 
 	public SignedOwnerData() {}
 
-	public SignedOwnerData(String signature, OwnerData data) {
-		this.signature = Base64.getDecoder().decode(signature);
+	public SignedOwnerData(OwnerData data, String signature) {
 		this.payload = data;
-	}
-
-	public byte[] getSignature() {
-		return signature;
-	}
-
-	public void setSignature(byte[] signature) {
 		this.signature = signature;
 	}
 
@@ -27,5 +19,21 @@ public class SignedOwnerData {
 
 	public void setPayload(OwnerData payload) {
 		this.payload = payload;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
+
+	public void setSignature(String signature) {
+		this.signature = signature;
+	}
+
+	@Override
+	public String toString() {
+		return "SignedOwnerData{" +
+				"signature='" + signature + '\'' +
+				", payload=" + payload +
+				'}';
 	}
 }

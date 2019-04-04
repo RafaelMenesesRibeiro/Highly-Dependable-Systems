@@ -1,6 +1,10 @@
 package hds.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.domain.SignedTransactionData;
+import hds.security.domain.TransactionData;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -67,24 +71,24 @@ public class ClientApplication {
         String goodId = requestGoodId();
 
         try {
+            TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
+            SignedTransactionData signedTransactionData = new SignedTransactionData();
+
+            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
+            String signedPayload = bytesToBase64String(signData(clientPrivateKey, getByteArray(payload)));
+
+            signedTransactionData.setPayload(payload);
+            signedTransactionData.setBuyerSignature(signedPayload);
+            signedTransactionData.setSellerSignature("");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
+
             String requestUrl = String.format("%s%s", sellerId, "wantToBuy");
             HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
+            sendPostRequest(connection, requestData);
 
-            /*
-            JSONObject payload = new JSONObject();
-            payload.put("sellerID", sellerId);
-            payload.put("buyerID", buyerId);
-            payload.put("goodID", goodId);
-
-            JSONObject request = new JSONObject();
-            request.put("buyerSignature", signData(clientPrivateKey, getByteArray(payload)));
-            request.put("sellerSignature", null);
-            request.put("payload", payload);
-            */
-
-           // sendPostRequest(connection, request);
-            // processResponse(connection, HDS_NOTARY_PORT);
+            processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
