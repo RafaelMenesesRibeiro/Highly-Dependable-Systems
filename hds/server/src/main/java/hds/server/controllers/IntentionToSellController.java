@@ -34,8 +34,8 @@ public class IntentionToSellController {
 	@PostMapping(value = "/intentionToSell")
 	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
+		System.out.println(signedData.toString());
 		logger.info("Received Intention to Sell request.");
-
 		MetaResponse metaResponse;
 		try {
 			metaResponse = execute(signedData);
