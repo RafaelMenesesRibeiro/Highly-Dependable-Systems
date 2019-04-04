@@ -1,7 +1,7 @@
 package hds.client.helpers;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import hds.client.domain.SecureResponse;
 import org.json.JSONObject;
 
@@ -49,12 +49,28 @@ public class ConnectionManager {
     }
 
     public static hds.client.domain.SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse = getJSONStringFromHttpResponse(connection);
+        return tryNewBasicResponse(1, jsonResponse);
+    }
+
+    private static SecureResponse tryNewBasicResponse(int attempt, String json) {
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            return objectMapper.readValue(jsonResponse, hds.client.domain.SecureGoodStateResponse.class);
-        } catch (UnrecognizedPropertyException upe) {
-            return objectMapper.readValue(jsonResponse, hds.client.domain.SecureErrorResponse.class);
+            switch (attempt) {
+                case 1:
+                    return objectMapper.readValue(json, hds.client.domain.SecureBasicResponse.class);
+                case 2:
+                    return objectMapper.readValue(json, hds.client.domain.SecureGoodStateResponse.class);
+                case 3:
+                    return objectMapper.readValue(json, hds.client.domain.SecureErrorResponse.class);
+                default:
+                    return null;
+            }
+        } catch (JsonMappingException jme) {
+            return tryNewBasicResponse(++attempt, json);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return null;
         }
     }
 
@@ -75,7 +91,7 @@ public class ConnectionManager {
             throws InvalidKeySpecException, IOException {
 
         hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
-        hds.security.msgtypes.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
+        hds.security.msgtypes.response.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
 
         if (isAuthenticResponse(secureResponse, nodeId)) {
             switch (connection.getResponseCode()) {

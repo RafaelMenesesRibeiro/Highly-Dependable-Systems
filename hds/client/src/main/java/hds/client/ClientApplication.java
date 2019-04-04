@@ -71,6 +71,7 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(requestUrl);
             PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
 
+            /*
             JSONObject payload = new JSONObject();
             payload.put("sellerID", sellerId);
             payload.put("buyerID", buyerId);
@@ -80,9 +81,10 @@ public class ClientApplication {
             request.put("buyerSignature", signData(clientPrivateKey, getByteArray(payload)));
             request.put("sellerSignature", null);
             request.put("payload", payload);
+            */
 
-            sendPostRequest(connection, request);
-            processResponse(connection, HDS_NOTARY_PORT);
+           // sendPostRequest(connection, request);
+            // processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");

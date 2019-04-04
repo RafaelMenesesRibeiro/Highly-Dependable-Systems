@@ -1,6 +1,6 @@
 package hds.client.domain;
 
-import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.response.ErrorResponse;
 
 public class SecureErrorResponse extends SecureResponse {
     private ErrorResponse payload;

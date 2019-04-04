@@ -1,6 +1,6 @@
 package hds.security;
 
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.response.SecureResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

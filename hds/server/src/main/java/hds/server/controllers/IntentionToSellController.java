@@ -1,9 +1,9 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
-import hds.security.msgtypes.BasicResponse;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.response.BasicResponse;
+import hds.security.msgtypes.response.ErrorResponse;
+import hds.security.msgtypes.response.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;

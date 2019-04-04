@@ -1,7 +1,4 @@
-package hds.security.msgtypes;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package hds.security.msgtypes.response;
 
 public class GoodState extends BasicResponse {
 	private String ownerId;

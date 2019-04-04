@@ -1,5 +1,5 @@
 package hds.client.domain;
-import hds.security.msgtypes.GoodState;
+import hds.security.msgtypes.response.GoodState;
 
 public class SecureGoodStateResponse extends SecureResponse{
     private GoodState payload;

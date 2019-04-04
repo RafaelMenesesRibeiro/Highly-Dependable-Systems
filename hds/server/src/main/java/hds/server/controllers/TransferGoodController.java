@@ -2,9 +2,9 @@ package hds.server.controllers;
 
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
-import hds.security.msgtypes.BasicResponse;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.response.BasicResponse;
+import hds.security.msgtypes.response.ErrorResponse;
+import hds.security.msgtypes.response.SecureResponse;
 import hds.security.SecurityManager;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
