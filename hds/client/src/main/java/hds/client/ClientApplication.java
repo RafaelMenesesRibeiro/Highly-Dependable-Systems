@@ -106,7 +106,7 @@ public class ClientApplication {
             SignedOwnerData signedOwnerData = new SignedOwnerData();
             String signedPayload = bytesToBase64String(signData(sellerPrivateKey, getByteArray(payload)));
             signedOwnerData.setPayload(payload);
-            signedOwnerData.setSignature("");
+            signedOwnerData.setSignature(signedPayload);
 
             ObjectMapper objectMapper = new ObjectMapper();
             JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedOwnerData));
