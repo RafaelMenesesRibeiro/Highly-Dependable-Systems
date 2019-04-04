@@ -9,13 +9,20 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
+import static hds.security.SecurityManager.*;
+
 public class SecureResponse {
 	private BasicResponse payload;
-	private byte[] signature;
+	private String signature;
 
-	public SecureResponse(BasicResponse response, byte[] signature) {
+	public SecureResponse(BasicResponse response, String b64signature) {
 		this.payload = response;
-		this.signature = signature;
+		this.signature = b64signature;
+	}
+
+	public SecureResponse(BasicResponse response, boolean isException) {
+		this.payload = response;
+		this.signature = "";
 	}
 
 	public SecureResponse() {
@@ -24,18 +31,12 @@ public class SecureResponse {
 
 	public SecureResponse(BasicResponse response) {
 		try {
-			byte[] data = SecurityManager.getByteArray(response);
 			this.payload = response;
-			this.signature = SecurityManager.signData(data);
+			this.signature = bytesToBase64String(signData(getByteArray(response)));
 		}
-		catch (NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException | IOException | InvalidKeySpecException e) {
-				throw new SignatureException(e.getMessage());
-			}
-	}
-
-	public SecureResponse(BasicResponse response, boolean isException) {
-		this.payload = response;
-		this.signature = new byte[0];
+		catch (Exception e) {
+			throw new SignatureException(e.getMessage());
+		}
 	}
 
 	public BasicResponse getPayload() {
@@ -46,19 +47,19 @@ public class SecureResponse {
 		this.payload = payload;
 	}
 
-	public byte[] getSignature() {
+	public String getSignature() {
 		return signature;
 	}
 
-	public void setSignature(byte[] signature) {
+	public void setSignature(String signature) {
 		this.signature = signature;
 	}
 
 	@Override
 	public String toString() {
 		return "SecureResponse{" +
-				"payload=" + payload.toString() +
-				", signature=" + Arrays.toString(signature) +
+				"payload=" + payload +
+				", signature='" + signature + '\'' +
 				'}';
 	}
 }

@@ -14,6 +14,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";
@@ -33,6 +34,14 @@ public class SecurityManager {
             oos.writeObject(object);
             return bos.toByteArray();
         }
+    }
+
+    public static String bytesToBase64String(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    public static byte[] base64StringToBytes(String base64string) {
+        return Base64.getDecoder().decode(base64string);
     }
 
     private static String getResourcePath(String resourceId, boolean isPublicKey) {
@@ -114,6 +123,15 @@ public class SecurityManager {
     public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
         try {
             return verifySignature(key, signedData, getByteArray(payload));
+        } catch (Exception exc) {
+            System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
+            return false;
+        }
+    }
+
+    public static boolean verifySignature(PublicKey key, String signedData, Object payload) {
+        try {
+            return verifySignature(key, base64StringToBytes(signedData), getByteArray(payload));
         } catch (Exception exc) {
             System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
             return false;
