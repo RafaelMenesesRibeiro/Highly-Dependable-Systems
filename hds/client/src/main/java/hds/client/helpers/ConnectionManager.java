@@ -61,17 +61,13 @@ public class ConnectionManager {
     private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
         String currentLine;
         StringBuilder jsonResponse = new StringBuilder();
-
         InputStreamReader inputStream = new InputStreamReader(connection.getInputStream());
         BufferedReader bufferedReader = new BufferedReader(inputStream);
-
         while ((currentLine = bufferedReader.readLine()) != null) {
             jsonResponse.append(currentLine);
         }
-
         bufferedReader.close();
         inputStream.close();
-
         return jsonResponse.toString();
     }
 
