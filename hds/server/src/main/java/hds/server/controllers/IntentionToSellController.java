@@ -77,7 +77,7 @@ public class IntentionToSellController {
 			if (!ownerID.equals(sellerID)) {
 				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
 			}
-			boolean res = isClientWilling(sellerID, signedData.getSignature(), getByteArray(ownerData));
+			boolean res = isClientWilling(sellerID, signedData.getSignature(), ownerData);
 			if (!res) {
 				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
 			}
