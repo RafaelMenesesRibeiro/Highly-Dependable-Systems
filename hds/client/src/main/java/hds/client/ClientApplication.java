@@ -57,6 +57,7 @@ public class ClientApplication {
                     break;
                 case 3:
                     intentionToSell();
+                    break;
                 case 4:
                     acceptingCommands = false;
                     break;
