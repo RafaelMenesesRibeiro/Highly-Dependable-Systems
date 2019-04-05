@@ -1,13 +1,13 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
-import hds.security.msgtypes.BasicResponse;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.responses.ErrorResponse;
+import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
-import hds.server.helpers.ControllerErrorConsts;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import static hds.security.SecurityManager.getByteArray;
+import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
+import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
 @SuppressWarnings("Duplicates")
 @RestController
@@ -32,8 +34,8 @@ public class IntentionToSellController {
 	@PostMapping(value = "/intentionToSell")
 	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
+		System.out.println(signedData.toString());
 		logger.info("Received Intention to Sell request.");
-
 		MetaResponse metaResponse;
 		try {
 			metaResponse = execute(signedData);
@@ -71,11 +73,11 @@ public class IntentionToSellController {
 			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
 		}
 		try (Connection conn = DatabaseManager.getConnection()) {
-			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
+			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
 				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
 			}
-			boolean res = TransactionValidityChecker.isClientWilling(sellerID, signedData.getSignature(), getByteArray(ownerData));
+			boolean res = isClientWilling(sellerID, signedData.getSignature(), ownerData);
 			if (!res) {
 				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
 			}
@@ -98,7 +100,7 @@ public class IntentionToSellController {
 		}
 		catch (SignatureException ex) {
 			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new SecureResponse(payload, ""), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

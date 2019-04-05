@@ -2,12 +2,13 @@ package hds.server.controllers;
 
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
-import hds.security.msgtypes.BasicResponse;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.responses.ErrorResponse;
+import hds.security.msgtypes.responses.SecureResponse;
+import hds.security.SecurityManager;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.server.helpers.ControllerErrorConsts;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
@@ -75,6 +76,11 @@ public class TransferGoodController {
 		if (goodID == null || goodID.equals("")) {
 			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
 		}
+
+		if (buyerID.equals(SecurityManager.SELLER_INCORRECT_BUYER_SIGNATURE)) {
+			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_SIGNATURE, OPERATION, "The seller thinks your signature is incorrect."));
+		}
+
 		try (Connection conn = DatabaseManager.getConnection()) {
 			if (TransactionValidityChecker.isValidTransaction(conn, signedData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
@@ -100,7 +106,7 @@ public class TransferGoodController {
 		}
 		catch (SignatureException ex) {
 			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new SecureResponse(payload, ""), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

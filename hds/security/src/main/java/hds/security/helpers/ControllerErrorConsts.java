@@ -1,4 +1,4 @@
-package hds.server.helpers;
+package hds.security.helpers;
 
 public class ControllerErrorConsts {
 
@@ -7,6 +7,7 @@ public class ControllerErrorConsts {
 	}
 
 	public static final String CANCER = "The server cannot continue.";
+	public static final String BAD_SELLER = "The Seller threw an exception at the NOTARY.";
 	public static final String BAD_TRANSACTION = "The transaction is not valid.";
 	public static final String BAD_SIGNATURE = "The signatures do not match the received data.";
 
@@ -17,5 +18,5 @@ public class ControllerErrorConsts {
 	public static final String CONN_REF = "The connection to the database was refused.";
 	public static final String CONN_CLOSED = "The connection to the database was closed.";
 
-	public static final String NO_RESP = "The database did not return a response for the query.";
+	public static final String NO_RESP = "The database did not return a responses for the query.";
 }

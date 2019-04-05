@@ -80,11 +80,11 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	public static boolean isClientWilling(String clientID, byte[] buyerSignature, byte[] payloadBytes)
+	public static boolean isClientWilling(String clientID, String buyerSignature, Object payload)
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return verifySignature(buyerPublicKey, buyerSignature, payloadBytes);
+			return verifySignature(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException e) {
 			throw new SignatureException(e.getMessage());

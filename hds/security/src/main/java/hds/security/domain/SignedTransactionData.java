@@ -1,17 +1,18 @@
 package hds.security.domain;
 
-import java.util.Base64;
+import java.io.Serializable;
 
-public class SignedTransactionData {
+public class SignedTransactionData implements Serializable {
 	private TransactionData payload;
-	private byte[] buyerSignature;
-	private byte[] sellerSignature;
+	private String buyerSignature;
+	private String sellerSignature;
 
 	public SignedTransactionData() {}
 
-	public SignedTransactionData(TransactionData data, String buyerSignature) {
+	public SignedTransactionData(TransactionData data, String buyerSignature, String sellerSignature) {
 		this.payload = data;
-		this.buyerSignature = Base64.getDecoder().decode(buyerSignature);
+		this.buyerSignature = buyerSignature;
+		this.sellerSignature = sellerSignature;
 	}
 
 	public TransactionData getPayload() {
@@ -22,19 +23,28 @@ public class SignedTransactionData {
 		this.payload = payload;
 	}
 
-	public byte[] getBuyerSignature() {
+	public String getBuyerSignature() {
 		return buyerSignature;
 	}
 
-	public void setBuyerSignature(byte[] buyerSignature) {
+	public void setBuyerSignature(String buyerSignature) {
 		this.buyerSignature = buyerSignature;
 	}
 
-	public byte[] getSellerSignature() {
+	public String getSellerSignature() {
 		return sellerSignature;
 	}
 
-	public void setSellerSignature(byte[] sellerSignature) {
-	    this.sellerSignature = sellerSignature;
-    }
+	public void setSellerSignature(String sellerSignature) {
+		this.sellerSignature = sellerSignature;
+	}
+
+	@Override
+	public String toString() {
+		return "SignedTransactionData{" +
+				"payload=" + payload +
+				", buyerSignature='" + buyerSignature + '\'' +
+				", sellerSignature='" + sellerSignature + '\'' +
+				'}';
+	}
 }

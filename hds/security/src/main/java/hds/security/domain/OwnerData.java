@@ -9,7 +9,6 @@ public class OwnerData implements Serializable {
 	public OwnerData() {}
 
 	public OwnerData(String sellerID, String goodID) {
-		super();
 		this.sellerID = sellerID;
 		this.goodID = goodID;
 	}
@@ -28,5 +27,13 @@ public class OwnerData implements Serializable {
 
 	public void setGoodID(String goodID) {
 		this.goodID = goodID;
+	}
+
+	@Override
+	public String toString() {
+		return "OwnerData{" +
+				"sellerID='" + sellerID + '\'' +
+				", goodID='" + goodID + '\'' +
+				'}';
 	}
 }

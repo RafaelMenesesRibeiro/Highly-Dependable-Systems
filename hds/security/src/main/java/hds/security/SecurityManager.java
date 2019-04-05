@@ -1,6 +1,6 @@
 package hds.security;
 
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.responses.SecureResponse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -14,9 +14,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 
 public class SecurityManager {
     private static final String SERVER_RESERVED_PORT = "8000";
+    public static final String SELLER_INCORRECT_BUYER_SIGNATURE = "-2";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
@@ -24,8 +26,7 @@ public class SecurityManager {
     private static final String PUBLIC_KEY_FILE_EXTENSION = ".pub";
     private static final String PRIVATE_KEY_FILE_EXTENSION = ".key";
 
-    private SecurityManager() {
-    }
+    private SecurityManager() {}
 
     public static byte[] getByteArray(Object object) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -33,6 +34,14 @@ public class SecurityManager {
             oos.writeObject(object);
             return bos.toByteArray();
         }
+    }
+
+    public static String bytesToBase64String(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    public static byte[] base64StringToBytes(String base64string) {
+        return Base64.getDecoder().decode(base64string);
     }
 
     private static String getResourcePath(String resourceId, boolean isPublicKey) {
@@ -50,7 +59,7 @@ public class SecurityManager {
         return filePath.toString();
     }
 
-    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) throws IOException {
+    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) {
         String filePath = getResourcePath(resourceId, isPublicKey);
         ClassLoader classLoader = SecurityManager.class.getClassLoader();
         File file = new File(classLoader.getResource(filePath).getFile());
@@ -114,6 +123,15 @@ public class SecurityManager {
     public static boolean verifySignature(PublicKey key, byte[] signedData, Object payload) {
         try {
             return verifySignature(key, signedData, getByteArray(payload));
+        } catch (Exception exc) {
+            System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
+            return false;
+        }
+    }
+
+    public static boolean verifySignature(PublicKey key, String signedData, Object payload) {
+        try {
+            return verifySignature(key, base64StringToBytes(signedData), getByteArray(payload));
         } catch (Exception exc) {
             System.out.println("[xxx] Unexpected error getting payload bytes for signature verification.");
             return false;

@@ -1,12 +1,12 @@
 package hds.server.controllers;
 
-import hds.security.msgtypes.BasicResponse;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.GoodState;
-import hds.security.msgtypes.SecureResponse;
+import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.responses.ErrorResponse;
+import hds.security.msgtypes.responses.GoodState;
+import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.server.helpers.ControllerErrorConsts;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.HttpStatus;
@@ -67,7 +67,7 @@ public class GetStateOfGoodController {
 		}
 		catch (SignatureException ex) {
 			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, true), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new SecureResponse(payload, ""), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
