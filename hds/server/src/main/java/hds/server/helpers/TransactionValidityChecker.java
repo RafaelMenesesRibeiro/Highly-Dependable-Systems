@@ -28,10 +28,10 @@ public class TransactionValidityChecker {
 		String goodID = transactionData.getGoodID();
 		byte[] payloadBytes = getByteArray(transactionData);
 
-		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), payloadBytes)) {
+		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		if (!isClientWilling(sellerID, signedData.getSellerSignature(), payloadBytes)) {
+		if (!isClientWilling(sellerID, signedData.getSellerSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
 

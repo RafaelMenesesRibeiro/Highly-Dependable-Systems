@@ -71,7 +71,8 @@ public class ClientApplication {
 
     private static void buyGood() {
         String buyerId = ClientProperties.getPort();
-        String sellerId = String.format("http://localhost:%s/", requestSellerId());
+        String sellerId = requestSellerId();
+        String sellerURL = String.format("http://localhost:%s/", sellerId);
         String goodId = requestGoodId();
 
         try {
@@ -86,7 +87,7 @@ public class ClientApplication {
             ObjectMapper objectMapper = new ObjectMapper();
             JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
 
-            String requestUrl = String.format("%s%s", sellerId, "wantToBuy");
+            String requestUrl = String.format("%s%s", sellerURL, "wantToBuy");
             HttpURLConnection connection = initiatePOSTConnection(requestUrl);
             sendPostRequest(connection, requestData);
 
@@ -95,7 +96,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc);
+            printError(exc.getMessage());
         }
     }
 
@@ -121,7 +122,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc);
+            printError(exc.getMessage());
         }
     }
 
@@ -133,7 +134,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
-            printError(exc);
+            printError(exc.getMessage());
         }
     }
 
@@ -160,10 +161,5 @@ public class ClientApplication {
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
-    }
-
-    private static void printError(Exception exc) {
-        System.out.print("   [x]");
-        exc.printStackTrace();
     }
 }
