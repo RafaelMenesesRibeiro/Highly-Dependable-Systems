@@ -1,5 +1,6 @@
 package hds.client.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
 import hds.security.SecurityManager;
 import hds.security.helpers.ControllerErrorConsts;
@@ -50,14 +51,12 @@ public class WantToBuyController {
 
         // TODO Sign Transaction data and buyer signature
         PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
-        byte[] transactionDataBytes = getByteArray(signedTransactionData.getPayload());
 
-        if (!verifySignature(buyerPublicKey, buyerSignature, transactionDataBytes)) {
+        if (!verifySignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
             signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
-            transactionDataBytes = getByteArray(signedTransactionData.getPayload());
         }
 
-        byte[] sellerSignature = signData(sellerPrivateKey, transactionDataBytes);
+        byte[] sellerSignature = signData(sellerPrivateKey, getByteArray(signedTransactionData.getPayload()));
         signedTransactionData.setSellerSignature(bytesToBase64String(sellerSignature));
 
         String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
@@ -65,17 +64,10 @@ public class WantToBuyController {
 
         // TODO use buyGood methodology create an Object representing the payload, it must implement Serializable
         // TODO... then use ObjectMapper.writeAsStringValue or whatever the name of the method is.
-        JSONObject payload = new JSONObject();
-        payload.put("sellerID", signedTransactionData.getPayload().getSellerID());
-        payload.put("buyerID", signedTransactionData.getPayload().getBuyerID());
-        payload.put("goodID", signedTransactionData.getPayload().getGoodID());
+        ObjectMapper objectMapper = new ObjectMapper();
+        JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
 
-        JSONObject request = new JSONObject();
-        request.put("buyerSignature", signedTransactionData.getBuyerSignature());
-        request.put("sellerSignature", signedTransactionData.getSellerSignature());
-        request.put("payload", payload);
-
-        sendPostRequest(connection, request);
+        sendPostRequest(connection, requestData);
         hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
         return domainSecureResponse.translateSecureResponse();
     }
