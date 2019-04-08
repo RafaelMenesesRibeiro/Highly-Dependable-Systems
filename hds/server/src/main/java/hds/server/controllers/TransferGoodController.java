@@ -29,7 +29,8 @@ import java.util.logging.Logger;
 public class TransferGoodController {
 	private static final String OPERATION = "transferGood";
 
-	@PostMapping(value = "/transferGood")
+	@PostMapping(value = "/transferGood",
+			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<SecureResponse> transferGood(@RequestBody SignedTransactionData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");

@@ -30,7 +30,8 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 public class IntentionToSellController {
 	private static final String OPERATION = "markForSale";
 
-	@PostMapping(value = "/intentionToSell")
+	@PostMapping(value = "/intentionToSell",
+			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
