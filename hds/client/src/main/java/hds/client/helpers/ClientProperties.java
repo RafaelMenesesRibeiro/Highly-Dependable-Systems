@@ -4,6 +4,8 @@ public class ClientProperties {
 
     private static String portId;
     private static String maxPortId;
+    public static final String HDS_NOTARY_HOST = "http://localhost:8000/";
+    public static final String HDS_NOTARY_PORT = "8000";
     private ClientProperties() {}
 
     public static String getPort() {

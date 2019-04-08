@@ -1,6 +1,12 @@
 package hds.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.domain.OwnerData;
+import hds.security.domain.SignedOwnerData;
+import hds.security.domain.SignedTransactionData;
+import hds.security.domain.TransactionData;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,18 +14,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.security.PrivateKey;
+import java.security.acl.Owner;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
+import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
-    private static int input;
-    // private static final String HDS_NOTARY_HOST = "http://localhost:8000/";
-    private static final String HDS_NOTARY_HOST = "http://hds-notary-server-production.herokuapp.com/";
     private static boolean acceptingCommands = true;
     private static Scanner inputScanner = new Scanner(System.in);
 
@@ -32,9 +38,10 @@ public class ClientApplication {
         app.setDefaultProperties(Collections.singletonMap("server.port", portId));
         app.run(args);
 
-        while(acceptingCommands) {
+        while (acceptingCommands) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
 
+            int input;
             try {
                 input = inputScanner.nextInt();
             } catch (NoSuchElementException | IllegalStateException exc) {
@@ -50,6 +57,7 @@ public class ClientApplication {
                     break;
                 case 3:
                     intentionToSell();
+                    break;
                 case 4:
                     acceptingCommands = false;
                     break;
@@ -63,26 +71,27 @@ public class ClientApplication {
 
     private static void buyGood() {
         String buyerId = ClientProperties.getPort();
-        String sellerId = String.format("http://localhost:%s/", requestSellerId());
+        String sellerId = requestSellerId();
+        String sellerURL = String.format("http://localhost:%s/", sellerId);
         String goodId = requestGoodId();
 
         try {
-            String requestUrl = String.format("%s%s", sellerId, "wantToBuy");
-            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
             PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
+            TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
+            SignedTransactionData signedTransactionData = new SignedTransactionData();
+            String signedPayload = bytesToBase64String(signData(clientPrivateKey, getByteArray(payload)));
+            signedTransactionData.setPayload(payload);
+            signedTransactionData.setBuyerSignature(signedPayload);
+            signedTransactionData.setSellerSignature("");
 
-            JSONObject payload = new JSONObject();
-            payload.put("sellerID", sellerId);
-            payload.put("buyerID", buyerId);
-            payload.put("goodID", goodId);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
 
-            JSONObject request = new JSONObject();
-            request.put("buyerSignature", signData(clientPrivateKey, getByteArray(payload)));
-            request.put("sellerSignature", null);
-            request.put("payload", payload);
+            String requestUrl = String.format("%s%s", sellerURL, "wantToBuy");
+            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
+            sendPostRequest(connection, requestData);
 
-            sendPostRequest(connection, request);
-            processResponse(connection, sellerId);
+            processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
@@ -91,23 +100,24 @@ public class ClientApplication {
         }
     }
 
-    private static  void intentionToSell() {
-        String clientId = ClientProperties.getPort();
+    private static void intentionToSell() {
+        String sellerId = ClientProperties.getPort();
         try {
+            PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
+            OwnerData payload = new OwnerData(sellerId, requestGoodId());
+            SignedOwnerData signedOwnerData = new SignedOwnerData();
+            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, getByteArray(payload)));
+            signedOwnerData.setPayload(payload);
+            signedOwnerData.setSignature(signedPayload);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedOwnerData));
+
             String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
             HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(clientId);
+            sendPostRequest(connection, requestData);
 
-            JSONObject payload = new JSONObject();
-            payload.put("sellerID", clientId);
-            payload.put("goodID", requestGoodId());
-
-            JSONObject request = new JSONObject();
-            request.put("signature", signData(clientPrivateKey, getByteArray(payload)));
-            request.put("payload", payload);
-
-            sendPostRequest(connection, request);
-            processResponse(connection, HDS_NOTARY_HOST);
+            processResponse(connection, HDS_NOTARY_PORT);
 
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
@@ -120,8 +130,7 @@ public class ClientApplication {
         try {
             String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
             HttpURLConnection connection = initiateGETConnection(requestUrl);
-            processResponse(connection, HDS_NOTARY_HOST);
-            printError("Could not verify Notary signature...");
+            processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {

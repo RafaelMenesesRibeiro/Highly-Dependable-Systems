@@ -1,7 +1,8 @@
 package hds.client.helpers;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.security.msgtypes.SecureResponse;
+import hds.client.domain.SecureResponse;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -47,34 +48,51 @@ public class ConnectionManager {
         outputStream.close();
     }
 
-    private static SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public static hds.client.domain.SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
         String jsonResponse = getJSONStringFromHttpResponse(connection);
-        SecureResponse secureResponse = objectMapper.readValue(jsonResponse, SecureResponse.class);
-        return secureResponse;
+        return tryNewBasicResponse(1, jsonResponse);
+    }
+
+    private static SecureResponse tryNewBasicResponse(int attempt, String json) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            switch (attempt) {
+                case 1:
+                    return objectMapper.readValue(json, hds.client.domain.SecureBasicResponse.class);
+                case 2:
+                    return objectMapper.readValue(json, hds.client.domain.SecureGoodStateResponse.class);
+                case 3:
+                    return objectMapper.readValue(json, hds.client.domain.SecureErrorResponse.class);
+                default:
+                    return null;
+            }
+        } catch (JsonMappingException jme) {
+            return tryNewBasicResponse(++attempt, json);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
     }
 
     private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
         String currentLine;
         StringBuilder jsonResponse = new StringBuilder();
-
         InputStreamReader inputStream = new InputStreamReader(connection.getInputStream());
         BufferedReader bufferedReader = new BufferedReader(inputStream);
-
         while ((currentLine = bufferedReader.readLine()) != null) {
             jsonResponse.append(currentLine);
         }
-
         bufferedReader.close();
         inputStream.close();
-
         return jsonResponse.toString();
     }
 
     public static void processResponse(HttpURLConnection connection, String nodeId)
             throws InvalidKeySpecException, IOException {
 
-        SecureResponse secureResponse = getSecureResponse(connection);
+        hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
+        hds.security.msgtypes.responses.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
+
         if (isAuthenticResponse(secureResponse, nodeId)) {
             switch (connection.getResponseCode()) {
                 case(HttpURLConnection.HTTP_OK):

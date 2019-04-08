@@ -1,6 +1,8 @@
 package hds.security.domain;
 
-public class TransactionData {
+import java.io.Serializable;
+
+public class TransactionData implements Serializable {
     private String sellerID;
     private String buyerID;
     private String goodID;

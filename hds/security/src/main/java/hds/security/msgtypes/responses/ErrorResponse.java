@@ -1,4 +1,4 @@
-package hds.security.msgtypes;
+package hds.security.msgtypes.responses;
 
 public class ErrorResponse extends BasicResponse {
 	private String reason;
@@ -18,5 +18,12 @@ public class ErrorResponse extends BasicResponse {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+	@Override
+	public String toString() {
+		return "ErrorResponse{" +
+				"reason='" + reason + '\'' +
+				'}';
 	}
 }

@@ -28,10 +28,10 @@ public class TransactionValidityChecker {
 		String goodID = transactionData.getGoodID();
 		byte[] payloadBytes = getByteArray(transactionData);
 
-		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), payloadBytes)) {
+		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		if (!isClientWilling(sellerID, signedData.getSellerSignature(), payloadBytes)) {
+		if (!isClientWilling(sellerID, signedData.getSellerSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
 
@@ -80,11 +80,11 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	public static boolean isClientWilling(String clientID, byte[] buyerSignature, byte[] payloadBytes)
+	public static boolean isClientWilling(String clientID, String buyerSignature, Object payload)
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return verifySignature(buyerPublicKey, buyerSignature, payloadBytes);
+			return verifySignature(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException e) {
 			throw new SignatureException(e.getMessage());
