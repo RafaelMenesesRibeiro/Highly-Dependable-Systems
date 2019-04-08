@@ -1,12 +1,12 @@
 package hds.server.controllers;
 
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.security.msgtypes.responses.ErrorResponse;
 import hds.security.msgtypes.responses.GoodState;
 import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.InputProcessor;
 import hds.server.helpers.TransactionValidityChecker;

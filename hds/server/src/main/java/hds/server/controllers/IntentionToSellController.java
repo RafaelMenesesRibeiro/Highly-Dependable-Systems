@@ -1,17 +1,16 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
+import hds.security.domain.SignedOwnerData;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.security.msgtypes.responses.ErrorResponse;
 import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
-import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.InputProcessor;
 import hds.server.helpers.MarkForSale;
-import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-import static hds.security.SecurityManager.getByteArray;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
