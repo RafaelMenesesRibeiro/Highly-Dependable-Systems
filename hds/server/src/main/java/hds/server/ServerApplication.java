@@ -3,8 +3,10 @@ package hds.server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 @SpringBootApplication
 public class ServerApplication {
@@ -15,20 +17,22 @@ public class ServerApplication {
 
 	public static void main(String[] args) {
 		try {
-			FetchProperties();
+			fetchProperties();
 		}
 		catch (Exception ex) {
-			System.out.println(ex.getMessage());
+			Logger logger = Logger.getAnonymousLogger();
+			logger.warning(ex.getMessage());
+			logger.warning("Exiting.");
 			System.exit(1);
 		}
 		SpringApplication.run(ServerApplication.class, args);
 	}
 
-	private static void FetchProperties() throws Exception {
+	private static void fetchProperties() throws IOException {
 		Properties properties = new Properties();
 		try (InputStream input = ServerApplication.class.getClassLoader().getResourceAsStream("application.properties")) {
 			if (input == null) {
-				System.out.println("INPUT IS NULL");
+				throw new IOException("application.properties not found.");
 			}
 			properties.load(input);
 			driver = properties.getProperty("spring.datasource.driverClassName");
