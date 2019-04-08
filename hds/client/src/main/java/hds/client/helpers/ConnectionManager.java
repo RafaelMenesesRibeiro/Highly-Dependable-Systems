@@ -98,8 +98,14 @@ public class ConnectionManager {
                 case(HttpURLConnection.HTTP_OK):
                     System.out.println("[o] " + secureResponse.toString());
                     break;
+                case(HttpURLConnection.HTTP_BAD_REQUEST):
+                    System.out.println("    [x] Users and goods need to be alphanumeric characters without spaces;");
+                    break;
                 case(HttpURLConnection.HTTP_NOT_FOUND):
                     System.out.println("    [x] One of the specified parameters not exist in the notary system;");
+                    break;
+                case(HttpURLConnection.HTTP_INTERNAL_ERROR):
+                    System.out.println("    [x] Ups... something went wrong on the server;");
                     break;
                 default:
                     System.out.println("    [x] Notary suffered from an internal error, please try again later;");
