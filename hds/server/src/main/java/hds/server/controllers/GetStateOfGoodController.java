@@ -8,6 +8,7 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.InputProcessor;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 @RestController
 public class GetStateOfGoodController {
@@ -24,13 +26,17 @@ public class GetStateOfGoodController {
 
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
 	public ResponseEntity<SecureResponse> getStateOfGood(@RequestParam("goodID") String goodID) {
+		Logger logger = Logger.getAnonymousLogger();
+		logger.info("Received Get State of Good request.");
+
 		MetaResponse metaResponse;
 		try {
+			InputProcessor.isValidString(goodID);
 			metaResponse = new MetaResponse(execute(goodID));
 			return sendResponse(metaResponse, true);
 		}
-		catch (InvalidQueryParameterException iqpex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
+		catch (InvalidStringException | InvalidQueryParameterException ex) {
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
 			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));

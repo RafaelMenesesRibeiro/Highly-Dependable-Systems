@@ -10,6 +10,7 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.InputProcessor;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.springframework.http.HttpStatus;
@@ -33,15 +34,22 @@ public class TransferGoodController {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
 
+		TransactionData transactionData = signedData.getPayload();
+		String buyerID = transactionData.getBuyerID();
+		String sellerID = transactionData.getSellerID();
+		String goodID = transactionData.getGoodID();
 		MetaResponse metaResponse;
 		try {
+			InputProcessor.isValidString(sellerID);
+			InputProcessor.isValidString(buyerID);
+			InputProcessor.isValidString(goodID);
 			metaResponse = execute(signedData);
+		}
+		catch (InvalidStringException | InvalidQueryParameterException ex) {
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (IOException e) {
 			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
-		}
-		catch (InvalidQueryParameterException iqpex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
 			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
