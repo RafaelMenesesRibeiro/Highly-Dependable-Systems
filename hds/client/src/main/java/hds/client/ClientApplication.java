@@ -6,7 +6,6 @@ import hds.security.domain.OwnerData;
 import hds.security.domain.SignedOwnerData;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,7 +13,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.security.PrivateKey;
-import java.security.acl.Owner;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -26,7 +24,7 @@ import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
-    private static boolean acceptingCommands = true;
+    private static final boolean acceptingCommands = true;
     private static Scanner inputScanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -40,7 +38,6 @@ public class ClientApplication {
 
         while (acceptingCommands) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
-
             int input;
             try {
                 input = inputScanner.nextInt();
@@ -59,14 +56,12 @@ public class ClientApplication {
                     intentionToSell();
                     break;
                 case 4:
-                    acceptingCommands = false;
+                    System.exit(0);
                     break;
                 default:
                     break;
             }
         }
-
-        acceptingCommands = true;
     }
 
     private static void buyGood() {
