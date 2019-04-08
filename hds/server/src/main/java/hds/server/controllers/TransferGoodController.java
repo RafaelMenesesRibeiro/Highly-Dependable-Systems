@@ -38,6 +38,9 @@ public class TransferGoodController {
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
+		logger.info("\tBuyerID - " + buyerID);
+		logger.info("\tSellerID - " + sellerID);
+		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
 			InputProcessor.isValidString(sellerID);

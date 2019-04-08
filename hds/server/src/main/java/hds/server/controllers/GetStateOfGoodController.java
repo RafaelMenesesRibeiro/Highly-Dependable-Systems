@@ -28,6 +28,7 @@ public class GetStateOfGoodController {
 	public ResponseEntity<SecureResponse> getStateOfGood(@RequestParam("goodID") String goodID) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Get State of Good request.");
+		logger.info("\tGoodID - " + goodID);
 
 		MetaResponse metaResponse;
 		try {

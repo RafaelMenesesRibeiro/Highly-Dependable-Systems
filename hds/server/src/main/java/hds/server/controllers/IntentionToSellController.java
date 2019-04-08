@@ -38,6 +38,8 @@ public class IntentionToSellController {
 		OwnerData ownerData = signedData.getPayload();
 		String sellerID = ownerData.getSellerID();
 		String goodID = ownerData.getGoodID();
+		logger.info("\tSellerID - " + sellerID);
+		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
 			InputProcessor.isValidString(sellerID);
