@@ -1,9 +1,10 @@
 package hds.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.ConvertUtils;
-import hds.security.CryptoUtils;
+import hds.security.msgtypes.SaleRequestMessage;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,9 +16,12 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
+import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.ConvertUtils.bytesToBase64String;
+import static hds.security.ConvertUtils.objectToByteArray;
+import static hds.security.CryptoUtils.generateUniqueRequestId;
+import static hds.security.CryptoUtils.signData;
 import static hds.security.ResourceManager.*;
 
 @SpringBootApplication
@@ -62,31 +66,15 @@ public class ClientApplication {
     }
 
     private static void buyGood() {
-        String buyerId = ClientProperties.getPort();
-        String sellerId = requestSellerId();
-        String sellerURL = String.format("http://localhost:%s/", sellerId);
-        String goodId = requestGoodId();
-
         try {
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
-            TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
-            SignedTransactionData signedTransactionData = new SignedTransactionData();
-            String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(clientPrivateKey, ConvertUtils.objectToByteArray(payload)));
-            signedTransactionData.setPayload(payload);
-            signedTransactionData.setBuyerSignature(signedPayload);
-            signedTransactionData.setSellerSignature("");
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
-
-            String requestUrl = String.format("%s%s", sellerURL, "wantToBuy");
-            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            sendPostRequest(connection, requestData);
-
+            PrivateKey clientPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
+            SaleRequestMessage saleRequestMessage = newSaleRequestMessage();
+            saleRequestMessage.setSignature(bytesToBase64String(signData(clientPrivateKey, objectToByteArray(saleRequestMessage))));
+            HttpURLConnection connection = initiatePOSTConnection(String.format("http://localhost:%s/wantToBuy", saleRequestMessage.getTo()));
+            sendPostRequest(connection, newJSONObject(saleRequestMessage));
             processResponse(connection, HDS_NOTARY_PORT);
-
         } catch (SocketTimeoutException exc) {
-            printError("Target node did not respond within expected limits. Try again at your discretion.");
+            printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
@@ -98,7 +86,7 @@ public class ClientApplication {
             PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
             OwnerData payload = new OwnerData(sellerId, requestGoodId());
             SignedOwnerData signedOwnerData = new SignedOwnerData();
-            String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(payload)));
+            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, objectToByteArray(payload)));
             signedOwnerData.setPayload(payload);
             signedOwnerData.setSignature(signedPayload);
 
@@ -153,5 +141,14 @@ public class ClientApplication {
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+    public static SaleRequestMessage newSaleRequestMessage() {
+        String requestId = generateUniqueRequestId();
+        String from = ClientProperties.getPort();
+        String buyerId = from;
+        String to = requestSellerId();
+        String sellerId = to;
+        String goodId = requestGoodId();
+        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
     }
 }

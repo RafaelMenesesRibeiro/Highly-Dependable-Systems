@@ -1,7 +1,9 @@
 package hds.client.helpers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -9,10 +11,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.spec.InvalidKeySpecException;
 
-import static hds.security.ResourceManager.isAuthenticResponse;
-
 public class ConnectionManager {
     private static final int MAX_WAIT = 8000;
+
+    public static JSONObject newJSONObject(Object object) throws JsonProcessingException, JSONException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return new JSONObject(objectMapper.writeValueAsString(object));
+    }
 
     public static HttpURLConnection initiateGETConnection(String requestUrl) throws IOException {
         URL url = new URL(requestUrl);
