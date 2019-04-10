@@ -80,21 +80,6 @@ public class ClientApplication {
         }
     }
 
-    private static JSONObject newJSONObject(Object object) throws JsonProcessingException, JSONException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return new JSONObject(objectMapper.writeValueAsString(object));
-    }
-
-    private static SaleRequestMessage newSaleRequestMessage() {
-        String requestId = generateUniqueRequestId();
-        String from = ClientProperties.getPort();
-        String buyerId = from;
-        String to = requestSellerId();
-        String sellerId = to;
-        String goodId = requestGoodId();
-        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
-    }
-
     private static void intentionToSell() {
         String sellerId = ClientProperties.getPort();
         try {
@@ -156,5 +141,14 @@ public class ClientApplication {
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+    public static SaleRequestMessage newSaleRequestMessage() {
+        String requestId = generateUniqueRequestId();
+        String from = ClientProperties.getPort();
+        String buyerId = from;
+        String to = requestSellerId();
+        String sellerId = to;
+        String goodId = requestGoodId();
+        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
     }
 }
