@@ -49,7 +49,7 @@ public class TransferGoodController {
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(signedData);
 		}
-		catch (InvalidStringException | InvalidQueryParameterException ex) {
+		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
 			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (IOException e) {
