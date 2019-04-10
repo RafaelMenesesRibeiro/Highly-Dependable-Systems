@@ -1,5 +1,7 @@
 package hds.server.helpers;
 
+import hds.security.ConvertUtils;
+import hds.security.CryptoUtils;
 import hds.server.exception.*;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class TransactionValidityChecker {
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
-		byte[] payloadBytes = getByteArray(transactionData);
+		byte[] payloadBytes = ConvertUtils.objectToByteArray(transactionData);
 
 		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
@@ -82,7 +84,7 @@ public class TransactionValidityChecker {
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return verifySignature(buyerPublicKey, buyerSignature, payload);
+			return CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException e) {
 			throw new SignatureException(e.getMessage());

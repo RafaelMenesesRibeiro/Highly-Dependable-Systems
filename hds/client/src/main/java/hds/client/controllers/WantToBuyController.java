@@ -2,6 +2,8 @@ package hds.client.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.ConvertUtils;
+import hds.security.CryptoUtils;
 import hds.security.helpers.ControllerErrorConsts;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,12 +49,12 @@ public class WantToBuyController {
         // TODO Sign Transaction data and buyer signature
         PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
 
-        if (!verifySignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
+        if (!CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
             signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
         }
 
-        byte[] sellerSignature = signData(sellerPrivateKey, getByteArray(signedTransactionData.getPayload()));
-        signedTransactionData.setSellerSignature(bytesToBase64String(sellerSignature));
+        byte[] sellerSignature = CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(signedTransactionData.getPayload()));
+        signedTransactionData.setSellerSignature(ConvertUtils.bytesToBase64String(sellerSignature));
 
         String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
         HttpURLConnection connection = initiatePOSTConnection(requestUrl);
