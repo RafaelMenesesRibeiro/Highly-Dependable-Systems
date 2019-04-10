@@ -1,7 +1,5 @@
 package hds.server.helpers;
 
-import hds.security.domain.SignedTransactionData;
-import hds.security.domain.TransactionData;
 import hds.server.exception.*;
 
 import java.io.IOException;

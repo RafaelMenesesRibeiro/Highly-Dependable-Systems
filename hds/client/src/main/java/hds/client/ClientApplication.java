@@ -2,10 +2,6 @@ package hds.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.domain.OwnerData;
-import hds.security.domain.SignedOwnerData;
-import hds.security.domain.SignedTransactionData;
-import hds.security.domain.TransactionData;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

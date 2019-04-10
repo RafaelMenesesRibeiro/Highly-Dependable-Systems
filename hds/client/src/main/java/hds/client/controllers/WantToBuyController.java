@@ -2,12 +2,7 @@ package hds.client.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.SecurityManager;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.domain.SignedTransactionData;
-import hds.security.domain.TransactionData;
-import hds.security.msgtypes.responses.ErrorResponse;
-import hds.security.msgtypes.responses.SecureResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;

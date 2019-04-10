@@ -1,7 +1,5 @@
 package hds.security;
 
-import hds.security.msgtypes.responses.SecureResponse;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;

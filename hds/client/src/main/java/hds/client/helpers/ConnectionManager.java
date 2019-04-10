@@ -2,7 +2,6 @@ package hds.client.helpers;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.client.domain.SecureResponse;
 import org.json.JSONObject;
 
 import java.io.*;
