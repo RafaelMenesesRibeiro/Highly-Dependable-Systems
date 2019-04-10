@@ -6,7 +6,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage {
     String wrappingTo;
     String wrappingSignature;
 
-    public ApproveSaleRequestMessage(int requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID, String wrappingOperation, String wrappingFrom, String wrappingTo, String wrappingSignature) {
+    public ApproveSaleRequestMessage(String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID, String wrappingOperation, String wrappingFrom, String wrappingTo, String wrappingSignature) {
         super(requestID, operation, from, to, signature, goodID, buyerID, sellerID);
         this.wrappingOperation = wrappingOperation;
         this.wrappingFrom = wrappingFrom;
