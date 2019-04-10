@@ -2,12 +2,9 @@ package hds.client.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.SecurityManager;
+import hds.security.ConvertUtils;
+import hds.security.CryptoUtils;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.domain.SignedTransactionData;
-import hds.security.domain.TransactionData;
-import hds.security.msgtypes.responses.ErrorResponse;
-import hds.security.msgtypes.responses.SecureResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +17,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.*;
+import static hds.security.ResourceManager.*;
 
 @RestController
 public class WantToBuyController {
@@ -52,12 +49,12 @@ public class WantToBuyController {
         // TODO Sign Transaction data and buyer signature
         PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
 
-        if (!verifySignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
+        if (!CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
             signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
         }
 
-        byte[] sellerSignature = signData(sellerPrivateKey, getByteArray(signedTransactionData.getPayload()));
-        signedTransactionData.setSellerSignature(bytesToBase64String(sellerSignature));
+        byte[] sellerSignature = CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(signedTransactionData.getPayload()));
+        signedTransactionData.setSellerSignature(ConvertUtils.bytesToBase64String(sellerSignature));
 
         String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
         HttpURLConnection connection = initiatePOSTConnection(requestUrl);
