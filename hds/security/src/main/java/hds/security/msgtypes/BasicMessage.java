@@ -1,13 +1,13 @@
 package hds.security.msgtypes;
 
 public class BasicMessage {
-    int requestID;
+    String requestID;
     String operation;
     String from;
     String to;
     String signature;
 
-    public BasicMessage(int requestID, String operation, String from, String to, String signature) {
+    public BasicMessage(String requestID, String operation, String from, String to, String signature) {
         this.requestID = requestID;
         this.operation = operation;
         this.from = from;
@@ -18,11 +18,11 @@ public class BasicMessage {
     public BasicMessage() {
     }
 
-    public int getRequestID() {
+    public String getRequestID() {
         return requestID;
     }
 
-    public void setRequestID(int requestID) {
+    public void setRequestID(String requestID) {
         this.requestID = requestID;
     }
 

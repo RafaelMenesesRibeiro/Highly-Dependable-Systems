@@ -1,11 +1,17 @@
 package hds.security;
 
 import java.security.*;
+import java.util.UUID;
 
 public class CryptoUtils {
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-    static boolean authenticateSignature(PublicKey key, byte[] signedData, byte[] testData)
+    public static String generateUniqueRequestId() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString();
+    }
+
+    public static boolean authenticateSignature(PublicKey key, byte[] signedData, byte[] testData)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 
         Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
