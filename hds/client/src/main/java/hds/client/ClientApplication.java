@@ -16,9 +16,9 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
+import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.CryptoUtils.generateUniqueRequestId;
 import static hds.security.ResourceManager.*;
 
 @SpringBootApplication
@@ -70,8 +70,18 @@ public class ClientApplication {
 
         try {
             PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
-            // int requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID
-            SaleRequestMessage payload = new SaleRequestMessage(sellerId, buyerId, goodId);
+            // String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID
+            SaleRequestMessage payload = new SaleRequestMessage(
+                    generateUniqueRequestId(),
+                    "buyGood",
+                    buyerId,
+                    sellerId,
+                    "",
+                    goodId,
+                    buyerId,
+                    sellerId
+            );
+
             SignedTransactionData signedTransactionData = new SignedTransactionData();
             String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(clientPrivateKey, ConvertUtils.objectToByteArray(payload)));
             signedTransactionData.setPayload(payload);

@@ -4,7 +4,7 @@ public class SaleRequestMessage extends  GoodDataMessage {
     private String buyerID;
     private String sellerID;
 
-    public SaleRequestMessage(int requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID) {
+    public SaleRequestMessage(String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID) {
         super(requestID, operation, from, to, signature, goodID);
         this.buyerID = buyerID;
         this.sellerID = sellerID;

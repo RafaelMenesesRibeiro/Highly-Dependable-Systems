@@ -3,7 +3,7 @@ package hds.security.msgtypes;
 public class GoodDataMessage extends BasicMessage {
     String goodID;
 
-    public GoodDataMessage(int requestID, String operation, String from, String to, String signature, String goodID) {
+    public GoodDataMessage(String requestID, String operation, String from, String to, String signature, String goodID) {
         super(requestID, operation, from, to, signature);
         this.goodID = goodID;
     }
