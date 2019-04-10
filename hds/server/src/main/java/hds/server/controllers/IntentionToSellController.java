@@ -9,7 +9,7 @@ import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
-import hds.server.helpers.InputProcessor;
+import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.MarkForSale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,11 +43,11 @@ public class IntentionToSellController {
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
-			InputProcessor.isValidString(sellerID);
-			InputProcessor.isValidString(goodID);
+			InputValidation.isValidClientID(sellerID);
+			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(signedData);
 		}
-		catch (InvalidStringException | InvalidQueryParameterException ex) {
+		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
 			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (IOException e) {

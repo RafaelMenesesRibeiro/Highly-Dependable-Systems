@@ -10,7 +10,7 @@ import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
-import hds.server.helpers.InputProcessor;
+import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.springframework.http.HttpStatus;
@@ -44,9 +44,9 @@ public class TransferGoodController {
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
-			InputProcessor.isValidString(sellerID);
-			InputProcessor.isValidString(buyerID);
-			InputProcessor.isValidString(goodID);
+			InputValidation.isValidClientID(sellerID);
+			InputValidation.isValidClientID(buyerID);
+			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(signedData);
 		}
 		catch (InvalidStringException | InvalidQueryParameterException ex) {
