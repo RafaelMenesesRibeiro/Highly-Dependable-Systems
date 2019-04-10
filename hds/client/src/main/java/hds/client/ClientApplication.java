@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
+import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -69,7 +70,8 @@ public class ClientApplication {
 
         try {
             PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
-            TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
+            // int requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID
+            SaleRequestMessage payload = new SaleRequestMessage(sellerId, buyerId, goodId);
             SignedTransactionData signedTransactionData = new SignedTransactionData();
             String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(clientPrivateKey, ConvertUtils.objectToByteArray(payload)));
             signedTransactionData.setPayload(payload);
