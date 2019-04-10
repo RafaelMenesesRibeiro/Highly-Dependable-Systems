@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-import static hds.security.SecurityManager.*;
+import static hds.security.ResourceManager.*;
 
 public class TransactionValidityChecker {
 	private TransactionValidityChecker() {

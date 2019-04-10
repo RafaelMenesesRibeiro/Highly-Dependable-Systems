@@ -17,7 +17,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.*;
+import static hds.security.ResourceManager.*;
 
 @RestController
 public class WantToBuyController {

@@ -10,7 +10,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
 
-public class SecurityManager {
+public class ResourceManager {
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
     private static final String PUBLIC_KEY_BASE_FILENAME = "HDSNotary_PublicK_ID_";
@@ -20,7 +20,7 @@ public class SecurityManager {
     @Deprecated
     public static final String SELLER_INCORRECT_BUYER_SIGNATURE = "-2";
 
-    private SecurityManager() {}
+    private ResourceManager() {}
 
     public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
@@ -43,6 +43,17 @@ public class SecurityManager {
         return kf.generatePrivate(ks);
     }
 
+    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) {
+        String filePath = buildResourcePath(resourceId, isPublicKey);
+        ClassLoader classLoader = ResourceManager.class.getClassLoader();
+        File file = new File(Objects.requireNonNull(classLoader.getResource(filePath)).getFile());
+        return file.toPath();
+    }
+
+    private static byte[] getResourceFileBytes(Path resourceRelativePath) throws IOException {
+        return Files.readAllBytes(resourceRelativePath);
+    }
+
     private static String buildResourcePath(String resourceId, boolean isPublicKey) {
         StringBuilder filePath = new StringBuilder("keys/");
         if (isPublicKey) {
@@ -57,16 +68,4 @@ public class SecurityManager {
         }
         return filePath.toString();
     }
-
-    private static Path getResourceRelativePath(String resourceId, boolean isPublicKey) {
-        String filePath = buildResourcePath(resourceId, isPublicKey);
-        ClassLoader classLoader = SecurityManager.class.getClassLoader();
-        File file = new File(Objects.requireNonNull(classLoader.getResource(filePath)).getFile());
-        return file.toPath();
-    }
-
-    private static byte[] getResourceFileBytes(Path resourceRelativePath) throws IOException {
-        return Files.readAllBytes(resourceRelativePath);
-    }
-
 }

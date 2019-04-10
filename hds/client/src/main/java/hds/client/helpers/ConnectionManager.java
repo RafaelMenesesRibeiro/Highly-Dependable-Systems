@@ -9,7 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.spec.InvalidKeySpecException;
 
-import static hds.security.SecurityManager.isAuthenticResponse;
+import static hds.security.ResourceManager.isAuthenticResponse;
 
 public class ConnectionManager {
     private static final int MAX_WAIT = 8000;

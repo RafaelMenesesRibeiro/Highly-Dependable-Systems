@@ -1,6 +1,6 @@
 package hds.server.controllers;
 
-import hds.security.SecurityManager;
+import hds.security.ResourceManager;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.server.domain.MetaResponse;
@@ -85,7 +85,7 @@ public class TransferGoodController {
 			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
 		}
 
-		if (buyerID.equals(SecurityManager.SELLER_INCORRECT_BUYER_SIGNATURE)) {
+		if (buyerID.equals(ResourceManager.SELLER_INCORRECT_BUYER_SIGNATURE)) {
 			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_SIGNATURE, OPERATION, "The seller thinks your signature is incorrect."));
 		}
 

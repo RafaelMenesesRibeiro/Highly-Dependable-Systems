@@ -18,7 +18,7 @@ import java.util.Scanner;
 import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
 import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.*;
+import static hds.security.ResourceManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
