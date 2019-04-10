@@ -1,7 +1,10 @@
 package hds.server.controllers;
 
+import hds.security.CryptoUtils;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.OwnerDataMessage;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
@@ -13,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -24,16 +26,16 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 @SuppressWarnings("Duplicates")
 @RestController
 public class IntentionToSellController {
+	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "markForSale";
 
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
+	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody OwnerDataMessage ownerData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
 
-		OwnerData ownerData = signedData.getPayload();
-		String sellerID = InputValidation.cleanString(ownerData.getSellerID());
+		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		logger.info("\tSellerID - " + sellerID);
 		logger.info("\tGoodID - " + goodID);
@@ -41,32 +43,37 @@ public class IntentionToSellController {
 		try {
 			InputValidation.isValidClientID(sellerID);
 			InputValidation.isValidGoodID(goodID);
-			metaResponse = execute(signedData);
+			metaResponse = execute(ownerData);
+			return sendResponse(metaResponse, true);
 		}
 		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
+			metaResponse = new MetaResponse(400, payload);
 		}
 		catch (DBConnectionRefusedException dbcrex) {
-			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.CONN_REF, dbcrex.getMessage());
+			metaResponse = new MetaResponse(401, payload);
 		}
 		catch (DBClosedConnectionException dbccex) {
-			metaResponse = new MetaResponse(503, new ErrorResponse(ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.CONN_CLOSED, dbccex.getMessage());
+			metaResponse = new MetaResponse(503, payload);
 		}
 		catch (DBNoResultsException dbnrex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_RESP, dbnrex.getMessage());
+			metaResponse = new MetaResponse(500, payload);
 		}
 		catch (DBSQLException | SQLException sqlex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SQL, sqlex.getMessage());
+			metaResponse = new MetaResponse(500, payload);
 		}
 		return sendResponse(metaResponse, false);
 	}
 
-	private MetaResponse execute(SignedOwnerData signedData)
+	private MetaResponse execute(OwnerDataMessage ownerData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
 					DBSQLException, InvalidQueryParameterException, DBNoResultsException {
 
-		OwnerData ownerData = signedData.getPayload();
-		String sellerID = ownerData.getSellerID();
+		String sellerID = ownerData.getOwner();
 		String goodID = ownerData.getGoodID();
 
 		if (sellerID == null || sellerID.equals("")) {
@@ -79,22 +86,28 @@ public class IntentionToSellController {
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
 				conn.rollback();
-				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
+				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
+				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
+				return new MetaResponse(403, payload);
 			}
-			boolean res = isClientWilling(sellerID, signedData.getSignature(), ownerData);
+			boolean res = isClientWilling(sellerID, ownerData.getSignature(), ownerData);
 			if (!res) {
 				conn.rollback();
-				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
+				String reason = "The Seller's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				return new MetaResponse(403, payload);
 			}
 			MarkForSale.markForSale(conn, goodID);
 			conn.commit();
-			return new MetaResponse(new BasicResponse("ok", OPERATION));
+			BasicMessage payload = new BasicMessage(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
+			return new MetaResponse(payload);
 		}
 		catch (SignatureException is){
 			if (conn != null) {
 				conn.rollback();
 			}
-			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage()));
+			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, is.getMessage());
+			return new MetaResponse(403, payload);
 		}
 		catch (SQLException | DBSQLException | DBNoResultsException ex) {
 			if (conn != null) {
@@ -110,17 +123,18 @@ public class IntentionToSellController {
 	}
 
 	@SuppressWarnings("Duplicates")
-	private ResponseEntity<SecureResponse> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
-		BasicResponse payload = metaResponse.getPayload();
+	private ResponseEntity<BasicMessage> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
+		BasicMessage payload = metaResponse.getPayload();
 		try {
+			payload.setSignature(CryptoUtils.signData(payload));
 			if (isSuccess) {
-				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
+				return new ResponseEntity<>(payload, HttpStatus.OK);
 			}
-			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
+			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException ex) {
-			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, ""), HttpStatus.INTERNAL_SERVER_ERROR);
+			ErrorResponse unsignedPayload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.CANCER, ex.getMessage());
+			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

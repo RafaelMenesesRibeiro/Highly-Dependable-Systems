@@ -2,6 +2,7 @@ package hds.server.helpers;
 
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
@@ -18,20 +19,19 @@ public class TransactionValidityChecker {
 		// This is here so the class can't be instantiated. //
 	}
 
-	public static boolean isValidTransaction(Connection conn, SignedTransactionData signedData)
+	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException,
 					IOException, SignatureException, IncorrectSignatureException {
 
-		TransactionData transactionData = signedData.getPayload();
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
 		byte[] payloadBytes = ConvertUtils.objectToByteArray(transactionData);
 
-		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), transactionData)) {
+		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		if (!isClientWilling(sellerID, signedData.getSellerSignature(), transactionData)) {
+		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
 
