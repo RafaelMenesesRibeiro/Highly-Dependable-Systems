@@ -2,10 +2,8 @@ package hds.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.domain.OwnerData;
-import hds.security.domain.SignedOwnerData;
-import hds.security.domain.SignedTransactionData;
-import hds.security.domain.TransactionData;
+import hds.security.ConvertUtils;
+import hds.security.CryptoUtils;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +18,7 @@ import java.util.Scanner;
 import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
 import static hds.client.helpers.ClientProperties.HDS_NOTARY_PORT;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.*;
+import static hds.security.ResourceManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
@@ -73,7 +71,7 @@ public class ClientApplication {
             PrivateKey clientPrivateKey = getPrivateKeyFromResource(buyerId);
             TransactionData payload = new TransactionData(sellerId, buyerId, goodId);
             SignedTransactionData signedTransactionData = new SignedTransactionData();
-            String signedPayload = bytesToBase64String(signData(clientPrivateKey, getByteArray(payload)));
+            String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(clientPrivateKey, ConvertUtils.objectToByteArray(payload)));
             signedTransactionData.setPayload(payload);
             signedTransactionData.setBuyerSignature(signedPayload);
             signedTransactionData.setSellerSignature("");
@@ -100,7 +98,7 @@ public class ClientApplication {
             PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
             OwnerData payload = new OwnerData(sellerId, requestGoodId());
             SignedOwnerData signedOwnerData = new SignedOwnerData();
-            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, getByteArray(payload)));
+            String signedPayload = ConvertUtils.bytesToBase64String(CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(payload)));
             signedOwnerData.setPayload(payload);
             signedOwnerData.setSignature(signedPayload);
 
