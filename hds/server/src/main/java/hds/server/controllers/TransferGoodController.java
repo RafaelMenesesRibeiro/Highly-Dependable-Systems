@@ -36,9 +36,9 @@ public class TransferGoodController {
 		logger.info("Received Transfer Good request.");
 
 		TransactionData transactionData = signedData.getPayload();
-		String buyerID = transactionData.getBuyerID();
-		String sellerID = transactionData.getSellerID();
-		String goodID = transactionData.getGoodID();
+		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
+		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
+		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 		logger.info("\tBuyerID - " + buyerID);
 		logger.info("\tSellerID - " + sellerID);
 		logger.info("\tGoodID - " + goodID);

@@ -37,8 +37,8 @@ public class IntentionToSellController {
 		logger.info("Received Intention to Sell request.");
 
 		OwnerData ownerData = signedData.getPayload();
-		String sellerID = ownerData.getSellerID();
-		String goodID = ownerData.getGoodID();
+		String sellerID = InputValidation.cleanString(ownerData.getSellerID());
+		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		logger.info("\tSellerID - " + sellerID);
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;

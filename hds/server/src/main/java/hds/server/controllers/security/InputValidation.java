@@ -1,6 +1,8 @@
 package hds.server.controllers.security;
 
 import hds.server.ServerApplication;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +45,15 @@ public class InputValidation {
         }
         if (str.length() > 50) {
             throw new IllegalArgumentException("Parameter is longer than 50 character.");
+        }
+    }
+
+    public static String cleanString(String str) {
+        if (str == null) {
+            return "";
+        }
+        else {
+            return Jsoup.clean(str, Whitelist.simpleText());
         }
     }
 }
