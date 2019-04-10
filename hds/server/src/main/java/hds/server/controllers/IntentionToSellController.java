@@ -6,10 +6,10 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.security.msgtypes.responses.ErrorResponse;
 import hds.security.msgtypes.responses.SecureResponse;
+import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
-import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.MarkForSale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +50,6 @@ public class IntentionToSellController {
 		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
 			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
-		catch (IOException e) {
-			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
-		}
 		catch (DBConnectionRefusedException dbcrex) {
 			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
 		}
@@ -70,7 +67,7 @@ public class IntentionToSellController {
 
 	private MetaResponse execute(SignedOwnerData signedData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
-					DBSQLException, InvalidQueryParameterException, DBNoResultsException, IOException {
+					DBSQLException, InvalidQueryParameterException, DBNoResultsException {
 
 		OwnerData ownerData = signedData.getPayload();
 		String sellerID = ownerData.getSellerID();
@@ -79,20 +76,40 @@ public class IntentionToSellController {
 		if (sellerID == null || sellerID.equals("")) {
 			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
 		}
-		try (Connection conn = DatabaseManager.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false);
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
+				conn.rollback();
 				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
 			}
 			boolean res = isClientWilling(sellerID, signedData.getSignature(), ownerData);
 			if (!res) {
+				conn.rollback();
 				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
 			}
 			MarkForSale.markForSale(conn, goodID);
+			conn.commit();
 			return new MetaResponse(new BasicResponse("ok", OPERATION));
 		}
 		catch (SignatureException is){
+			if (conn != null) {
+				conn.rollback();
+			}
 			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage()));
+		}
+		catch (SQLException | DBSQLException | DBNoResultsException ex) {
+			if (conn != null) {
+				conn.rollback();
+			}
+			throw ex;
+		}
+		finally {
+			if (conn != null) {
+				conn.close();
+			}
 		}
 	}
 
