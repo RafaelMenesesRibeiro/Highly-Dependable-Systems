@@ -1,16 +1,16 @@
 package hds.server.controllers;
 
 import hds.security.domain.OwnerData;
+import hds.security.domain.SignedOwnerData;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.security.msgtypes.responses.ErrorResponse;
 import hds.security.msgtypes.responses.SecureResponse;
 import hds.server.domain.MetaResponse;
-import hds.security.domain.SignedOwnerData;
 import hds.server.exception.*;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
+import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.MarkForSale;
-import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-import static hds.security.SecurityManager.getByteArray;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -31,20 +30,28 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 public class IntentionToSellController {
 	private static final String OPERATION = "markForSale";
 
-	@PostMapping(value = "/intentionToSell")
+	@PostMapping(value = "/intentionToSell",
+			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
-		System.out.println(signedData.toString());
 		logger.info("Received Intention to Sell request.");
+
+		OwnerData ownerData = signedData.getPayload();
+		String sellerID = ownerData.getSellerID();
+		String goodID = ownerData.getGoodID();
+		logger.info("\tSellerID - " + sellerID);
+		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
+			InputValidation.isValidClientID(sellerID);
+			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(signedData);
+		}
+		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (IOException e) {
 			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
-		}
-		catch (InvalidQueryParameterException iqpex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
 			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));

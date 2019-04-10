@@ -1,15 +1,16 @@
 package hds.server.controllers;
 
+import hds.security.SecurityManager;
 import hds.security.domain.SignedTransactionData;
 import hds.security.domain.TransactionData;
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.responses.BasicResponse;
 import hds.security.msgtypes.responses.ErrorResponse;
 import hds.security.msgtypes.responses.SecureResponse;
-import hds.security.SecurityManager;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.server.helpers.DatabaseManager;
+import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.springframework.http.HttpStatus;
@@ -28,20 +29,31 @@ import java.util.logging.Logger;
 public class TransferGoodController {
 	private static final String OPERATION = "transferGood";
 
-	@PostMapping(value = "/transferGood")
+	@PostMapping(value = "/transferGood",
+			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<SecureResponse> transferGood(@RequestBody SignedTransactionData signedData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
 
+		TransactionData transactionData = signedData.getPayload();
+		String buyerID = transactionData.getBuyerID();
+		String sellerID = transactionData.getSellerID();
+		String goodID = transactionData.getGoodID();
+		logger.info("\tBuyerID - " + buyerID);
+		logger.info("\tSellerID - " + sellerID);
+		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
+			InputValidation.isValidClientID(sellerID);
+			InputValidation.isValidClientID(buyerID);
+			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(signedData);
+		}
+		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
+			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
 		}
 		catch (IOException e) {
 			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
-		}
-		catch (InvalidQueryParameterException iqpex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, iqpex.getMessage()));
 		}
 		catch (DBConnectionRefusedException dbcrex) {
 			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
