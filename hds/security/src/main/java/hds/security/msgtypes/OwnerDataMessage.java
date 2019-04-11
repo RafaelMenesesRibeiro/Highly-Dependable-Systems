@@ -1,7 +1,6 @@
 package hds.security.msgtypes;
 
 import hds.security.helpers.inputValidation.ValidClientID;
-import hds.security.helpers.inputValidation.ValidGoodID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

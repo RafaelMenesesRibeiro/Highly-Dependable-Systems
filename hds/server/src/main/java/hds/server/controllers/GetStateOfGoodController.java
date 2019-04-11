@@ -1,13 +1,14 @@
 package hds.server.controllers;
 
-import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.GoodStateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
-import hds.server.exception.*;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.DBSQLException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.ResponseEntity;
