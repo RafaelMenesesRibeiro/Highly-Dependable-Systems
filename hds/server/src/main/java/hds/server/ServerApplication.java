@@ -20,8 +20,6 @@ public class ServerApplication {
 	private static String user;
 	private static String password;
 
-	private static @Autowired Environment environment;
-
 	public static void main(String[] args) {
 		try {
 			fetchProperties();

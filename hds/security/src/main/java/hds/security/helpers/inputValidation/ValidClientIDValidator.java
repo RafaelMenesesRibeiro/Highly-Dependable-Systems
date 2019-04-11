@@ -4,6 +4,8 @@ import hds.security.ResourceManager;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ValidClientIDValidator implements ConstraintValidator<ValidClientID, String> {
 	private int minValue = -100;
@@ -17,6 +19,14 @@ public class ValidClientIDValidator implements ConstraintValidator<ValidClientID
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
+		value = inputValidation.cleanString(value);
+
+		Pattern pattern = Pattern.compile("^[0-9]+$");
+		Matcher matcher = pattern.matcher(value);
+		if (!matcher.matches()) {
+			return false;
+		}
+
 		int stringValue = 0;
 		try {
 			stringValue = Integer.parseInt(value);
@@ -25,7 +35,5 @@ public class ValidClientIDValidator implements ConstraintValidator<ValidClientID
 			return false;
 		}
 		return (stringValue >= this.minValue && stringValue <= maxValue);
-
-		// TODO - Move here code in isVaklidClientID. //
 	}
 }

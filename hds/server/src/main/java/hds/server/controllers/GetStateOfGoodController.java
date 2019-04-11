@@ -35,7 +35,6 @@ public class GetStateOfGoodController {
 		MetaResponse metaResponse;
 		try {
 			goodID = InputValidation.cleanString(goodID);
-			InputValidation.isValidGoodID(goodID);
 			metaResponse = new MetaResponse(execute(goodID));
 		}
 		catch (Exception ex) {

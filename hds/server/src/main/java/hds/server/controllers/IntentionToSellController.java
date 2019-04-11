@@ -64,8 +64,6 @@ public class IntentionToSellController {
 		}
 
 		try {
-			InputValidation.isValidClientID(sellerID, "sellerID");
-			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(ownerData);
 		}
 		catch (Exception ex) {

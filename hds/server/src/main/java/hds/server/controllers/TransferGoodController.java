@@ -40,9 +40,6 @@ public class TransferGoodController {
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
-			InputValidation.isValidClientID(sellerID, "sellerID");
-			InputValidation.isValidClientID(buyerID, "sellerID");
-			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(transactionData);
 		}
 		catch (IOException ioex) {
