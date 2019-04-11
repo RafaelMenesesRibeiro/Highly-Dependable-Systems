@@ -48,8 +48,8 @@ public class TransferGoodController {
 			metaResponse = execute(transactionData);
 		}
 		catch (IOException ioex) {
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
-			metaResponse = new MetaResponse(403, payload);
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CRASH, ioex.getMessage());
+			metaResponse = new MetaResponse(500, payload);
 		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);

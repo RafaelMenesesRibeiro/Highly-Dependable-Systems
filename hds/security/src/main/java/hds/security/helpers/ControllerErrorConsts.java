@@ -6,7 +6,7 @@ public class ControllerErrorConsts {
 		// This is here so the class can't be instantiated. //
 	}
 
-	public static final String CANCER = "The server cannot continue.";
+	public static final String CRASH = "The server cannot continue.";
 	public static final String BAD_PARAMS = "The parameters are not correct.";
 	public static final String BAD_TRANSACTION = "The transaction is not valid.";
 	public static final String BAD_SIGNATURE = "The signatures do not match the received data.";

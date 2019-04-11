@@ -78,8 +78,8 @@ public class IntentionToSellController {
 			if (!res) {
 				conn.rollback();
 				String reason = "The Seller's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
-				return new MetaResponse(403, payload);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
 			}
 			MarkForSale.markForSale(conn, goodID);
 			conn.commit();

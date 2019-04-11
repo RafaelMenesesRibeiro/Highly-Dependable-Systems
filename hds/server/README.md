@@ -92,23 +92,40 @@ Errors specific to an endpoint are listed on its corresponding section
         "signature" : "a_signature"
     }
     ```
+    
+* **Error Response:**
+
+	**Code:** 401
+     
+    **Content:**
+     ```
+    {
+        "requestID" : "a_request_ID",
+        "operation" : "transferGood",
+        "from" : "server",
+        "to" : "a_client_ID",
+        "signature" : "a_signature",
+        "message" : "The signatures do not match the received data.",
+        "reason" : "The Seller's signature is not valid.""The Seller's signature is not valid."
+    }
+    ```
 
 * **Error Response:**
 
-	**Code:** 403
-	 
-	 **Content:**
-	```
-	{
-		"requestID" : "a_request_ID",
-		"operation" : "markForSale",
-		"from" : "server",
-		"to" : "a_client_ID",
-		"signature" : "a_signature",
-		"message" : "You do not have permission to put this item on sale.",
-		"reason" : "The user '" + owner + "' does not own the good '" + goodID + "'."
-	}
-	```
+    **Code:** 403
+     
+    **Content:**
+     ```
+    {
+        "requestID" : "a_request_ID",
+        "operation" : "transferGood",
+        "from" : "server",
+        "to" : "a_client_ID",
+        "signature" : "a_signature",
+        "message" : "You do not have permission to put this item on sale.",
+        "reason" : "The user '" + sellerID + "' does not own the good '" + goodID + "'."
+    }
+    ```
 
 * **Error Response:**
 
@@ -168,7 +185,7 @@ Errors specific to an endpoint are listed on its corresponding section
 
     **Code:** 403
      
-     **Content:**
+    **Content:**
      ```
     {
         "requestID" : "a_request_ID",
@@ -177,6 +194,23 @@ Errors specific to an endpoint are listed on its corresponding section
         "to" : "a_client_ID",
         "signature" : "a_signature",
         "message" : "The transaction is not valid.",
+        "reason" : "a_reason"
+    }
+    ```
+
+* **Error Response:**
+
+    **Code:** 500
+     
+    **Content:**
+     ```
+    {
+        "requestID" : "a_request_ID",
+        "operation" : "transferGood",
+        "from" : "server",
+        "to" : "a_client_ID",
+        "signature" : "a_signature",
+        "message" : "The server cannot continue.",
         "reason" : "a_reason"
     }
     ```
@@ -245,6 +279,21 @@ Errors specific to an endpoint are listed on its corresponding section
     "to" : "a_client_ID",
     "signature" : "a_signature",
     "message" : "Caught an SQL Exception.",
+    "reason" : "a_reason"
+}
+```
+
+**Code:** 500
+
+**Content:**
+```
+{
+    "requestID" : "a_request_ID",
+    "operation" : (OPERATION),
+    "from" : "server",
+    "to" : "a_client_ID",
+    "signature" : "a_signature",
+    "message" : "The server cannot continue.",
     "reason" : "a_reason"
 }
 ```

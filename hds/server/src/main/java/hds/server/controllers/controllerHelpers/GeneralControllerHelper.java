@@ -29,7 +29,7 @@ public class GeneralControllerHelper {
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException ex) {
-			ErrorResponse unsignedPayload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CANCER, ex.getMessage());
+			ErrorResponse unsignedPayload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -55,7 +55,7 @@ public class GeneralControllerHelper {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
 			return new MetaResponse(403, payload);
 		}
-		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CANCER, ex.getMessage());
+		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);
 	}
 

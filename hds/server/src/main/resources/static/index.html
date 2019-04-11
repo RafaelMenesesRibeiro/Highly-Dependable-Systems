@@ -87,16 +87,31 @@
     </li>
     <li>
         <p><strong>Error Response:</strong></p>
+        <p><strong>Code:</strong> 401</p>
+        <p><strong>Content:</strong></p>
+        <pre><code>{
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;The signatures do not match the received data.&quot;,
+   &quot;reason&quot; : &quot;The Seller's signature is not valid.&quot;&quot;The Seller's signature is not valid.&quot;
+}
+</code></pre>
+    </li>
+    <li>
+        <p><strong>Error Response:</strong></p>
         <p><strong>Code:</strong> 403</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;requestID&quot; : &quot;a_request_ID&quot;,
-    &quot;operation&quot; : &quot;markForSale&quot;,
-    &quot;from&quot; : &quot;server&quot;,
-    &quot;to&quot; : &quot;a_client_ID&quot;,
-    &quot;signature&quot; : &quot;a_signature&quot;,
-    &quot;message&quot; : &quot;You do not have permission to put this item on sale.&quot;,
-    &quot;reason&quot; : &quot;The user '&quot; + owner + &quot;' does not own the good '&quot; + goodID + &quot;'.&quot;
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;You do not have permission to put this item on sale.&quot;,
+   &quot;reason&quot; : &quot;The user '&quot; + sellerID + &quot;' does not own the good '&quot; + goodID + &quot;'.&quot;
 }
 </code></pre>
     </li>
@@ -106,7 +121,7 @@
     </li>
 </ul>
 <hr>
-<h2><a id="Transfer_Good_118"></a><strong>Transfer Good</strong></h2>
+<h2><a id="Transfer_Good_135"></a><strong>Transfer Good</strong></h2>
 <ul>
     <li>
         <p><strong>URL</strong></p>
@@ -168,11 +183,26 @@
     </li>
     <li>
         <p><strong>Error Response:</strong></p>
+        <p><strong>Code:</strong> 500</p>
+        <p><strong>Content:</strong></p>
+        <pre><code>{
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;The server cannot continue.&quot;,
+   &quot;reason&quot; : &quot;a_reason&quot;
+}
+</code></pre>
+    </li>
+    <li>
+        <p><strong>Error Response:</strong></p>
         <p>Every other error response this request can return are the ones defined in the General HDSNotary API Errors section.</p>
     </li>
 </ul>
 <hr>
-<h1><a id="General_HDSNotary_API_Errors_189"></a><strong>General HDSNotary API Errors</strong></h1>
+<h1><a id="General_HDSNotary_API_Errors_223"></a><strong>General HDSNotary API Errors</strong></h1>
 <p><strong>Code:</strong> 400</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
@@ -218,6 +248,18 @@
     &quot;to&quot; : &quot;a_client_ID&quot;,
     &quot;signature&quot; : &quot;a_signature&quot;,
     &quot;message&quot; : &quot;Caught an SQL Exception.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
+</code></pre>
+<p><strong>Code:</strong> 500</p>
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The server cannot continue.&quot;,
     &quot;reason&quot; : &quot;a_reason&quot;
 }
 </code></pre>
