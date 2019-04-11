@@ -1,10 +1,24 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class ApproveSaleRequestMessage extends SaleRequestMessage {
-    String wrappingOperation;
-    String wrappingFrom;
-    String wrappingTo;
-    String wrappingSignature;
+    @NotNull(message = "The wrappingOperation cannot be null.")
+    @NotEmpty(message = "The wrappingOperation cannot be empty.")
+    private String wrappingOperation;
+
+    @NotNull(message = "The wrappingFrom cannot be null.")
+    @NotEmpty(message = "The wrappingFrom cannot be empty.")
+    private String wrappingFrom;
+
+    @NotNull(message = "The wrappingTo cannot be null.")
+    @NotEmpty(message = "The wrappingTo cannot be empty.")
+    private String wrappingTo;
+
+    @NotNull(message = "The wrappingSignature cannot be null.")
+    @NotEmpty(message = "The wrappingSignature cannot be empty.")
+    private String wrappingSignature;
 
     public ApproveSaleRequestMessage(String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID, String wrappingOperation, String wrappingFrom, String wrappingTo, String wrappingSignature) {
         super(requestID, operation, from, to, signature, goodID, buyerID, sellerID);
