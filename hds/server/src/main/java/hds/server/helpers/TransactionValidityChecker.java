@@ -7,6 +7,7 @@ import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -83,7 +84,7 @@ public class TransactionValidityChecker {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
 			return CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, payload);
 		}
-		catch (IOException | InvalidKeySpecException e) {
+		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
 			throw new SignatureException(e.getMessage());
 		}
 	}
