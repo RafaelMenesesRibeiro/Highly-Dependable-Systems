@@ -8,9 +8,8 @@ public class OwnerDataMessage extends GoodDataMessage {
         this.owner = owner;
     }
 
-    public OwnerDataMessage(String owner) {
-        this.owner = owner;
-    }
+    public OwnerDataMessage() {}
+
 
     public String getOwner() {
         return owner;
