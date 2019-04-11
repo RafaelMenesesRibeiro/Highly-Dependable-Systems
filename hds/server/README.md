@@ -161,6 +161,7 @@ Errors specific to an endpoint are listed on its corresponding section
 		"goodID" : "a_good_ID",
 		"buyerID" : "a_client_ID",
 		"sellerID" : "a_client_ID",
+		"wrappingTimestamp" : "a_long",
 		"wrappingOperation" : "transferGood",
 		"wrappingFrom" : "a_seller_ID",
 		"wrappingTo" : "server",
