@@ -6,6 +6,7 @@ import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
+import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.DBClosedConnectionException;
@@ -42,10 +43,18 @@ public class IntentionToSellController {
 		logger.info("Received Intention to Sell request.");
 		logger.info("\tRequest: " + ownerData.toString());
 
+		UserRequestIDKey key = new UserRequestIDKey(ownerData.getFrom(), ownerData.getRequestID());
+		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
+		if (cachedResponse != null) {
+			return cachedResponse;
+		}
+
 		MetaResponse metaResponse;
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+			GeneralControllerHelper.cacheRecentRequest(key, response);
+			return response;
 		}
 
 		try {
@@ -54,12 +63,13 @@ public class IntentionToSellController {
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
-		return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		GeneralControllerHelper.cacheRecentRequest(key, response);
+		return response;
 	}
 
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
-					DBSQLException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());

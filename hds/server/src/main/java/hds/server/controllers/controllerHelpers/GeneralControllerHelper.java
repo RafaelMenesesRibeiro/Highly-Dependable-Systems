@@ -13,13 +13,24 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 
 public class GeneralControllerHelper {
+	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = "server";
+	private static final int MAX_CACHED_ENTRIES = 128;
+
+	public static void cacheRecentRequest(UserRequestIDKey key, ResponseEntity<BasicMessage> value) {
+		recentMessages.put(key, value);	 // TODO should be persistable
+	}
+
+	public static ResponseEntity<BasicMessage> tryGetRecentRequest(UserRequestIDKey key) {
+		return recentMessages.get(key);
+	}
 
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
@@ -35,6 +46,9 @@ public class GeneralControllerHelper {
 	}
 
 	public static MetaResponse handleException(Exception ex, String requestID, String to, String operation) {
+		Logger logger = Logger.getAnonymousLogger();
+		logger.warning("\tException caught - " + ex.getClass().getName());
+		logger.warning("\tMessage: " + ex.getMessage());
 		if (ex instanceof DBConnectionRefusedException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CONN_REF, ex.getMessage());
 			return new MetaResponse(401, payload);
@@ -75,6 +89,5 @@ public class GeneralControllerHelper {
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);
 		return new MetaResponse(400, payload);
 	}
-
 
 }
