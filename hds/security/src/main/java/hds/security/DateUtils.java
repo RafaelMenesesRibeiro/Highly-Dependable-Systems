@@ -18,7 +18,7 @@ public class DateUtils {
      * @param sentTimestamp long timestamp retrieved from received message
      * @return boolean acknowledging or denying freshness of a message
      */
-    private static boolean isFreshTimestamp(long sentTimestamp) {
+    public static boolean isFreshTimestamp(long sentTimestamp) {
         Instant instantNow = Instant.now();
         Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded

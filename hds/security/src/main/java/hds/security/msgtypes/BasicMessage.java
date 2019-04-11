@@ -4,6 +4,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 public class BasicMessage {
+    long timestamp;
+
     @NotNull(message = "The requestID cannot be null.")
     @NotEmpty(message = "The requestID cannot be empty.")
     String requestID;
@@ -24,7 +26,8 @@ public class BasicMessage {
     @NotEmpty(message = "The signature cannot be empty.")
     String signature;
 
-    public BasicMessage(String requestID, String operation, String from, String to, String signature) {
+    public BasicMessage(long timestamp, String requestID, String operation, String from, String to, String signature) {
+        this.timestamp = timestamp;
         this.requestID = requestID;
         this.operation = operation;
         this.from = from;
@@ -33,6 +36,14 @@ public class BasicMessage {
     }
 
     public BasicMessage() {
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getRequestID() {

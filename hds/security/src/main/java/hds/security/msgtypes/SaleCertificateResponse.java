@@ -26,8 +26,9 @@ public class SaleCertificateResponse extends BasicMessage {
     @ValidClientID
     private String newOwner;
 
-    public SaleCertificateResponse(String requestID, String operation, String from, String to, String signature, String notaryServer, String goodId, String previousOwner, String newOwner) {
-        super(requestID, operation, from, to, signature);
+    public SaleCertificateResponse(long timestamp, String requestID, String operation, String from, String to,
+                                   String signature, String notaryServer, String goodId, String previousOwner, String newOwner) {
+        super(timestamp, requestID, operation, from, to, signature);
         this.notaryServer = notaryServer;
         this.goodId = goodId;
         this.previousOwner = previousOwner;
