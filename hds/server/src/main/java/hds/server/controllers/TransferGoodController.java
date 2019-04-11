@@ -6,6 +6,7 @@ import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleCertificateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
+import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
@@ -38,10 +39,18 @@ public class TransferGoodController {
 		logger.info("Received Transfer Good request.");
 		logger.info("\tRequest: " + transactionData.toString());
 
+		UserRequestIDKey key = new UserRequestIDKey(transactionData.getFrom(), transactionData.getRequestID());
+		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
+		if (cachedResponse != null) {
+			return cachedResponse;
+		}
+
 		MetaResponse metaResponse;
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+			GeneralControllerHelper.cacheRecentRequest(key, response);
+			return response;
 		}
 		try {
 			metaResponse = execute(transactionData);
@@ -49,7 +58,9 @@ public class TransferGoodController {
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
-		return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		GeneralControllerHelper.cacheRecentRequest(key, response);
+		return response;
 	}
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
