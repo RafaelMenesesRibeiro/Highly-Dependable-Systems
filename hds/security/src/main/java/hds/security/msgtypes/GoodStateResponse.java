@@ -1,7 +1,17 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.ValidClientID;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class GoodStateResponse extends BasicMessage {
+    @NotNull(message = "The OwnerID cannot be null.")
+    @NotEmpty(message = "The OwnerID cannot be empty.")
+    @ValidClientID
     private String ownerID;
+
+    @NotNull(message = "The onSale cannot be null.")
     private boolean onSale;
 
     public GoodStateResponse(String requestID, String operation, String from, String to, String signature, String ownerID, boolean onSale) {

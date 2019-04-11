@@ -1,17 +1,17 @@
 package hds.server.domain;
 
-import hds.security.msgtypes.responses.BasicResponse;
+import hds.security.msgtypes.BasicMessage;
 
 public class MetaResponse {
 	private final int statusCode;
-	private final BasicResponse payload;
+	private final BasicMessage payload;
 
-	public MetaResponse(int statusCode, BasicResponse payload) {
+	public MetaResponse(int statusCode, BasicMessage payload) {
 		this.statusCode = statusCode;
 		this.payload = payload;
 	}
 
-	public MetaResponse(BasicResponse payload) {
+	public MetaResponse(BasicMessage payload) {
 		this(200, payload);
 	}
 
@@ -19,7 +19,7 @@ public class MetaResponse {
 		return statusCode;
 	}
 
-	public BasicResponse getPayload() {
+	public BasicMessage getPayload() {
 		return payload;
 	}
 }

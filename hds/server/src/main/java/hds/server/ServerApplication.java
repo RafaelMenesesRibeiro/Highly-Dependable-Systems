@@ -1,5 +1,6 @@
 package hds.server;
 
+import hds.security.ResourceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,8 +20,6 @@ public class ServerApplication {
 	private static String user;
 	private static String password;
 
-	private static @Autowired Environment environment;
-
 	public static void main(String[] args) {
 		try {
 			fetchProperties();
@@ -31,7 +30,9 @@ public class ServerApplication {
 			logger.warning("Exiting.");
 			System.exit(1);
 		}
-		MAX_CLIENT_ID = Integer.parseInt(args[0]);
+		int maxClientID = Integer.parseInt(args[0]);
+		MAX_CLIENT_ID = maxClientID;
+		ResourceManager.setMaxClientId(maxClientID);
 		SpringApplication.run(ServerApplication.class, args);
 	}
 
@@ -42,7 +43,9 @@ public class ServerApplication {
 				throw new IOException("application.properties not found.");
 			}
 			properties.load(input);
-			SERVER_PORT = Integer.parseInt(properties.getProperty("server.port"));
+			int serverPort = Integer.parseInt(properties.getProperty("server.port"));
+			SERVER_PORT = serverPort;
+			ResourceManager.setServerPort(serverPort);
 			driver = properties.getProperty("spring.datasource.driverClassName");
 			url = properties.getProperty("spring.datasource.url");
 			user = properties.getProperty("spring.datasource.username");

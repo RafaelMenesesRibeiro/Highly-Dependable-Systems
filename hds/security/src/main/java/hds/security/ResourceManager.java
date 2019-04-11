@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class ResourceManager {
+    private static int SERVER_PORT;
+    private static int MAX_CLIENT_ID;
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String KEYS_FOLDER_LOCATION = "keys/";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
@@ -25,6 +27,22 @@ public class ResourceManager {
     private static final String SERVER_CERTIFICATE_LOCATION = "certs/server.pem";
 
     private ResourceManager() {}
+
+    public static int getServerPort() {
+        return SERVER_PORT;
+    }
+
+    public static void setServerPort(int serverPort) {
+        SERVER_PORT = serverPort;
+    }
+
+    public static int getMaxClientId() {
+        return MAX_CLIENT_ID;
+    }
+
+    public static void setMaxClientId(int maxClientId) {
+        MAX_CLIENT_ID = maxClientId;
+    }
 
     public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         byte[] bytes = getResourceFileBytes(getResourceRelativePath(resourceId, true));

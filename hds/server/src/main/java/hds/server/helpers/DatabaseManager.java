@@ -14,7 +14,6 @@ public class DatabaseManager {
 	}
 
 	public static Connection getConnection() throws SQLException {
-		// TODO - Improve error handling. //
 		if (dataSource == null) {
 			dataSource = DatabaseConfig.dataSource();
 		}

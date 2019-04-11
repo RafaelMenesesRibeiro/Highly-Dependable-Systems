@@ -2,6 +2,8 @@ package hds.server.helpers;
 
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
+import hds.security.exceptions.SignatureException;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
@@ -18,20 +20,19 @@ public class TransactionValidityChecker {
 		// This is here so the class can't be instantiated. //
 	}
 
-	public static boolean isValidTransaction(Connection conn, SignedTransactionData signedData)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException,
+	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
 					IOException, SignatureException, IncorrectSignatureException {
 
-		TransactionData transactionData = signedData.getPayload();
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
 		byte[] payloadBytes = ConvertUtils.objectToByteArray(transactionData);
 
-		if (!isClientWilling(buyerID, signedData.getBuyerSignature(), transactionData)) {
+		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		if (!isClientWilling(sellerID, signedData.getSellerSignature(), transactionData)) {
+		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
 
@@ -43,10 +44,8 @@ public class TransactionValidityChecker {
 	}
 
 	public static String getCurrentOwner(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getCurrentOwner' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+
 		String query = "select userID from ownership where goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
@@ -62,10 +61,8 @@ public class TransactionValidityChecker {
 	}
 
 	public static Boolean getIsOnSale(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getIsOnSale' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+
 		String query = "select onSale from goods where goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
