@@ -11,6 +11,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
 
 public class ResourceManager {
+    private static int SERVER_PORT;
+    private static int MAX_CLIENT_ID;
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
     private static final String PUBLIC_KEY_BASE_FILENAME = "HDSNotary_PublicK_ID_";
@@ -21,6 +23,22 @@ public class ResourceManager {
     public static final String SELLER_INCORRECT_BUYER_SIGNATURE = "-2";
 
     private ResourceManager() {}
+
+    public static int getServerPort() {
+        return SERVER_PORT;
+    }
+
+    public static void setServerPort(int serverPort) {
+        SERVER_PORT = serverPort;
+    }
+
+    public static int getMaxClientId() {
+        return MAX_CLIENT_ID;
+    }
+
+    public static void setMaxClientId(int maxClientId) {
+        MAX_CLIENT_ID = maxClientId;
+    }
 
     public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException {
         try {
