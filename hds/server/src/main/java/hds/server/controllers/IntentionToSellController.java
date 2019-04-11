@@ -1,109 +1,124 @@
 package hds.server.controllers;
 
+import hds.security.exceptions.SignatureException;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.msgtypes.responses.BasicResponse;
-import hds.server.domain.MetaResponse;
-import hds.server.exception.*;
-import hds.server.helpers.DatabaseManager;
+import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.OwnerDataMessage;
+import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
+import hds.server.domain.MetaResponse;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.DBSQLException;
+import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
-@SuppressWarnings("Duplicates")
 @RestController
 public class IntentionToSellController {
+	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "markForSale";
 
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<SecureResponse> intentionToSell(@RequestBody SignedOwnerData signedData) {
+	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
 
-		OwnerData ownerData = signedData.getPayload();
-		String sellerID = ownerData.getSellerID();
-		String goodID = ownerData.getGoodID();
+		String sellerID = InputValidation.cleanString(ownerData.getOwner());
+		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		logger.info("\tSellerID - " + sellerID);
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
+
+		if(result.hasErrors()) {
+			logger.info("RequestBody not valid.");
+			List<ObjectError> errors = result.getAllErrors();
+			for (ObjectError error : errors) {
+				if (error instanceof FieldError) {
+					FieldError ferror = (FieldError) error;
+					String reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
+							" is not acceptable: " + ferror.getDefaultMessage();
+					ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, reason);
+					metaResponse = new MetaResponse(400, payload);
+					return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+				}
+			}
+		}
+
 		try {
-			InputValidation.isValidClientID(sellerID);
-			InputValidation.isValidGoodID(goodID);
-			metaResponse = execute(signedData);
+			metaResponse = execute(ownerData);
 		}
-		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
-			metaResponse = new MetaResponse(400, new ErrorResponse(ControllerErrorConsts.BAD_PARAMS, OPERATION, ex.getMessage()));
+		catch (Exception ex) {
+			metaResponse = GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
-		catch (IOException e) {
-			metaResponse = new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, e.getMessage()));
-		}
-		catch (DBConnectionRefusedException dbcrex) {
-			metaResponse = new MetaResponse(401, new ErrorResponse(ControllerErrorConsts.CONN_REF, OPERATION, dbcrex.getMessage()));
-		}
-		catch (DBClosedConnectionException dbccex) {
-			metaResponse = new MetaResponse(503, new ErrorResponse(ControllerErrorConsts.CONN_CLOSED, OPERATION, dbccex.getMessage()));
-		}
-		catch (DBNoResultsException dbnrex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.NO_RESP, OPERATION, dbnrex.getMessage()));
-		}
-		catch (DBSQLException | SQLException sqlex) {
-			metaResponse = new MetaResponse(500, new ErrorResponse(ControllerErrorConsts.BAD_SQL, OPERATION, sqlex.getMessage()));
-		}
-		return sendResponse(metaResponse, false);
+		return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 	}
 
-	private MetaResponse execute(SignedOwnerData signedData)
+	private MetaResponse execute(OwnerDataMessage ownerData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
-					DBSQLException, InvalidQueryParameterException, DBNoResultsException, IOException {
+					DBSQLException, DBNoResultsException {
 
-		OwnerData ownerData = signedData.getPayload();
-		String sellerID = ownerData.getSellerID();
+		String sellerID = ownerData.getOwner();
 		String goodID = ownerData.getGoodID();
-
-		if (sellerID == null || sellerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
-		}
-		try (Connection conn = DatabaseManager.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false);
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
-				return new MetaResponse(403, new ErrorResponse("You do not have permission to put this item on sale.", OPERATION, "The user '" + sellerID + "' does not own the good '" + goodID + "'."));
+				conn.rollback();
+				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
+				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
+				return new MetaResponse(403, payload);
 			}
-			boolean res = isClientWilling(sellerID, signedData.getSignature(), ownerData);
+			boolean res = isClientWilling(sellerID, ownerData.getSignature(), ownerData);
 			if (!res) {
-				return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, "The Seller's signature is not valid."));
+				conn.rollback();
+				String reason = "The Seller's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				return new MetaResponse(403, payload);
 			}
 			MarkForSale.markForSale(conn, goodID);
-			return new MetaResponse(new BasicResponse("ok", OPERATION));
+			conn.commit();
+			BasicMessage payload = new BasicMessage(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
+			return new MetaResponse(payload);
 		}
-		catch (SignatureException is){
-			return new MetaResponse(403, new ErrorResponse(ControllerErrorConsts.BAD_TRANSACTION, OPERATION, is.getMessage()));
-		}
-	}
-
-	@SuppressWarnings("Duplicates")
-	private ResponseEntity<SecureResponse> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
-		BasicResponse payload = metaResponse.getPayload();
-		try {
-			if (isSuccess) {
-				return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.OK);
+		catch (SQLException | DBSQLException | DBNoResultsException ex) {
+			if (conn != null) {
+				conn.rollback();
 			}
-			return new ResponseEntity<>(new SecureResponse(payload), HttpStatus.valueOf(metaResponse.getStatusCode()));
+			throw ex;
 		}
 		catch (SignatureException ex) {
-			payload = new ErrorResponse(ControllerErrorConsts.CANCER, OPERATION, ex.getMessage());
-			return new ResponseEntity<>(new SecureResponse(payload, ""), HttpStatus.INTERNAL_SERVER_ERROR);
+			if (conn != null) {
+				conn.rollback();
+			}
+			return GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		}
+		finally {
+			if (conn != null) {
+				conn.setAutoCommit(true);
+				// TODO - Should this close? //
+				conn.close();
+			}
 		}
 	}
 }

@@ -1,9 +1,29 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.ValidClientID;
+import hds.security.helpers.inputValidation.ValidGoodID;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class SaleCertificateResponse extends BasicMessage {
+    @NotNull(message = "The NotaryCertificationMessage cannot be null.")
+    @NotEmpty(message = "The NotaryCertificationMessage cannot be empty.")
     private String notaryServer;
+
+    @NotNull(message = "The GoodID cannot be null.")
+    @NotEmpty(message = "The GoodID cannot be empty.")
+    @ValidGoodID
     private String goodId;
+
+    @NotNull(message = "The PreviousOwnerID cannot be null.")
+    @NotEmpty(message = "The PreviousOwnerID cannot be empty.")
+    @ValidClientID
     private String previousOwner;
+
+    @NotNull(message = "The NewOwnerID cannot be null.")
+    @NotEmpty(message = "The NewOwnerID cannot be empty.")
+    @ValidClientID
     private String newOwner;
 
     public SaleCertificateResponse(String requestID, String operation, String from, String to, String signature, String notaryServer, String goodId, String previousOwner, String newOwner) {
