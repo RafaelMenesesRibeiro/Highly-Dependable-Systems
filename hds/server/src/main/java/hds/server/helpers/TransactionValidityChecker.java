@@ -2,6 +2,7 @@ package hds.server.helpers;
 
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
+import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.exception.*;
 

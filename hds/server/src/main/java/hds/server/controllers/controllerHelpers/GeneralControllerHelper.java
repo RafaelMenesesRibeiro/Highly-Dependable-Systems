@@ -1,5 +1,6 @@
 package hds.server.controllers.controllerHelpers;
 
+import hds.security.exceptions.SignatureException;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.SQLException;
 
-@SuppressWarnings("all")
 public class GeneralControllerHelper {
 	private static final String FROM_SERVER = "server";
 
@@ -47,6 +47,10 @@ public class GeneralControllerHelper {
 		else if (ex instanceof DBSQLException || ex instanceof SQLException) {
 			ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_SQL, ex.getMessage());
 			return new MetaResponse(500, payload);
+		}
+		else if (ex instanceof SignatureException || ex instanceof IncorrectSignatureException) {
+			ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
+			return new MetaResponse(403, payload);
 		}
 		ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CANCER, ex.getMessage());
 		return new MetaResponse(500, payload);

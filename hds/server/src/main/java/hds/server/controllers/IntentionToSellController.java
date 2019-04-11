@@ -1,5 +1,6 @@
 package hds.server.controllers;
 
+import hds.security.exceptions.SignatureException;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
@@ -55,7 +56,6 @@ public class IntentionToSellController {
 
 		String sellerID = ownerData.getOwner();
 		String goodID = ownerData.getGoodID();
-
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();
@@ -79,21 +79,22 @@ public class IntentionToSellController {
 			BasicMessage payload = new BasicMessage(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
 			return new MetaResponse(payload);
 		}
-		catch (SignatureException is){
-			if (conn != null) {
-				conn.rollback();
-			}
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, is.getMessage());
-			return new MetaResponse(403, payload);
-		}
 		catch (SQLException | DBSQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
 			throw ex;
 		}
+		catch (SignatureException ex) {
+			if (conn != null) {
+				conn.rollback();
+			}
+			return GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		}
 		finally {
 			if (conn != null) {
+				conn.setAutoCommit(true);
+				// TODO - Should this close? //
 				conn.close();
 			}
 		}
