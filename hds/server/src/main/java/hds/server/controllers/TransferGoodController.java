@@ -63,21 +63,35 @@ public class TransferGoodController {
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
 
-		try (Connection conn = DatabaseManager.getConnection()) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false);
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
+				conn.commit();
 				BasicMessage payload = new BasicMessage(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
 				return new MetaResponse(payload);
 			}
 			else {
+				conn.rollback();
 				String reason = "The transaction is not valid.";
 				ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
 		}
-		catch (IncorrectSignatureException is){
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, is.getMessage());
-			return new MetaResponse(403, payload);
+		catch (IncorrectSignatureException isex){
+			if (conn != null) {
+				conn.rollback();
+			}
+			return GeneralControllerHelper.handleException(isex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		}
+		finally {
+			if (conn != null) {
+				conn.setAutoCommit(true);
+				// TODO - Should this close? //
+				conn.close();
+			}
 		}
 	}
 }
