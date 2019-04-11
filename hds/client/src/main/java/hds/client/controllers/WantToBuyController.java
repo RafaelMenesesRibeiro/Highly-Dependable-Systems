@@ -5,6 +5,10 @@ import hds.client.helpers.ClientProperties;
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
 import hds.security.helpers.ControllerErrorConsts;
+import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
+import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +21,9 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.ResourceManager.*;
+import static hds.security.SecurityManager.isValidMessage;
 
 @RestController
 public class WantToBuyController {
@@ -25,48 +31,50 @@ public class WantToBuyController {
     private static final String OPERATION = "wantToBuy";
 
     @PostMapping(value = "/wantToBuy")
-    public SecureResponse wantToBuy(@RequestBody SignedTransactionData signedTransactionData) {
-        TransactionData transactionData = signedTransactionData.getPayload();
-        String sellerID = transactionData.getSellerID();
-        String buyerID = transactionData.getBuyerID();
-        String goodID = transactionData.getGoodID();
-        SecureResponse payload = null;
-
-        try {
-            payload = execute(signedTransactionData, sellerID, buyerID, goodID);
-        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | IOException | InvalidKeySpecException | JSONException e) {
-            payload = new SecureResponse(new ErrorResponse(ControllerErrorConsts.BAD_SELLER, OPERATION, "The seller node has thrown an exception"));
+    public BasicMessage wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
+        String validationResult = isValidMessage(ClientProperties.getPort(), requestMessage);
+        if (!"".equals(validationResult)) {
+            return newErrorResponse(requestMessage, validationResult);
         }
-
-        return payload;
+        return trySell(requestMessage);
     }
 
-    private SecureResponse execute(SignedTransactionData signedTransactionData, String sellerID, String buyerID, String goodID)
+    private BasicMessage trySell(SaleRequestMessage requestMessage) {
+        // TODO See your old execute method
+        return new SaleCertificateResponse(); // Whatever is returned by the server may even be an ErrorResponse
+    }
+
+    private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
+        return new ErrorResponse(
+                generateTimestamp(),
+                receivedRequest.getRequestID(), // callee requestId
+                OPERATION,
+                ClientProperties.getPort(), // from me
+                receivedRequest.getFrom(),  // to callee
+                "",
+                "bad request",
+                reason
+        );
+    }
+
+    /*
+    private BasicMessage execute( SaleRequestMessage buyerRequestMessage)
             throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, JSONException {
         PublicKey buyerPublicKey = getPublicKeyFromResource(buyerID);
         String buyerSignature = signedTransactionData.getBuyerSignature();
-
-        // TODO Sign Transaction data and buyer signature
         PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
-
         if (!CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
             signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
         }
-
         byte[] sellerSignature = CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(signedTransactionData.getPayload()));
         signedTransactionData.setSellerSignature(ConvertUtils.bytesToBase64String(sellerSignature));
-
         String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
         HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-
-        // TODO use buyGood methodology create an Object representing the payload, it must implement Serializable
-        // TODO... then use ObjectMapper.writeAsStringValue or whatever the name of the method is.
         ObjectMapper objectMapper = new ObjectMapper();
         JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
-
         sendPostRequest(connection, requestData);
         hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
         return domainSecureResponse.translateSecureResponse();
-    }
-
+   }
+   */
 }

@@ -1,36 +1,21 @@
 package hds.security;
 
-import hds.security.msgtypes.BasicMessage;
-
 import java.io.IOException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.util.UUID;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 public class CryptoUtils {
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-    public static String newUUIDString() {
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
-    }
-
-    public static boolean isAuthenticResponseFromClient(BasicMessage secureResponse, String nodeId) throws Exception {
-        PublicKey HDSPublicKey = ResourceManager.getPublicKeyFromResource(nodeId);
-        /*
-        return authenticateSignature(HDSPublicKey, secureResponse.getSignature(), secureResponse.getPayload());*/
-        return true;
-    }
-
-    public static boolean isAuthenticResponseFromServer(BasicMessage secureResponse) throws Exception {
-        X509Certificate serverCert = ResourceManager.getCertificateFromResource();/*
-        return authenticateSignature(serverCert, secureResponse.getSignature(), secureResponse.getPayload());*/
-        return true;
-    }
+    /***********************************************************
+     *
+     * PUBLIC METHODS RELATED WITH SIGNATURE CREATION
+     *
+     ***********************************************************/
 
     public static byte[] signData(PrivateKey key, byte[] data) throws SignatureException {
         try {
@@ -43,6 +28,32 @@ public class CryptoUtils {
         }
     }
 
+    /***********************************************************
+     *
+     * PUBLIC METHODS RELATED WITH SIGNATURE VERIFICATION
+     *
+     ***********************************************************/
+
+    public static boolean authenticateSignature(PublicKey key, String signedData, Object payload) throws IOException, SignatureException {
+        return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
+    }
+
+    public static boolean authenticateSignatureWithCert(X509Certificate certificate, String signedData, Object payload)
+            throws IOException, CertificateException, SignatureException {
+        try {
+            certificate.checkValidity();
+        } catch (CertificateExpiredException | CertificateNotYetValidException exc) {
+            throw new CertificateException(exc.getMessage());
+        }
+        return authenticateSignature(certificate.getPublicKey(), ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
+    }
+
+    /***********************************************************
+     *
+     * PRIVATE METHODS RELATED WITH SIGNATURE VERIFICATION
+     *
+     ***********************************************************/
+
     private static boolean authenticateSignature(PublicKey key, byte[] signedData, byte[] testData) throws SignatureException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
@@ -54,17 +65,14 @@ public class CryptoUtils {
         }
     }
 
-    public static boolean authenticateSignature(PublicKey key, String signedData, Object payload) throws IOException, SignatureException {
-        return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
-    }
+    /***********************************************************
+     *
+     * HELPER METHODS NOT EXPLICITLY RELATED WITH SECURITY
+     *
+     ***********************************************************/
 
-    public static boolean authenticateSignature(X509Certificate certificate, String signedData, Object payload)
-            throws IOException, CertificateException, SignatureException {
-        try {
-            certificate.checkValidity();
-        } catch (CertificateExpiredException | CertificateNotYetValidException exc) {
-            throw new CertificateException(exc.getMessage());
-        }
-        return authenticateSignature(certificate.getPublicKey(), ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
+    public static String newUUIDString() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString();
     }
 }
