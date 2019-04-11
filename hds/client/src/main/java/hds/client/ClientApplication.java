@@ -24,6 +24,7 @@ import java.util.Scanner;
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.CryptoUtils.newUUIDString;
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.setMessageSignature;
 
 @SpringBootApplication
@@ -100,12 +101,20 @@ public class ClientApplication {
     }
 
     public static SaleRequestMessage newSaleRequestMessage() {
-        String from = ClientProperties.getPort();
         String to = requestSellerId();
         String goodId = requestGoodId();
-        String buyerId = from;
         String sellerId = to;
-        return new SaleRequestMessage(newUUIDString(),"buyGood", from, to,"", goodId,buyerId, sellerId);
+        return new SaleRequestMessage(
+                generateTimestamp(),
+                newUUIDString(),
+                "buyGood",
+                ClientProperties.getPort(),
+                to,
+                "",
+                goodId,
+                ClientProperties.getPort(),
+                sellerId
+            );
     }
 
     /***********************************************************
@@ -128,11 +137,10 @@ public class ClientApplication {
     }
 
     private static OwnerDataMessage newOwnerDataMessage() {
-        String from = getPort();
-        String to = HDS_NOTARY_PORT;
         String goodId = requestGoodId();
-        String owner = getPort();
-        return new OwnerDataMessage(newUUIDString(),"intentionToSell", from, to,"", goodId, owner);
+        return new OwnerDataMessage(
+                generateTimestamp(), newUUIDString(),"intentionToSell", getPort(), HDS_NOTARY_PORT,"", goodId, getPort()
+        );
     }
 
     /***********************************************************
