@@ -1,6 +1,5 @@
 package hds.server.helpers;
 
-import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
@@ -23,12 +22,11 @@ public class TransactionValidityChecker {
 
 	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
-					IOException, SignatureException, IncorrectSignatureException {
+					SignatureException, IncorrectSignatureException {
 
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
-		byte[] payloadBytes = ConvertUtils.objectToByteArray(transactionData);
 
 		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
@@ -38,10 +36,7 @@ public class TransactionValidityChecker {
 		}
 
 		String currentOwner = getCurrentOwner(conn, goodID);
-		if (!currentOwner.equals(sellerID)) { return false; }
-		if (!getIsOnSale(conn, goodID)) { return false; }
-
-		return true;
+		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
 	}
 
 	public static String getCurrentOwner(Connection conn, String goodID)

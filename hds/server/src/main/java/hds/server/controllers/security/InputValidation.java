@@ -4,8 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
 public class InputValidation {
-    private static String GOOD_ID_START = "good";
-
     private InputValidation() {
         // This is here so the class can't be instantiated. //
     }

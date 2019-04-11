@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class DatabaseInterface {
+class DatabaseInterface {
 
 	private DatabaseInterface() {
 		// This is here so the class can't be instantiated. //
