@@ -31,13 +31,8 @@ public class TransferGoodController {
 	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
+		logger.info("\tRequest: " + transactionData.toString());
 
-		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
-		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
-		String goodID = InputValidation.cleanString(transactionData.getGoodID());
-		logger.info("\tBuyerID - " + buyerID);
-		logger.info("\tSellerID - " + sellerID);
-		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
 			metaResponse = execute(transactionData);
@@ -56,9 +51,9 @@ public class TransferGoodController {
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
 					DBNoResultsException, IOException {
 
-		String buyerID = transactionData.getBuyerID();
-		String sellerID = transactionData.getSellerID();
-		String goodID = transactionData.getGoodID();
+		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
+		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
+		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
 		Connection conn = null;
 		try {

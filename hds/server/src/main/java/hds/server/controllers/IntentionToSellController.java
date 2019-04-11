@@ -41,13 +41,9 @@ public class IntentionToSellController {
 	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
+		logger.info("\tRequest: " + ownerData.toString());
 
-		String sellerID = InputValidation.cleanString(ownerData.getOwner());
-		String goodID = InputValidation.cleanString(ownerData.getGoodID());
-		logger.info("\tSellerID - " + sellerID);
-		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
-
 		if(result.hasErrors()) {
 			logger.info("RequestBody not valid.");
 			List<ObjectError> errors = result.getAllErrors();
@@ -76,8 +72,8 @@ public class IntentionToSellController {
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
 					DBSQLException, DBNoResultsException {
 
-		String sellerID = ownerData.getOwner();
-		String goodID = ownerData.getGoodID();
+		String sellerID = InputValidation.cleanString(ownerData.getOwner());
+		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();
