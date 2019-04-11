@@ -1,5 +1,6 @@
 package hds.server.controllers;
 
+import hds.security.helpers.inputValidation.ValidGoodID;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.GoodStateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
@@ -12,10 +13,13 @@ import hds.server.exception.DBSQLException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -26,13 +30,19 @@ public class GetStateOfGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "getStateOfGood";
 
+	@SuppressWarnings("Duplicates")
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
-	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") String goodID) {
+	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") @NotNull @NotEmpty @ValidGoodID String goodID, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Get State of Good request.");
 		logger.info("\tGoodID - " + goodID);
 
 		MetaResponse metaResponse;
+		if(result.hasErrors()) {
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, "0", TO_UNKNOWN, OPERATION);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, "0", TO_UNKNOWN, OPERATION);
+		}
+
 		try {
 			goodID = InputValidation.cleanString(goodID);
 			metaResponse = new MetaResponse(execute(goodID));
