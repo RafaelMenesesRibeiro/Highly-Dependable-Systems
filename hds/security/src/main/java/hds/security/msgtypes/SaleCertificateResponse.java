@@ -28,6 +28,7 @@ public class SaleCertificateResponse extends BasicMessage {
 
     public SaleCertificateResponse(long timestamp, String requestID, String operation, String from, String to,
                                    String signature, String notaryServer, String goodId, String previousOwner, String newOwner) {
+
         super(timestamp, requestID, operation, from, to, signature);
         this.notaryServer = notaryServer;
         this.goodId = goodId;
