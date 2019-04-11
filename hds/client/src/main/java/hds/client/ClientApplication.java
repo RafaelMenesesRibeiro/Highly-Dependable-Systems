@@ -126,6 +126,23 @@ public class ClientApplication {
         return scanString("Provide the owner of the good you want to buy.");
     }
 
+    public static SaleRequestMessage newSaleRequestMessage() {
+        String requestId = generateUniqueRequestId();
+        String from = ClientProperties.getPort();
+        String buyerId = from;
+        String to = requestSellerId();
+        String sellerId = to;
+        String goodId = requestGoodId();
+        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
+    }
+
+
+    /***********************************************************
+     *
+     * HELPER METHODS WITH NO LOGICAL IMPORTANCE
+     *
+     ***********************************************************/
+
     private static String scanString(String requestString) {
         print(requestString);
         try {
@@ -141,14 +158,5 @@ public class ClientApplication {
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
-    }
-    public static SaleRequestMessage newSaleRequestMessage() {
-        String requestId = generateUniqueRequestId();
-        String from = ClientProperties.getPort();
-        String buyerId = from;
-        String to = requestSellerId();
-        String sellerId = to;
-        String goodId = requestGoodId();
-        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
     }
 }
