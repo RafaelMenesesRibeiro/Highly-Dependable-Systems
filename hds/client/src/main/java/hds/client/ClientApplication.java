@@ -1,42 +1,48 @@
 package hds.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.SaleRequestMessage;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.net.SocketTimeoutException;
 import java.net.HttpURLConnection;
-import java.security.PrivateKey;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.ConvertUtils.bytesToBase64String;
-import static hds.security.ConvertUtils.objectToByteArray;
-import static hds.security.CryptoUtils.generateUniqueRequestId;
-import static hds.security.CryptoUtils.signData;
-import static hds.security.ResourceManager.*;
+import static hds.security.CryptoUtils.newUUIDString;
+import static hds.security.SecurityManager.setMessageSignature;
 
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
+
+    /***********************************************************
+     *
+     * CLIENT COMMAND LINE INTERFACE AND SERVER INITIATION
+     *
+     ***********************************************************/
 
     public static void main(String[] args) {
         String portId = args[0];
         String maxPortId = args[1];
         ClientProperties.setPort(portId);
         ClientProperties.setMaxPortId(maxPortId);
-        SpringApplication app = new SpringApplication(ClientApplication.class);
-        app.setDefaultProperties(Collections.singletonMap("server.port", portId));
-        app.run(args);
+        runClientServer(args);
+        runClientInterface();
+    }
 
+    private static void runClientServer(String[] args) {
+        SpringApplication app = new SpringApplication(ClientApplication.class);
+        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getPort()));
+        app.run(args);
+    }
+
+    private static void runClientInterface() {
         while (true) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
             int input;
@@ -65,13 +71,17 @@ public class ClientApplication {
         }
     }
 
+    /***********************************************************
+     *
+     * BUY GOOD RELATED METHODS
+     *
+     ***********************************************************/
+
     private static void buyGood() {
         try {
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
-            SaleRequestMessage saleRequestMessage = newSaleRequestMessage();
-            saleRequestMessage.setSignature(bytesToBase64String(signData(clientPrivateKey, objectToByteArray(saleRequestMessage))));
-            HttpURLConnection connection = initiatePOSTConnection(String.format("http://localhost:%s/wantToBuy", saleRequestMessage.getTo()));
-            sendPostRequest(connection, newJSONObject(saleRequestMessage));
+            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
+            HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
+            sendPostRequest(connection, newJSONObject(message));
             processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
@@ -80,35 +90,51 @@ public class ClientApplication {
         }
     }
 
+    public static SaleRequestMessage newSaleRequestMessage() {
+        String from = ClientProperties.getPort();
+        String to = requestSellerId();
+        String goodId = requestGoodId();
+        String buyerId = from;
+        String sellerId = to;
+        return new SaleRequestMessage(newUUIDString(),"buyGood", from, to,"", goodId,buyerId, sellerId);
+    }
+
+    /***********************************************************
+     *
+     * INTENTION TO SELL RELATED METHODS
+     *
+     ***********************************************************/
+
     private static void intentionToSell() {
-        String sellerId = ClientProperties.getPort();
         try {
-            PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
-            OwnerData payload = new OwnerData(sellerId, requestGoodId());
-            SignedOwnerData signedOwnerData = new SignedOwnerData();
-            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, objectToByteArray(payload)));
-            signedOwnerData.setPayload(payload);
-            signedOwnerData.setSignature(signedPayload);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedOwnerData));
-
-            String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
-            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            sendPostRequest(connection, requestData);
-
+            OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage());
+            HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
+            sendPostRequest(connection, newJSONObject(message));
             processResponse(connection, HDS_NOTARY_PORT);
-
         } catch (SocketTimeoutException exc) {
-            printError("Target node did not respond within expected limits. Try again at your discretion.");
+            printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
     }
 
+    private static OwnerDataMessage newOwnerDataMessage() {
+        String from = getPort();
+        String to = HDS_NOTARY_PORT;
+        String goodId = requestGoodId();
+        String owner = getPort();
+        return new OwnerDataMessage(newUUIDString(),"intentionToSell", from, to,"", goodId, owner);
+    }
+
+    /***********************************************************
+     *
+     * GET STATE OF GOOD RELATED METHODS
+     *
+     ***********************************************************/
+
     private static void getStateOfGood() {
         try {
-            String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
+            String requestUrl = HDS_NOTARY_HOST + "stateOfGood?goodID=" + requestGoodId();
             HttpURLConnection connection = initiateGETConnection(requestUrl);
             processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
@@ -118,13 +144,11 @@ public class ClientApplication {
         }
     }
 
-    private static String requestGoodId() {
-        return scanString("Provide good identifier: ");
-    }
-
-    private static String requestSellerId() {
-        return scanString("Provide the owner of the good you want to buy.");
-    }
+    /***********************************************************
+     *
+     * HELPER METHODS WITH NO LOGICAL IMPORTANCE
+     *
+     ***********************************************************/
 
     private static String scanString(String requestString) {
         print(requestString);
@@ -135,20 +159,20 @@ public class ClientApplication {
         }
     }
 
+
+    private static String requestGoodId() {
+        return scanString("Provide good identifier: ");
+    }
+
+    private static String requestSellerId() {
+        return scanString("Provide the owner of the good you want to buy.");
+    }
+
     private static void print(String msg) {
         System.out.println("[o] " + msg);
     }
 
     private static void printError(String msg) {
         System.out.println("    [x] " + msg);
-    }
-    public static SaleRequestMessage newSaleRequestMessage() {
-        String requestId = generateUniqueRequestId();
-        String from = ClientProperties.getPort();
-        String buyerId = from;
-        String to = requestSellerId();
-        String sellerId = to;
-        String goodId = requestGoodId();
-        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
     }
 }
