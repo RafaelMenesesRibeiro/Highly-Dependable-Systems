@@ -190,21 +190,6 @@ Errors specific to an endpoint are listed on its corresponding section
  # **General HDSNotary API Errors**
  
 **Code:** 400 
- 
-**Content:**
-```
-{
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "No service - server could not connect to databases, try again later.",
-    "reason" : "a_reason"
-}
-```
- 
-**Code:** 400 
      
 **Content:**
 ```
