@@ -11,8 +11,9 @@ public class GoodDataMessage extends BasicMessage {
     @ValidGoodID
     String goodID;
 
-    public GoodDataMessage(String requestID, String operation, String from, String to, String signature, String goodID) {
-        super(requestID, operation, from, to, signature);
+    public GoodDataMessage(long timestamp, String requestID, String operation, String from, String to, String signature,
+                           String goodID) {
+        super(timestamp, requestID, operation, from, to, signature);
         this.goodID = goodID;
     }
 

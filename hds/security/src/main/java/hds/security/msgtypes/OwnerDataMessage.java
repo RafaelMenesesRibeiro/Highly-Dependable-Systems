@@ -11,8 +11,9 @@ public class OwnerDataMessage extends GoodDataMessage {
     @ValidClientID
     private String owner;
 
-    public OwnerDataMessage(String requestID, String operation, String from, String to, String signature, String goodID, String owner) {
-        super(requestID, operation, from, to, signature, goodID);
+    public OwnerDataMessage(long timestamp, String requestID, String operation, String from, String to, String signature,
+                            String goodID, String owner) {
+        super(timestamp, requestID, operation, from, to, signature, goodID);
         this.owner = owner;
     }
 

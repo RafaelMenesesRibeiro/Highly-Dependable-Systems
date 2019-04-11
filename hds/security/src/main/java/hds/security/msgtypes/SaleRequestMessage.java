@@ -1,11 +1,24 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.ValidClientID;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class SaleRequestMessage extends  GoodDataMessage {
+    @NotNull(message = "The BuyerID cannot be null.")
+    @NotEmpty(message = "The BuyerID cannot be empty.")
+    @ValidClientID
     private String buyerID;
+
+    @NotNull(message = "The SellerID cannot be null.")
+    @NotEmpty(message = "The SellerID cannot be empty.")
+    @ValidClientID
     private String sellerID;
 
-    public SaleRequestMessage(String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID) {
-        super(requestID, operation, from, to, signature, goodID);
+    public SaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
+                              String signature, String goodID, String buyerID, String sellerID) {
+        super(timestamp, requestID, operation, from, to, signature, goodID);
         this.buyerID = buyerID;
         this.sellerID = sellerID;
     }

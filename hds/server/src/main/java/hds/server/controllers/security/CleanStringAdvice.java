@@ -10,7 +10,7 @@ import java.beans.PropertyEditorSupport;
 
 @ControllerAdvice
 public class CleanStringAdvice {
-	static public class StringCleaner extends PropertyEditorSupport {
+	static class StringCleaner extends PropertyEditorSupport {
 		@Override
 		public void setAsText(String text) {
 			if (text == null) {

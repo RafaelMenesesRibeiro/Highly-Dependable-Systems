@@ -68,7 +68,7 @@ public class ConnectionManager {
      *
      ***********************************************************/
 
-    public static BasicMessage getResponseMessage(HttpURLConnection conn, String nodeId, Expect type)
+    public static BasicMessage getResponseMessage(HttpURLConnection conn, Expect type)
             throws IOException, ResponseMessageException {
 
         ObjectMapper objectMapper = new ObjectMapper();

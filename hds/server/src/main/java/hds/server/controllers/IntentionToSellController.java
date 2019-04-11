@@ -16,8 +16,6 @@ import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,9 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.logging.Logger;
 
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -36,31 +34,18 @@ public class IntentionToSellController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "markForSale";
 
+	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
+		logger.info("\tRequest: " + ownerData.toString());
 
-		String sellerID = InputValidation.cleanString(ownerData.getOwner());
-		String goodID = InputValidation.cleanString(ownerData.getGoodID());
-		logger.info("\tSellerID - " + sellerID);
-		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
-
 		if(result.hasErrors()) {
-			logger.info("RequestBody not valid.");
-			List<ObjectError> errors = result.getAllErrors();
-			for (ObjectError error : errors) {
-				if (error instanceof FieldError) {
-					FieldError ferror = (FieldError) error;
-					String reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
-							" is not acceptable: " + ferror.getDefaultMessage();
-					ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, reason);
-					metaResponse = new MetaResponse(400, payload);
-					return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-				}
-			}
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
 
 		try {
@@ -76,8 +61,8 @@ public class IntentionToSellController {
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
 					DBSQLException, DBNoResultsException {
 
-		String sellerID = ownerData.getOwner();
-		String goodID = ownerData.getGoodID();
+		String sellerID = InputValidation.cleanString(ownerData.getOwner());
+		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();
@@ -86,19 +71,19 @@ public class IntentionToSellController {
 			if (!ownerID.equals(sellerID)) {
 				conn.rollback();
 				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
-				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
 				return new MetaResponse(403, payload);
 			}
 			boolean res = isClientWilling(sellerID, ownerData.getSignature(), ownerData);
 			if (!res) {
 				conn.rollback();
 				String reason = "The Seller's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
-				return new MetaResponse(403, payload);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
 			}
 			MarkForSale.markForSale(conn, goodID);
 			conn.commit();
-			BasicMessage payload = new BasicMessage(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
+			BasicMessage payload = new BasicMessage(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
 			return new MetaResponse(payload);
 		}
 		catch (SQLException | DBSQLException | DBNoResultsException ex) {

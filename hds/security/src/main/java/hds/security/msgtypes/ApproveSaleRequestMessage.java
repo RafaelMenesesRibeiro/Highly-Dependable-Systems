@@ -4,6 +4,9 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 public class ApproveSaleRequestMessage extends SaleRequestMessage {
+    @NotNull(message = "The wrappingTimestamp cannot be null.")
+    private long wrappingTimestamp;
+
     @NotNull(message = "The wrappingOperation cannot be null.")
     @NotEmpty(message = "The wrappingOperation cannot be empty.")
     private String wrappingOperation;
@@ -20,8 +23,14 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage {
     @NotEmpty(message = "The wrappingSignature cannot be empty.")
     private String wrappingSignature;
 
-    public ApproveSaleRequestMessage(String requestID, String operation, String from, String to, String signature, String goodID, String buyerID, String sellerID, String wrappingOperation, String wrappingFrom, String wrappingTo, String wrappingSignature) {
-        super(requestID, operation, from, to, signature, goodID, buyerID, sellerID);
+    public ApproveSaleRequestMessage(long timesamp, String requestID, String operation, String from, String to,
+                                     String signature,
+                                     String goodID, String buyerID, String sellerID,
+                                     long wrappingTimestamp, String wrappingOperation, String wrappingFrom,
+                                     String wrappingTo,
+                                     String wrappingSignature) {
+        super(timesamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID);
+        this.wrappingTimestamp = wrappingTimestamp;
         this.wrappingOperation = wrappingOperation;
         this.wrappingFrom = wrappingFrom;
         this.wrappingTo = wrappingTo;
@@ -29,6 +38,10 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage {
     }
 
     public ApproveSaleRequestMessage() {
+    }
+
+    public long getWrappingTimestamp() {
+        return wrappingTimestamp;
     }
 
     public String getWrappingOperation() {

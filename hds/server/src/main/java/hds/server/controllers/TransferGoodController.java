@@ -4,6 +4,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
@@ -12,39 +13,38 @@ import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+
+import static hds.security.DateUtils.generateTimestamp;
 
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "transferGood";
+	private static final String CERTIFIED = "Certified by Notary";
 
+	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData) {
+	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
+		logger.info("\tRequest: " + transactionData.toString());
 
-		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
-		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
-		String goodID = InputValidation.cleanString(transactionData.getGoodID());
-		logger.info("\tBuyerID - " + buyerID);
-		logger.info("\tSellerID - " + sellerID);
-		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
+		if(result.hasErrors()) {
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		}
 		try {
 			metaResponse = execute(transactionData);
-		}
-		catch (IOException ioex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
-			metaResponse = new MetaResponse(403, payload);
 		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
@@ -54,11 +54,11 @@ public class TransferGoodController {
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
-					DBNoResultsException, IOException {
+					DBNoResultsException {
 
-		String buyerID = transactionData.getBuyerID();
-		String sellerID = transactionData.getSellerID();
-		String goodID = transactionData.getGoodID();
+		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
+		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
+		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
 		Connection conn = null;
 		try {
@@ -67,13 +67,13 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
 				conn.commit();
-				BasicMessage payload = new BasicMessage(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
+				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
 				return new MetaResponse(payload);
 			}
 			else {
 				conn.rollback();
 				String reason = "The transaction is not valid.";
-				ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
 		}

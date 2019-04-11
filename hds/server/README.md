@@ -18,13 +18,13 @@ Errors specific to an endpoint are listed on its corresponding section
 
 * **URL**
 
-    /stateofgood
+    /stateOfGood
 
 * **Method:**
 
     `GET`
     
-* **Data Params**
+* **URL Params**
     ```
     {
         "goodID" : "a_good_id"
@@ -37,17 +37,16 @@ Errors specific to an endpoint are listed on its corresponding section
     
     **Content:**
     ```
-	 {
-			"payload":
-				{
-					"operation" : "getStateOfGood",
-					"code" : 200,
-					"message" : "OK",
-					"ownerId" : "a_owner_id",
-					"onSale" : "a_boolean"
-				},
-			"signature" : "a_signature"
-	 }
+    {
+        "timestamp" : "a_long",
+        "requestID" : "0",
+        "operation" : "getStateOfGood",
+        "from" : "server",
+        "to" : "a_client_ID",
+        "signature" : "a_signature",
+        "ownerID" : "a_client_ID",
+        "onSale" : "a_boolean"
+    }
     ```
  
 * **Error Response:**
@@ -70,14 +69,16 @@ Errors specific to an endpoint are listed on its corresponding section
 * **Data Params**
    ```
    {
-        "signature": "a_signature",
-        "payload": 
-            {
-	            "sellerID" : "a_seller_ID",
-	            "goodID" : "a_good_ID"
-            }
+	   "timestamp" : "a_long",
+	   "requestID" : "a_request_ID",
+	   "operation" : "markForSale",
+	   "from" : "a_client_ID",
+	   "to" : "server",
+	   "signature" : "a_signature",
+	   "goodID" : "a_good_ID",
+	   "owner" : "a_client_ID"
    }
-    ```
+   ```
 
 * **Success Response:**
  
@@ -85,30 +86,51 @@ Errors specific to an endpoint are listed on its corresponding section
     
     **Content:**
     ```
-    {  
-		"payload":
-		        {
-		            "operation" : "markForSale",
-		            "code" : 200,
-		            "message" : "OK"
-		        },
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "markForSale",
+		"from" : "server",
+		"to" : "a_client_ID",
 		"signature" : "a_signature"
-	 }	    
+    }
+    ```
+    
+* **Error Response:**
+
+	**Code:** 401
+     
+    **Content:**
+     ```
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The signatures do not match the received data.",
+		"reason" : "The Seller's signature is not valid.""The Seller's signature is not valid."
+    }
     ```
 
 * **Error Response:**
 
-	**Code:** 403
-	 
-	 **Content:**
-	 ```
-	 {
-	     "code" : 403,
-	     "operation" : markForSale),
-	     "message" : "You do not have permission to put this item on sale.",
-	     "reason" : "The user <sellerID> does not own the good <goodID>."
-	 }
-	 ```
+    **Code:** 403
+     
+    **Content:**
+     ```
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "You do not have permission to put this item on sale.",
+		"reason" : "The user '" + sellerID + "' does not own the good '" + goodID + "'."
+    }
+    ```
 
 * **Error Response:**
 
@@ -129,16 +151,23 @@ Errors specific to an endpoint are listed on its corresponding section
    
 * **Data Params**
    ```
-   {
-       "signature": "a_signature",
-       "payload": 
-           {
-               "sellerID" : "a_seller_ID",
-               "buyerID" : "a_buyer_ID",
-               "goodID" : "a_good_ID"
-           }
-   }
-    ```
+	{
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "buyGood",
+		"from" : "a_buyer_ID",
+		"to" : "a_seller_ID",
+		"signature" : "a_buyer_signature",
+		"goodID" : "a_good_ID",
+		"buyerID" : "a_client_ID",
+		"sellerID" : "a_client_ID",
+		"wrappingTimestamp" : "a_long",
+		"wrappingOperation" : "transferGood",
+		"wrappingFrom" : "a_seller_ID",
+		"wrappingTo" : "server",
+		"wrappingSignature" : "a_seller_signature"
+	}
+  ```
     
 * **Success Response:**
  
@@ -146,30 +175,55 @@ Errors specific to an endpoint are listed on its corresponding section
 	
 	**Content:**
 	```
-	{
-	    "payload" : 
-	        {
-		        "operation" : "transferGood",
-		        "code" : 200,
-		        "message" : "OK"
-		},
-		"signature" : "a_signature"   
-	}
-	```
-    
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"notaryServer" : "Certified by Notary",
+		"goodID" : "a_good_ID",
+		"previousOwner" : "a_client_ID",
+		"newOwner" : "a_client_ID"
+    }
+    ```
+   
 * **Error Response:**
 
     **Code:** 403
      
-     **Content:**
+    **Content:**
      ```
-     {
-         "code" : 403,
-         "operation" : markForSale),
-         "message" : "The transaction is not valid.",
-         "reason" : "NOT IMPLEMENTED YET."
-     }
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The transaction is not valid.",
+		"reason" : "a_reason"
+    }
+    ```
+
+* **Error Response:**
+
+    **Code:** 500
+     
+    **Content:**
      ```
+    {
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The server cannot continue.",
+		"reason" : "a_reason"
+    }
+    ```
 
 * **Error Response:**
 
@@ -180,75 +234,99 @@ Errors specific to an endpoint are listed on its corresponding section
  # **General HDSNotary API Errors**
  
 **Code:** 400 
- 
-**Content:**
- ```
- {
-     "code" : 400,
-     "operation" : (OPERATION),
-     "message" : "No service - server could not connect to databases, try again later.",
-     "reason" : (the error message from the causing error)
- }
- ```
- 
-**Code:** 400 
      
 **Content:**
- ```
- {
-     "code" : 400,
-     "operation" : (OPERATION),
-     "message" : "The parameters sent are either NULL or empty.",
-     "reason" : (specifies with parameter is either causing the error)
- }
- ```
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The parameters are not correct.",
+	"reason" : "a_reason"
+}
+```
 
 **Code:** 401
          
 **Content:**
- ```
- {
-     "code" : 401,
-     "operation" : (OPERATION),
-     "message" : "The connection to the database was refused.",
-     "reason" : (the error message from the causing error)
- }
- ```
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The connection to the database was refused.",
+	"reason" : "a_reason"
+}
+```
 
 **Code:** 500             
 
 **Content:**
- ```
- {
-     "code" : 500,
-     "operation" : (OPERATION),
-     "message" : "The database did not return a response for the query.",
-     "reason" : (the error message from the causing error)
- }
- ```
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The database did not return a response for the query.",
+	"reason" : "a_reason"
+}
+```
 
 **Code:** 500
 
 **Content:**
- ```
- {
-     "code" : 500,
-     "operation" : (OPERATION),
-     "message" : "Caught an SQL Exception.",
-     "reason" : (the error message from the causing error)
- }
- ```
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "Caught an SQL Exception.",
+	"reason" : "a_reason"
+}
+```
+
+**Code:** 500
+
+**Content:**
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The server cannot continue.",
+	"reason" : "a_reason"
+}
+```
 
 **Code:** 503
                  
 **Content:**
- ```
- {
-     "code" : 503,
-     "operation" : (OPERATION),
-     "message" : "The connection to the database was closed.",
-     "reason" : (the error message from the causing error)
- }
- ```
+```
+{
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The connection to the database was closed.",
+	"reason" : "a_reason"
+}
+```
  ----
  
