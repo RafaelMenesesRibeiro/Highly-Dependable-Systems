@@ -15,14 +15,14 @@
 <ul>
     <li>
         <p><strong>URL</strong></p>
-        <p>/stateofgood</p>
+        <p>/stateOfGood</p>
     </li>
     <li>
         <p><strong>Method:</strong></p>
         <p><code>GET</code></p>
     </li>
     <li>
-        <p><strong>Data Params</strong></p>
+        <p><strong>URL Params</strong></p>
         <pre><code>{
     &quot;goodID&quot; : &quot;a_good_id&quot;
 }
@@ -33,16 +33,14 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;payload&quot;:
-        {
-            &quot;operation&quot; : &quot;getStateOfGood&quot;,
-            &quot;code&quot; : 200,
-            &quot;message&quot; : &quot;OK&quot;,
-            &quot;ownerId&quot; : &quot;a_owner_id&quot;,
-            &quot;onSale&quot; : &quot;a_boolean&quot;
-        },
-    &quot;signature&quot; : &quot;a_signature&quot;
- }
+    &quot;requestID&quot; : &quot;0&quot;,
+    &quot;operation&quot; : &quot;getStateOfGood&quot;,
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;ownerID&quot; : &quot;a_client_ID&quot;,
+    &quot;onSale&quot; : &quot;a_boolean&quot;
+}
 </code></pre>
     </li>
     <li>
@@ -51,7 +49,7 @@
     </li>
 </ul>
 <hr>
-<h2><a id="Express_Intention_to_Sell_58"></a><strong>Express Intention to Sell</strong></h2>
+<h2><a id="Express_Intention_to_Sell_56"></a><strong>Express Intention to Sell</strong></h2>
 <ul>
     <li>
         <p><strong>URL</strong></p>
@@ -64,12 +62,13 @@
     <li>
         <p><strong>Data Params</strong></p>
         <pre><code>{
-     &quot;signature&quot;: &quot;a_signature&quot;,
-     &quot;payload&quot;:
-         {
-             &quot;sellerID&quot; : &quot;a_seller_ID&quot;,
-             &quot;goodID&quot; : &quot;a_good_ID&quot;
-         }
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : &quot;markForSale&quot;,
+    &quot;from&quot; : &quot;a_client_ID&quot;,
+    &quot;to&quot; : &quot;server&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;goodID&quot; : &quot;a_good_ID&quot;,
+    &quot;owner&quot; : &quot;a_client_ID&quot;
 }
 </code></pre>
     </li>
@@ -78,13 +77,26 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;payload&quot;:
-        {
-            &quot;operation&quot; : &quot;markForSale&quot;,
-            &quot;code&quot; : 200,
-            &quot;message&quot; : &quot;OK&quot;
-        },
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : &quot;markForSale&quot;,
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
     &quot;signature&quot; : &quot;a_signature&quot;
+}
+</code></pre>
+    </li>
+    <li>
+        <p><strong>Error Response:</strong></p>
+        <p><strong>Code:</strong> 401</p>
+        <p><strong>Content:</strong></p>
+        <pre><code>{
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;The signatures do not match the received data.&quot;,
+   &quot;reason&quot; : &quot;The Seller's signature is not valid.&quot;&quot;The Seller's signature is not valid.&quot;
 }
 </code></pre>
     </li>
@@ -93,10 +105,13 @@
         <p><strong>Code:</strong> 403</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;code&quot; : 403,
-    &quot;operation&quot; : markForSale),
-    &quot;message&quot; : &quot;You do not have permission to put this item on sale.&quot;,
-    &quot;reason&quot; : &quot;The user &lt;sellerID&gt; does not own the good &lt;goodID&gt;.&quot;
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;You do not have permission to put this item on sale.&quot;,
+   &quot;reason&quot; : &quot;The user '&quot; + sellerID + &quot;' does not own the good '&quot; + goodID + &quot;'.&quot;
 }
 </code></pre>
     </li>
@@ -106,7 +121,7 @@
     </li>
 </ul>
 <hr>
-<h2><a id="Transfer_Good_118"></a><strong>Transfer Good</strong></h2>
+<h2><a id="Transfer_Good_135"></a><strong>Transfer Good</strong></h2>
 <ul>
     <li>
         <p><strong>URL</strong></p>
@@ -119,13 +134,18 @@
     <li>
         <p><strong>Data Params</strong></p>
         <pre><code>{
-    &quot;signature&quot;: &quot;a_signature&quot;,
-    &quot;payload&quot;:
-        {
-            &quot;sellerID&quot; : &quot;a_seller_ID&quot;,
-            &quot;buyerID&quot; : &quot;a_buyer_ID&quot;,
-            &quot;goodID&quot; : &quot;a_good_ID&quot;
-        }
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;buyGood&quot;,
+   &quot;from&quot; : &quot;a_buyer_ID&quot;,
+   &quot;to&quot; : &quot;a_seller_ID&quot;,
+   &quot;signature&quot; : &quot;a_buyer_signature&quot;,
+   &quot;goodID&quot; : &quot;a_good_ID&quot;,
+   &quot;buyerID&quot; : &quot;a_client_ID&quot;,
+   &quot;sellerID&quot; : &quot;a_client_ID&quot;,
+   &quot;wrappingOperation&quot; : &quot;transferGood&quot;,
+   &quot;wrappingFrom&quot; : &quot;a_seller_ID&quot;,
+   &quot;wrappingTo&quot; : &quot;server&quot;,
+   &quot;wrappingSignature&quot; : &quot;a_seller_signature&quot;
 }
 </code></pre>
     </li>
@@ -134,13 +154,15 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;payload&quot; :
-        {
-            &quot;operation&quot; : &quot;transferGood&quot;,
-            &quot;code&quot; : 200,
-            &quot;message&quot; : &quot;OK&quot;
-        },
-    &quot;signature&quot; : &quot;a_signature&quot;
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : &quot;transferGood&quot;,
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;notaryServer&quot; : &quot;Certified by Notary&quot;,
+    &quot;goodID&quot; : &quot;a_good_ID&quot;,
+    &quot;previousOwner&quot; : &quot;a_client_ID&quot;,
+    &quot;newOwner&quot; : &quot;a_client_ID&quot;
 }
 </code></pre>
     </li>
@@ -149,10 +171,28 @@
         <p><strong>Code:</strong> 403</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
-    &quot;code&quot; : 403,
-    &quot;operation&quot; : markForSale),
-    &quot;message&quot; : &quot;The transaction is not valid.&quot;,
-    &quot;reason&quot; : &quot;NOT IMPLEMENTED YET.&quot;
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;The transaction is not valid.&quot;,
+   &quot;reason&quot; : &quot;a_reason&quot;
+}
+</code></pre>
+    </li>
+    <li>
+        <p><strong>Error Response:</strong></p>
+        <p><strong>Code:</strong> 500</p>
+        <p><strong>Content:</strong></p>
+        <pre><code>{
+   &quot;requestID&quot; : &quot;a_request_ID&quot;,
+   &quot;operation&quot; : &quot;transferGood&quot;,
+   &quot;from&quot; : &quot;server&quot;,
+   &quot;to&quot; : &quot;a_client_ID&quot;,
+   &quot;signature&quot; : &quot;a_signature&quot;,
+   &quot;message&quot; : &quot;The server cannot continue.&quot;,
+   &quot;reason&quot; : &quot;a_reason&quot;
 }
 </code></pre>
     </li>
@@ -162,70 +202,78 @@
     </li>
 </ul>
 <hr>
-<h1><a id="General_HDSNotary_API_Errors_179"></a><strong>General HDSNotary API Errors</strong></h1>
+<h1><a id="General_HDSNotary_API_Errors_223"></a><strong>General HDSNotary API Errors</strong></h1>
 <p><strong>Code:</strong> 400</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
-    &quot;code&quot; : 400,
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
-    &quot;message&quot; : &quot;No service - server could not connect to databases, try again later.&quot;,
-    &quot;reason&quot; : (the error message from the causing error)
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The parameters are not correct.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
 }
 </code></pre>
-<p><strong>Code:</strong> 400</p>
-<pre><code> **Content:**
- ```
- {
-     &quot;code&quot; : 400,
-     &quot;operation&quot; : (OPERATION),
-     &quot;message&quot; : &quot;The parameters sent are either NULL or empty.&quot;,
-     &quot;reason&quot; : (specifies with parameter is either causing the error)
- }
- ```
-</code></pre>
 <p><strong>Code:</strong> 401</p>
-<pre><code> **Content:**
- ```
- {
-     &quot;code&quot; : 401,
-     &quot;operation&quot; : (OPERATION),
-     &quot;message&quot; : &quot;The connection to the database was refused.&quot;,
-     &quot;reason&quot; : (the error message from the causing error)
- }
- ```
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The connection to the database was refused.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
 </code></pre>
 <p><strong>Code:</strong> 500</p>
-<pre><code> **Content:**
- ```
- {
-     &quot;code&quot; : 500,
-     &quot;operation&quot; : (OPERATION),
-     &quot;message&quot; : &quot;The database did not return a response for the query.&quot;,
-     &quot;reason&quot; : (the error message from the causing error)
- }
- ```
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The database did not return a response for the query.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
 </code></pre>
 <p><strong>Code:</strong> 500</p>
-<pre><code> **Content:**
- ```
- {
-     &quot;code&quot; : 500,
-     &quot;operation&quot; : (OPERATION),
-     &quot;message&quot; : &quot;Caught an SQL Exception.&quot;,
-     &quot;reason&quot; : (the error message from the causing error)
- }
- ```
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;Caught an SQL Exception.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
+</code></pre>
+<p><strong>Code:</strong> 500</p>
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The server cannot continue.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
 </code></pre>
 <p><strong>Code:</strong> 503</p>
-<pre><code> **Content:**
- ```
- {
-     &quot;code&quot; : 503,
-     &quot;operation&quot; : (OPERATION),
-     &quot;message&quot; : &quot;The connection to the database was closed.&quot;,
-     &quot;reason&quot; : (the error message from the causing error)
- }
- ```
+<p><strong>Content:</strong></p>
+<pre><code>{
+    &quot;requestID&quot; : &quot;a_request_ID&quot;,
+    &quot;operation&quot; : (OPERATION),
+    &quot;from&quot; : &quot;server&quot;,
+    &quot;to&quot; : &quot;a_client_ID&quot;,
+    &quot;signature&quot; : &quot;a_signature&quot;,
+    &quot;message&quot; : &quot;The connection to the database was closed.&quot;,
+    &quot;reason&quot; : &quot;a_reason&quot;
+}
 </code></pre>
 <hr>
 

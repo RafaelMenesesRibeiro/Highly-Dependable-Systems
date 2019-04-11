@@ -24,6 +24,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import static hds.security.DateUtils.generateTimestamp;
+
 @RestController
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
@@ -59,7 +61,7 @@ public class GetStateOfGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
-			return new GoodStateResponse(NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
+			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
 		}
 	}
 }

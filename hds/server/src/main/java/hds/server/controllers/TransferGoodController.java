@@ -4,6 +4,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
@@ -22,10 +23,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import static hds.security.DateUtils.generateTimestamp;
+
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "transferGood";
+	private static final String CERTIFIED = "Certified by Notary";
 
 	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
@@ -44,8 +48,8 @@ public class TransferGoodController {
 			metaResponse = execute(transactionData);
 		}
 		catch (IOException ioex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
-			metaResponse = new MetaResponse(403, payload);
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CRASH, ioex.getMessage());
+			metaResponse = new MetaResponse(500, payload);
 		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
@@ -68,13 +72,13 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
 				conn.commit();
-				BasicMessage payload = new BasicMessage(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
+				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
 				return new MetaResponse(payload);
 			}
 			else {
 				conn.rollback();
 				String reason = "The transaction is not valid.";
-				ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
 		}
