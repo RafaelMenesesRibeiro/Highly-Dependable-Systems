@@ -1,6 +1,9 @@
 package hds.server.helpers;
 
-import hds.server.exception.*;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.DBSQLException;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -12,7 +15,7 @@ public class TransferGood {
 	}
 
 	public static void transferGood(Connection conn, String sellerID, String buyerID, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
 
 		String query = "UPDATE goods SET onSale = ? WHERE goodID = ?";
 		List<String> args = new ArrayList<>();

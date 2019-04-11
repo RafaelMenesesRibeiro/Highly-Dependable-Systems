@@ -1,6 +1,14 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.ValidGoodID;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class GoodDataMessage extends BasicMessage {
+    @NotNull(message = "The GoodID cannot be null.")
+    @NotEmpty(message = "The GoodID cannot be empty.")
+    @ValidGoodID
     String goodID;
 
     public GoodDataMessage(String requestID, String operation, String from, String to, String signature, String goodID) {

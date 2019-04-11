@@ -11,9 +11,11 @@ public class ControllerErrorConsts {
 	public static final String BAD_TRANSACTION = "The transaction is not valid.";
 	public static final String BAD_SIGNATURE = "The signatures do not match the received data.";
 
+	public static final String NO_PERMISSION = "You do not have permission to put this item on sale.";
+
 	public static final String BAD_URI = "Mo service - server could not connect to databases, try again later.";
 	public static final String BAD_SQL = "Caught an SQL Exception.";
-	public static final String BAD_PARAMS = "The parameters sent are either NULL or empty.";
+	public static final String BAD_PARAMS = "The parameters are not correct.";
 
 	public static final String CONN_REF = "The connection to the database was refused.";
 	public static final String CONN_CLOSED = "The connection to the database was closed.";

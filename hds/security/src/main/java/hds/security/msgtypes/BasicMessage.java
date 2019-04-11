@@ -1,10 +1,27 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class BasicMessage {
+    @NotNull(message = "The requestID cannot be null.")
+    @NotEmpty(message = "The requestID cannot be empty.")
     String requestID;
+
+    @NotNull(message = "The operation cannot be null.")
+    @NotEmpty(message = "The operation cannot be empty.")
     String operation;
+
+    @NotNull(message = "The from cannot be null.")
+    @NotEmpty(message = "The from cannot be empty.")
     String from;
+
+    @NotNull(message = "The to cannot be null.")
+    @NotEmpty(message = "The to cannot be empty.")
     String to;
+
+    @NotNull(message = "The signature cannot be null.")
+    @NotEmpty(message = "The signature cannot be empty.")
     String signature;
 
     public BasicMessage(String requestID, String operation, String from, String to, String signature) {

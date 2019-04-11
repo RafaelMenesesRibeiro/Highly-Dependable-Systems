@@ -1,6 +1,9 @@
 package hds.server.helpers;
 
-import hds.server.exception.*;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.DBSQLException;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -13,10 +16,8 @@ public class MarkForSale {
 	}
 
 	public static void markForSale(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'markForSale' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
+
 		String query = "update goods set onSale = ? where goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");
