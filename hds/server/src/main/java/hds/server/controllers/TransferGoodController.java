@@ -22,6 +22,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import static hds.security.DateUtils.generateTimestamp;
+
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
@@ -44,7 +46,7 @@ public class TransferGoodController {
 			metaResponse = execute(transactionData);
 		}
 		catch (IOException ioex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
 			metaResponse = new MetaResponse(403, payload);
 		}
 		catch (Exception ex) {
@@ -68,13 +70,13 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
 				conn.commit();
-				BasicMessage payload = new BasicMessage(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
+				BasicMessage payload = new BasicMessage(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
 				return new MetaResponse(payload);
 			}
 			else {
 				conn.rollback();
 				String reason = "The transaction is not valid.";
-				ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
 		}

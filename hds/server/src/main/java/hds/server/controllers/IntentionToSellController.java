@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -70,19 +71,19 @@ public class IntentionToSellController {
 			if (!ownerID.equals(sellerID)) {
 				conn.rollback();
 				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
-				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
 				return new MetaResponse(403, payload);
 			}
 			boolean res = isClientWilling(sellerID, ownerData.getSignature(), ownerData);
 			if (!res) {
 				conn.rollback();
 				String reason = "The Seller's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
 			MarkForSale.markForSale(conn, goodID);
 			conn.commit();
-			BasicMessage payload = new BasicMessage(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
+			BasicMessage payload = new BasicMessage(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
 			return new MetaResponse(payload);
 		}
 		catch (SQLException | DBSQLException | DBNoResultsException ex) {
