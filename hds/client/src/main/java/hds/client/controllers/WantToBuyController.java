@@ -32,10 +32,6 @@ public class WantToBuyController {
         if (!"".equals(validationResult)) {
             return newErrorResponse(requestMessage, validationResult);
         }
-        return trySell(requestMessage);
-    }
-
-    private BasicMessage trySell(SaleRequestMessage requestMessage) {
         return execute(requestMessage);
     }
 
@@ -95,25 +91,4 @@ public class WantToBuyController {
             return newErrorResponse(requestMessage, "The seller has thrown an exception while receiving the response from notary");
         }
     }
-
-    /*
-    private BasicMessage execute( SaleRequestMessage buyerRequestMessage)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, JSONException {
-        PublicKey buyerPublicKey = getPublicKeyFromResource(buyerID);
-        String buyerSignature = signedTransactionData.getBuyerSignature();
-        PrivateKey sellerPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
-        if (!CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, signedTransactionData.getPayload())) {
-            signedTransactionData.getPayload().setBuyerID(SELLER_INCORRECT_BUYER_SIGNATURE);
-        }
-        byte[] sellerSignature = CryptoUtils.signData(sellerPrivateKey, ConvertUtils.objectToByteArray(signedTransactionData.getPayload()));
-        signedTransactionData.setSellerSignature(ConvertUtils.bytesToBase64String(sellerSignature));
-        String requestUrl = String.format("%s%s", ClientProperties.HDS_NOTARY_HOST, "transferGood");
-        HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedTransactionData));
-        sendPostRequest(connection, requestData);
-        hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
-        return domainSecureResponse.translateSecureResponse();
-   }
-   */
 }

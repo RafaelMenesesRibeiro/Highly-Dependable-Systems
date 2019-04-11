@@ -1,6 +1,7 @@
 package hds.security;
 
 import hds.security.msgtypes.BasicMessage;
+import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
 import java.security.*;
@@ -24,6 +25,11 @@ public class SecurityManager {
     public static BasicMessage setMessageSignature(PrivateKey privateKey, BasicMessage message)
             throws IOException, SignatureException {
         message.setSignature(bytesToBase64String(signData(privateKey, objectToByteArray(message))));
+        return message;
+    }
+
+    public static BasicMessage setMessageSignature(PKCS11 pkcs11, long ccSessionID, long ccSignatureKey, BasicMessage message) throws IOException, SignatureException {
+        message.setSignature(bytesToBase64String(signData(pkcs11, ccSessionID, ccSignatureKey, objectToByteArray(message))));
         return message;
     }
 
