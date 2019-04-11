@@ -16,7 +16,7 @@ import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 public class CryptoUtils {
-    private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
+    private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 
     /***********************************************************
      *

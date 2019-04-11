@@ -77,7 +77,7 @@ public class TransactionValidityChecker {
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return CryptoUtils.authenticateSignature(buyerPublicKey, buyerSignature, payload);
+			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
 			throw new SignatureException(e.getMessage());
