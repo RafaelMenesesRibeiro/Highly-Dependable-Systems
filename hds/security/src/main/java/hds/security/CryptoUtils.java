@@ -54,7 +54,7 @@ public class CryptoUtils {
      *
      ***********************************************************/
 
-    public static boolean authenticateSignature(PublicKey key, String signedData, Object payload) throws IOException, SignatureException {
+    public static boolean authenticateSignatureWithPubKey(PublicKey key, String signedData, Object payload) throws IOException, SignatureException {
         return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
     }
 

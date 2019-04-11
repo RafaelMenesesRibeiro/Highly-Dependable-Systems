@@ -38,7 +38,7 @@ public class GeneralControllerHelper {
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
-			setMessageSignature(ServerProperties.getPkcs11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
+			setMessageSignature(ServerProperties.getPKCS11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException | IOException ex) {

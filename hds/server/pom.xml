@@ -56,7 +56,13 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.11.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>pteidlib</groupId>
+			<artifactId>pteidlib</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 	<build>

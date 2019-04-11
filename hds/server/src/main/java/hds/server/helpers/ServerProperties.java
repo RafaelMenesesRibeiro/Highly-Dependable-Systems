@@ -14,7 +14,7 @@ public class ServerProperties {
     private static long ccSignatureKey;
 
 
-    public static PKCS11 getPkcs11() {
+    public static PKCS11 getPKCS11() {
         return pkcs11;
     }
 

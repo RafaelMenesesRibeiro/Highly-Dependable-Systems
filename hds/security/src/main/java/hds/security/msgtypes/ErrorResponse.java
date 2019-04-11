@@ -1,6 +1,8 @@
 package hds.security.msgtypes;
 
-public class ErrorResponse extends BasicMessage {
+import java.io.Serializable;
+
+public class ErrorResponse extends BasicMessage implements Serializable {
     private String message;
     private String reason;
 

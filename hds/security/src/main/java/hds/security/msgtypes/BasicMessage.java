@@ -2,8 +2,9 @@ package hds.security.msgtypes;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
-public class BasicMessage {
+public class BasicMessage implements Serializable {
     @NotNull(message = "The timestamp cannot be null.")
     private long timestamp;
 
