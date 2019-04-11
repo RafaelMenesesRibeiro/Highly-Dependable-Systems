@@ -12,6 +12,7 @@ public class ClientProperties {
     private static String portId;
     private static String maxPortId;
     private static PrivateKey privateKey;
+    public static final String HDS_BASE_HOST = "http://localhost:";
     public static final String HDS_NOTARY_HOST = "http://localhost:8000/";
     public static final String HDS_NOTARY_PORT = "8000";
     private ClientProperties() {}
