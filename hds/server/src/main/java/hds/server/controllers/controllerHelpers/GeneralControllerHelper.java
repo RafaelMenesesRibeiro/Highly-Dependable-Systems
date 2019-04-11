@@ -45,6 +45,9 @@ public class GeneralControllerHelper {
 	}
 
 	public static MetaResponse handleException(Exception ex, String requestID, String to, String operation) {
+		Logger logger = Logger.getAnonymousLogger();
+		logger.warning("\tException caught - " + ex.getClass().getName());
+		logger.warning("\tMessage: " + ex.getMessage());
 		if (ex instanceof DBConnectionRefusedException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CONN_REF, ex.getMessage());
 			return new MetaResponse(401, payload);
