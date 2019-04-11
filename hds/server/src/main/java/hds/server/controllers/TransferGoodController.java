@@ -4,6 +4,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
@@ -28,6 +29,7 @@ import static hds.security.DateUtils.generateTimestamp;
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "transferGood";
+	private static final String CERTIFIED = "Certified by Notary";
 
 	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
@@ -70,7 +72,7 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
 				conn.commit();
-				BasicMessage payload = new BasicMessage(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "");
+				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
 				return new MetaResponse(payload);
 			}
 			else {
