@@ -20,14 +20,15 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 
 public class GeneralControllerHelper {
-	private static final LinkedHashMap<UserRequestIDKey, BasicMessage> recentMessages = new LinkedHashMap<>();
+	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = "server";
+	private static final int MAX_CACHED_ENTRIES = 128;
 
-	public static void cacheRecentRequest(UserRequestIDKey key, BasicMessage value) {
+	public static void cacheRecentRequest(UserRequestIDKey key, ResponseEntity<BasicMessage> value) {
 		recentMessages.put(key, value);	 // TODO should be persistable
 	}
 
-	public static BasicMessage tryGetRecentRequest(UserRequestIDKey key) {
+	public static ResponseEntity<BasicMessage> tryGetRecentRequest(UserRequestIDKey key) {
 		return recentMessages.get(key);
 	}
 
