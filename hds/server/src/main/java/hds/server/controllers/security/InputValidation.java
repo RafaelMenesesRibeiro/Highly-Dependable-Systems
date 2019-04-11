@@ -15,7 +15,7 @@ public class InputValidation {
     }
 
     public static void isValidGoodID(String str) throws IllegalArgumentException {
-        isValidString(str);
+        isValidString(str, "goodID");
         Pattern pattern = Pattern.compile("^" + GOOD_ID_START + "[0-9]+$");
         Matcher matcher = pattern.matcher(str);
         if (!matcher.matches()) {
@@ -23,8 +23,8 @@ public class InputValidation {
         }
     }
 
-    public static void isValidClientID(String str) throws IllegalArgumentException {
-        isValidString(str);
+    public static void isValidClientID(String str, String clientIDType) throws IllegalArgumentException {
+        isValidString(str, clientIDType);
         Pattern pattern = Pattern.compile("^[0-9]+$");
         Matcher matcher = pattern.matcher(str);
         if (!matcher.matches()) {
@@ -36,15 +36,15 @@ public class InputValidation {
         }
     }
 
-    private static void isValidString(String str) throws IllegalArgumentException {
+    private static void isValidString(String str, String paramName) throws IllegalArgumentException {
         if (str == null) {
-            throw new IllegalArgumentException("Parameter is null.");
+            throw new IllegalArgumentException("Parameter " + paramName + " is null.");
         }
         if (str.equals("")) {
-            throw new IllegalArgumentException("Parameter is empty.");
+            throw new IllegalArgumentException("Parameter " + paramName + " is empty.");
         }
         if (str.length() > 50) {
-            throw new IllegalArgumentException("Parameter is longer than 50 character.");
+            throw new IllegalArgumentException("Parameter " + paramName + " is longer than 50 character.");
         }
     }
 

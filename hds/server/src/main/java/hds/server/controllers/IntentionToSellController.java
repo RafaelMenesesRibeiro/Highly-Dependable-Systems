@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
-@SuppressWarnings("Duplicates")
 @RestController
 public class IntentionToSellController {
 	private static final String FROM_SERVER = "server";
@@ -40,7 +39,7 @@ public class IntentionToSellController {
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
-			InputValidation.isValidClientID(sellerID);
+			InputValidation.isValidClientID(sellerID, "sellerID");
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(ownerData);
 		}
@@ -57,9 +56,6 @@ public class IntentionToSellController {
 		String sellerID = ownerData.getOwner();
 		String goodID = ownerData.getGoodID();
 
-		if (sellerID == null || sellerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'markForSale' is either null or an empty string.");
-		}
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();

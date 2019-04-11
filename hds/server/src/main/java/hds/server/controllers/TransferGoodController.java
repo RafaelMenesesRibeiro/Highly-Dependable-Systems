@@ -21,7 +21,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-@SuppressWarnings("Duplicates")
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
@@ -41,8 +40,8 @@ public class TransferGoodController {
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
 		try {
-			InputValidation.isValidClientID(sellerID);
-			InputValidation.isValidClientID(buyerID);
+			InputValidation.isValidClientID(sellerID, "sellerID");
+			InputValidation.isValidClientID(buyerID, "sellerID");
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(transactionData);
 		}
@@ -63,16 +62,6 @@ public class TransferGoodController {
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
-
-		if (sellerID == null || sellerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'sellerID' in query 'transferGood' is either null or an empty string.");
-		}
-		if (buyerID == null || buyerID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'buyerID' in query 'transferGood' is either null or an empty string.");
-		}
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'transferGood' is either null or an empty string.");
-		}
 
 		try (Connection conn = DatabaseManager.getConnection()) {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
