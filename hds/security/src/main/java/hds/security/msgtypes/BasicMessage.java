@@ -1,7 +1,13 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 public class BasicMessage {
     String requestID;
+
+    @NotNull(message = "TESTING IF THIS WORKS .....")
+    @Size(min = 2, message = "TESTING 2 IF THIS WORKS 2. ....")
     String operation;
     String from;
     String to;
