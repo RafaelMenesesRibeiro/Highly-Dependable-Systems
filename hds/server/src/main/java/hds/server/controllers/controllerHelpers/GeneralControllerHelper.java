@@ -13,13 +13,23 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 import java.sql.SQLException;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 
 public class GeneralControllerHelper {
+	private static final Hashtable<UserRequestIDKey, BasicMessage> recentMessages = new Hashtable<>();
 	private static final String FROM_SERVER = "server";
+
+	public static void cacheRecentRequest(UserRequestIDKey key, BasicMessage value) {
+		recentMessages.put(key, value);	 // TODO should be persistable
+	}
+
+	public static BasicMessage tryGetRecentRequest(UserRequestIDKey key) {
+		return recentMessages.get(key);
+	}
 
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
@@ -75,6 +85,5 @@ public class GeneralControllerHelper {
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);
 		return new MetaResponse(400, payload);
 	}
-
 
 }
