@@ -3,6 +3,7 @@ package hds.client.helpers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hds.security.msgtypes.BasicMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,7 +53,7 @@ public class ConnectionManager {
         outputStream.close();
     }
 
-    public static hds.client.domain.SecureResponse getSecureResponse(HttpURLConnection connection) throws IOException {
+    public static BasicMessage getSecureResponse(HttpURLConnection connection) throws IOException {
         String jsonResponse = getJSONStringFromHttpResponse(connection);
         return tryNewBasicResponse(1, jsonResponse);
     }
@@ -91,10 +92,9 @@ public class ConnectionManager {
         return jsonResponse.toString();
     }
 
-    public static void processResponse(HttpURLConnection connection, String nodeId)
-            throws InvalidKeySpecException, IOException {
+    public static void processResponse(HttpURLConnection connection, String nodeId) throws IOException {
 
-        hds.client.domain.SecureResponse domainSecureResponse = getSecureResponse(connection);
+        BasicMessage responseMessage = getSecureResponse(connection);
         hds.security.msgtypes.responses.SecureResponse secureResponse = domainSecureResponse.translateSecureResponse();
 
         if (isAuthenticResponse(secureResponse, nodeId)) {
