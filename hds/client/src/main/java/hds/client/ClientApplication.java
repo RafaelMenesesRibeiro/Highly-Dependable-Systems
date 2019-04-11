@@ -134,7 +134,7 @@ public class ClientApplication {
 
     private static void getStateOfGood() {
         try {
-            String requestUrl = String.format("%s%s%s", HDS_NOTARY_HOST, "stateOfGood?goodID=", requestGoodId());
+            String requestUrl = HDS_NOTARY_HOST + "stateOfGood?goodID=" + requestGoodId();
             HttpURLConnection connection = initiateGETConnection(requestUrl);
             processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
@@ -143,17 +143,6 @@ public class ClientApplication {
             printError(exc.getMessage());
         }
     }
-
-    private static String requestGoodId() {
-        return scanString("Provide good identifier: ");
-    }
-
-    private static String requestSellerId() {
-        return scanString("Provide the owner of the good you want to buy.");
-    }
-
-
-
 
     /***********************************************************
      *
@@ -168,6 +157,15 @@ public class ClientApplication {
         } catch (NoSuchElementException | IllegalStateException exc) {
             return scanString(requestString);
         }
+    }
+
+
+    private static String requestGoodId() {
+        return scanString("Provide good identifier: ");
+    }
+
+    private static String requestSellerId() {
+        return scanString("Provide the owner of the good you want to buy.");
     }
 
     private static void print(String msg) {
