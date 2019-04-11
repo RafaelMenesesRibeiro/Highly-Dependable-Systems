@@ -6,7 +6,7 @@ import java.util.UUID;
 public class CryptoUtils {
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-    public static String generateUniqueRequestId() {
+    public static String newUUIDString() {
         UUID uuid = UUID.randomUUID();
         return uuid.toString();
     }
