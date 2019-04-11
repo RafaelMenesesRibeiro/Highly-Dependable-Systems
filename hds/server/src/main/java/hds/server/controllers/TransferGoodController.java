@@ -1,18 +1,16 @@
 package hds.server.controllers;
 
-import hds.security.CryptoUtils;
-import hds.security.ResourceManager;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
+import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
+import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
-import hds.server.controllers.security.InputValidation;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,31 +46,14 @@ public class TransferGoodController {
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(transactionData);
 		}
-		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
-			metaResponse = new MetaResponse(400, payload);
-		}
 		catch (IOException ioex) {
 			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CANCER, ioex.getMessage());
 			metaResponse = new MetaResponse(403, payload);
 		}
-		catch (DBConnectionRefusedException dbcrex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CONN_REF, dbcrex.getMessage());
-			metaResponse = new MetaResponse(401, payload);
+		catch (Exception ex) {
+			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
-		catch (DBClosedConnectionException dbccex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CONN_CLOSED, dbccex.getMessage());
-			metaResponse = new MetaResponse(503, payload);
-		}
-		catch (DBNoResultsException dbnrex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.NO_RESP, dbnrex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		catch (DBSQLException | SQLException sqlex) {
-			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SQL, sqlex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		return sendResponse(metaResponse, false);
+		return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 	}
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
@@ -108,22 +89,6 @@ public class TransferGoodController {
 		catch (IncorrectSignatureException is){
 			ErrorResponse payload = new ErrorResponse(transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, is.getMessage());
 			return new MetaResponse(403, payload);
-		}
-	}
-
-	@SuppressWarnings("Duplicates")
-	private ResponseEntity<BasicMessage> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
-		BasicMessage payload = metaResponse.getPayload();
-		try {
-			payload.setSignature(CryptoUtils.signData(payload));
-			if (isSuccess) {
-				return new ResponseEntity<>(payload, HttpStatus.OK);
-			}
-			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
-		}
-		catch (SignatureException ex) {
-			ErrorResponse unsignedPayload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.CANCER, ex.getMessage());
-			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

@@ -1,16 +1,15 @@
 package hds.server.controllers;
 
-import hds.security.CryptoUtils;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
+import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,29 +43,11 @@ public class IntentionToSellController {
 			InputValidation.isValidClientID(sellerID);
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = execute(ownerData);
-			return sendResponse(metaResponse, true);
 		}
-		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
-			metaResponse = new MetaResponse(400, payload);
+		catch (Exception ex) {
+			metaResponse = GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
-		catch (DBConnectionRefusedException dbcrex) {
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.CONN_REF, dbcrex.getMessage());
-			metaResponse = new MetaResponse(401, payload);
-		}
-		catch (DBClosedConnectionException dbccex) {
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.CONN_CLOSED, dbccex.getMessage());
-			metaResponse = new MetaResponse(503, payload);
-		}
-		catch (DBNoResultsException dbnrex) {
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_RESP, dbnrex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		catch (DBSQLException | SQLException sqlex) {
-			ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SQL, sqlex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		return sendResponse(metaResponse, false);
+		return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 	}
 
 	private MetaResponse execute(OwnerDataMessage ownerData)
@@ -119,22 +100,6 @@ public class IntentionToSellController {
 			if (conn != null) {
 				conn.close();
 			}
-		}
-	}
-
-	@SuppressWarnings("Duplicates")
-	private ResponseEntity<BasicMessage> sendResponse(MetaResponse metaResponse, boolean isSuccess) {
-		BasicMessage payload = metaResponse.getPayload();
-		try {
-			payload.setSignature(CryptoUtils.signData(payload));
-			if (isSuccess) {
-				return new ResponseEntity<>(payload, HttpStatus.OK);
-			}
-			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
-		}
-		catch (SignatureException ex) {
-			ErrorResponse unsignedPayload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.CANCER, ex.getMessage());
-			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

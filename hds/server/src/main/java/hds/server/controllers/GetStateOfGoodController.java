@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 @RestController
 public class GetStateOfGoodController {
+	private static final String TO_UNKNOWN = "unknown";
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "getStateOfGood";
 
@@ -35,29 +36,11 @@ public class GetStateOfGoodController {
 			goodID = InputValidation.cleanString(goodID);
 			InputValidation.isValidGoodID(goodID);
 			metaResponse = new MetaResponse(execute(goodID));
-			return GeneralControllerHelper.getResponseEntity(metaResponse, OPERATION, true);
 		}
-		catch (IllegalArgumentException | InvalidQueryParameterException ex) {
-			ErrorResponse payload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
-			metaResponse = new MetaResponse(400, payload);
+		catch (Exception ex) {
+			metaResponse = GeneralControllerHelper.handleException(ex, "0", TO_UNKNOWN, OPERATION);
 		}
-		catch (DBConnectionRefusedException dbcrex) {
-			ErrorResponse payload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.CONN_REF, dbcrex.getMessage());
-			metaResponse = new MetaResponse(401, payload);
-		}
-		catch (DBClosedConnectionException dbccex) {
-			ErrorResponse payload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.CONN_CLOSED, dbccex.getMessage());
-			metaResponse = new MetaResponse(503, payload);
-		}
-		catch (DBNoResultsException dbnrex) {
-			ErrorResponse payload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.NO_RESP, dbnrex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		catch (DBSQLException | SQLException sqlex) {
-			ErrorResponse payload = new ErrorResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ControllerErrorConsts.BAD_SQL, sqlex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
-		return GeneralControllerHelper.getResponseEntity(metaResponse, OPERATION, false);
+		return GeneralControllerHelper.getResponseEntity(metaResponse, "0", TO_UNKNOWN, OPERATION);
 	}
 
 	private GoodStateResponse execute(String goodID)
@@ -65,7 +48,7 @@ public class GetStateOfGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
-			return new GoodStateResponse("0", OPERATION, FROM_SERVER, "unkwown", "", ownerID, state);
+			return new GoodStateResponse("0", OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
 		}
 	}
 }
