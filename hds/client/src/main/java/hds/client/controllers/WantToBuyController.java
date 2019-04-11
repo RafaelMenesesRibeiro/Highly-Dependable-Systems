@@ -1,28 +1,15 @@
 package hds.client.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
-import hds.security.ConvertUtils;
-import hds.security.CryptoUtils;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleCertificateResponse;
 import hds.security.msgtypes.SaleRequestMessage;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-
-import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.ResourceManager.*;
 import static hds.security.SecurityManager.isValidMessage;
 
 @RestController

@@ -5,6 +5,7 @@ import hds.client.exceptions.ResponseMessageException;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ConnectionManager;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
@@ -25,6 +26,7 @@ import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.SecurityManager.isValidMessage;
 import static hds.security.SecurityManager.setMessageSignature;
 
 @SpringBootApplication
@@ -93,6 +95,7 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+            processResponse(responseMessage);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (ResponseMessageException | SignatureException | JSONException | IOException exc) {
@@ -129,6 +132,7 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
             sendPostRequest(connection, newJSONObject(message));
             BasicMessage responseMessage = getResponseMessage(connection, Expect.BASIC_MESSAGE);
+            processResponse(responseMessage);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (ResponseMessageException | SignatureException | JSONException | IOException exc) {
@@ -154,6 +158,7 @@ public class ClientApplication {
             String requestUrl = HDS_NOTARY_HOST + "stateOfGood?goodID=" + requestGoodId();
             HttpURLConnection connection = initiateGETConnection(requestUrl);
             BasicMessage responseMessage = getResponseMessage(connection, Expect.GOOD_STATE_RESPONSE);
+            processResponse(responseMessage);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (ResponseMessageException | IOException exc) {
@@ -166,6 +171,15 @@ public class ClientApplication {
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
      *
      ***********************************************************/
+
+    private static void processResponse(BasicMessage responseMessage) {
+        String validationResult = isValidMessage(ClientProperties.getPort(), responseMessage);
+        if (!"".equals(validationResult)) {
+            printError(validationResult);
+        } else {
+            print(responseMessage.toString());
+        }
+    }
 
     private static String scanString(String requestString) {
         print(requestString);
