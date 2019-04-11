@@ -1,11 +1,17 @@
 package hds.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import hds.client.exceptions.ResponseMessageException;
 import hds.client.helpers.ClientProperties;
+import hds.client.helpers.ConnectionManager;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.SaleRequestMessage;
+import org.json.JSONException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.client.ResourceAccessException;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
@@ -82,11 +88,11 @@ public class ClientApplication {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-            getResponseMessage(connection, HDS_NOTARY_PORT);
-        } catch (SocketTimeoutException exc) {
+            getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+        } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (Exception exc) {
-            printError(exc.getMessage());
+        } catch (ResponseMessageException | JSONException | IOException exc) {
+           printError(exc.getMessage());
         }
     }
 
