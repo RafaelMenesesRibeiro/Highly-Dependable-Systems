@@ -82,7 +82,7 @@ public class ClientApplication {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-            processResponse(connection, HDS_NOTARY_PORT);
+            getResponseMessage(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (Exception exc) {
@@ -110,7 +110,7 @@ public class ClientApplication {
             OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
             sendPostRequest(connection, newJSONObject(message));
-            processResponse(connection, HDS_NOTARY_PORT);
+            getResponseMessage(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (Exception exc) {
@@ -136,7 +136,7 @@ public class ClientApplication {
         try {
             String requestUrl = HDS_NOTARY_HOST + "stateOfGood?goodID=" + requestGoodId();
             HttpURLConnection connection = initiateGETConnection(requestUrl);
-            processResponse(connection, HDS_NOTARY_PORT);
+            getResponseMessage(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion.");
         } catch (Exception exc) {
