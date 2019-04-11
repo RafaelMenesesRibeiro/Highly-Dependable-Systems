@@ -41,7 +41,7 @@ public class WantToBuyController {
 
     private BasicMessage trySell(SaleRequestMessage requestMessage) {
         // TODO See your old execute method
-        return new SaleCertificateResponse(); // May return an ErrorResponse built by the server
+        return new SaleCertificateResponse(); // Whatever is returned by the server may even be an ErrorResponse
     }
 
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
