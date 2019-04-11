@@ -33,11 +33,7 @@ public class GeneralControllerHelper {
 	}
 
 	public static MetaResponse handleException(Exception ex, String requestID, String to, String operation) {
-		if (ex instanceof IllegalArgumentException) {
-			ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
-			return new MetaResponse(400, payload);
-		}
-		else if (ex instanceof DBConnectionRefusedException) {
+		if (ex instanceof DBConnectionRefusedException) {
 			ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CONN_REF, ex.getMessage());
 			return new MetaResponse(401, payload);
 		}
