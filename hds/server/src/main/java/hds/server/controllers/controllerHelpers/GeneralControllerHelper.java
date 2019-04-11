@@ -8,8 +8,13 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class GeneralControllerHelper {
 	private static final String FROM_SERVER = "server";
@@ -55,4 +60,23 @@ public class GeneralControllerHelper {
 		ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CANCER, ex.getMessage());
 		return new MetaResponse(500, payload);
 	}
+
+	public static MetaResponse handleInputValidationResults(BindingResult result, String requestID, String to, String operation) {
+		Logger logger = Logger.getAnonymousLogger();
+		logger.info("\tRequestBody not valid:");
+		String reason = "Cannot detect reason";
+		List<ObjectError> errors = result.getAllErrors();
+		for (ObjectError error : errors) {
+			if (error instanceof FieldError) {
+				FieldError ferror = (FieldError) error;
+				reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
+						" is not acceptable: " + ferror.getDefaultMessage();
+				logger.info("\t\t" + reason);
+			}
+		}
+		ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);
+		return new MetaResponse(400, payload);
+	}
+
+
 }

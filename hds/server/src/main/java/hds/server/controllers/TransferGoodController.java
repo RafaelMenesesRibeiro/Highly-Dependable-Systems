@@ -12,6 +12,7 @@ import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,14 +27,19 @@ public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "transferGood";
 
+	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData) {
+	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
 		logger.info("\tRequest: " + transactionData.toString());
 
 		MetaResponse metaResponse;
+		if(result.hasErrors()) {
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		}
 		try {
 			metaResponse = execute(transactionData);
 		}
