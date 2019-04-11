@@ -23,10 +23,17 @@ import static hds.security.ConvertUtils.objectToByteArray;
 import static hds.security.CryptoUtils.generateUniqueRequestId;
 import static hds.security.CryptoUtils.signData;
 import static hds.security.ResourceManager.*;
+import static hds.security.SecurityManager.setMessageSignature;
 
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
+
+    /***********************************************************
+     *
+     * CLIENT COMMAND LINE INTERFACE AND SERVER INITIATION
+     *
+     ***********************************************************/
 
     public static void main(String[] args) {
         String portId = args[0];
@@ -65,13 +72,17 @@ public class ClientApplication {
         }
     }
 
+    /***********************************************************
+     *
+     * BUY GOOD RELATED METHODS
+     *
+     ***********************************************************/
+
     private static void buyGood() {
         try {
-            PrivateKey clientPrivateKey = getPrivateKeyFromResource(ClientProperties.getPort());
-            SaleRequestMessage saleRequestMessage = newSaleRequestMessage();
-            saleRequestMessage.setSignature(bytesToBase64String(signData(clientPrivateKey, objectToByteArray(saleRequestMessage))));
-            HttpURLConnection connection = initiatePOSTConnection(String.format("http://localhost:%s/wantToBuy", saleRequestMessage.getTo()));
-            sendPostRequest(connection, newJSONObject(saleRequestMessage));
+            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
+            HttpURLConnection connection = initiatePOSTConnection(String.format("http://localhost:%s/wantToBuy", message.getTo()));
+            sendPostRequest(connection, newJSONObject(message));
             processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
@@ -79,6 +90,22 @@ public class ClientApplication {
             printError(exc.getMessage());
         }
     }
+
+    public static SaleRequestMessage newSaleRequestMessage() {
+        String requestId = generateUniqueRequestId();
+        String from = ClientProperties.getPort();
+        String buyerId = from;
+        String to = requestSellerId();
+        String sellerId = to;
+        String goodId = requestGoodId();
+        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
+    }
+
+    /***********************************************************
+     *
+     * INTENTION TO SELL RELATED METHODS
+     *
+     ***********************************************************/
 
     private static void intentionToSell() {
         String sellerId = ClientProperties.getPort();
@@ -126,15 +153,7 @@ public class ClientApplication {
         return scanString("Provide the owner of the good you want to buy.");
     }
 
-    public static SaleRequestMessage newSaleRequestMessage() {
-        String requestId = generateUniqueRequestId();
-        String from = ClientProperties.getPort();
-        String buyerId = from;
-        String to = requestSellerId();
-        String sellerId = to;
-        String goodId = requestGoodId();
-        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
-    }
+
 
 
     /***********************************************************
