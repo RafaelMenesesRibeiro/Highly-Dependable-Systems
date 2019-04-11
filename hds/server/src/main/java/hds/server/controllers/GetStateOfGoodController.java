@@ -33,7 +33,6 @@ public class GetStateOfGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "getStateOfGood";
 
-	@SuppressWarnings("Duplicates")
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
 	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") @NotNull @NotEmpty @ValidGoodID String goodID, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();

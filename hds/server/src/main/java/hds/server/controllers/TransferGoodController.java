@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -47,10 +46,6 @@ public class TransferGoodController {
 		try {
 			metaResponse = execute(transactionData);
 		}
-		catch (IOException ioex) {
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.CRASH, ioex.getMessage());
-			metaResponse = new MetaResponse(500, payload);
-		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
@@ -59,7 +54,7 @@ public class TransferGoodController {
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
-					DBNoResultsException, IOException {
+					DBNoResultsException {
 
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());

@@ -1,4 +1,4 @@
-package hds.server.exception;;
+package hds.server.exception;
 
 public class IncorrectSignatureException extends RuntimeException {
 	public IncorrectSignatureException(String msg) {

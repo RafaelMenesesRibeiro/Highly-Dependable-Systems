@@ -33,6 +33,7 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;0&quot;,
     &quot;operation&quot; : &quot;getStateOfGood&quot;,
     &quot;from&quot; : &quot;server&quot;,
@@ -49,7 +50,7 @@
     </li>
 </ul>
 <hr>
-<h2><a id="Express_Intention_to_Sell_56"></a><strong>Express Intention to Sell</strong></h2>
+<h2><a id="Express_Intention_to_Sell_57"></a><strong>Express Intention to Sell</strong></h2>
 <ul>
     <li>
         <p><strong>URL</strong></p>
@@ -62,6 +63,7 @@
     <li>
         <p><strong>Data Params</strong></p>
         <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : &quot;markForSale&quot;,
     &quot;from&quot; : &quot;a_client_ID&quot;,
@@ -77,6 +79,7 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : &quot;markForSale&quot;,
     &quot;from&quot; : &quot;server&quot;,
@@ -90,6 +93,7 @@
         <p><strong>Code:</strong> 401</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+   &quot;timestamp&quot; : &quot;a_long&quot;,
    &quot;requestID&quot; : &quot;a_request_ID&quot;,
    &quot;operation&quot; : &quot;transferGood&quot;,
    &quot;from&quot; : &quot;server&quot;,
@@ -105,6 +109,7 @@
         <p><strong>Code:</strong> 403</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+   &quot;timestamp&quot; : &quot;a_long&quot;,
    &quot;requestID&quot; : &quot;a_request_ID&quot;,
    &quot;operation&quot; : &quot;transferGood&quot;,
    &quot;from&quot; : &quot;server&quot;,
@@ -121,7 +126,7 @@
     </li>
 </ul>
 <hr>
-<h2><a id="Transfer_Good_135"></a><strong>Transfer Good</strong></h2>
+<h2><a id="Transfer_Good_140"></a><strong>Transfer Good</strong></h2>
 <ul>
     <li>
         <p><strong>URL</strong></p>
@@ -133,20 +138,22 @@
     </li>
     <li>
         <p><strong>Data Params</strong></p>
-        <pre><code>{
-   &quot;requestID&quot; : &quot;a_request_ID&quot;,
-   &quot;operation&quot; : &quot;buyGood&quot;,
-   &quot;from&quot; : &quot;a_buyer_ID&quot;,
-   &quot;to&quot; : &quot;a_seller_ID&quot;,
-   &quot;signature&quot; : &quot;a_buyer_signature&quot;,
-   &quot;goodID&quot; : &quot;a_good_ID&quot;,
-   &quot;buyerID&quot; : &quot;a_client_ID&quot;,
-   &quot;sellerID&quot; : &quot;a_client_ID&quot;,
-   &quot;wrappingOperation&quot; : &quot;transferGood&quot;,
-   &quot;wrappingFrom&quot; : &quot;a_seller_ID&quot;,
-   &quot;wrappingTo&quot; : &quot;server&quot;,
-   &quot;wrappingSignature&quot; : &quot;a_seller_signature&quot;
-}
+        <pre><code> {
+     &quot;timestamp&quot; : &quot;a_long&quot;,
+     &quot;requestID&quot; : &quot;a_request_ID&quot;,
+     &quot;operation&quot; : &quot;buyGood&quot;,
+     &quot;from&quot; : &quot;a_buyer_ID&quot;,
+     &quot;to&quot; : &quot;a_seller_ID&quot;,
+     &quot;signature&quot; : &quot;a_buyer_signature&quot;,
+     &quot;goodID&quot; : &quot;a_good_ID&quot;,
+     &quot;buyerID&quot; : &quot;a_client_ID&quot;,
+     &quot;sellerID&quot; : &quot;a_client_ID&quot;,
+     &quot;wrappingTimestamp&quot; : &quot;a_long&quot;,
+     &quot;wrappingOperation&quot; : &quot;transferGood&quot;,
+     &quot;wrappingFrom&quot; : &quot;a_seller_ID&quot;,
+     &quot;wrappingTo&quot; : &quot;server&quot;,
+     &quot;wrappingSignature&quot; : &quot;a_seller_signature&quot;
+ }
 </code></pre>
     </li>
     <li>
@@ -154,6 +161,7 @@
         <p><strong>Code:</strong> 200</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : &quot;transferGood&quot;,
     &quot;from&quot; : &quot;server&quot;,
@@ -171,6 +179,7 @@
         <p><strong>Code:</strong> 403</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+   &quot;timestamp&quot; : &quot;a_long&quot;,
    &quot;requestID&quot; : &quot;a_request_ID&quot;,
    &quot;operation&quot; : &quot;transferGood&quot;,
    &quot;from&quot; : &quot;server&quot;,
@@ -186,6 +195,7 @@
         <p><strong>Code:</strong> 500</p>
         <p><strong>Content:</strong></p>
         <pre><code>{
+   &quot;timestamp&quot; : &quot;a_long&quot;,
    &quot;requestID&quot; : &quot;a_request_ID&quot;,
    &quot;operation&quot; : &quot;transferGood&quot;,
    &quot;from&quot; : &quot;server&quot;,
@@ -202,10 +212,11 @@
     </li>
 </ul>
 <hr>
-<h1><a id="General_HDSNotary_API_Errors_223"></a><strong>General HDSNotary API Errors</strong></h1>
+<h1><a id="General_HDSNotary_API_Errors_233"></a><strong>General HDSNotary API Errors</strong></h1>
 <p><strong>Code:</strong> 400</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
@@ -218,6 +229,7 @@
 <p><strong>Code:</strong> 401</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
@@ -230,6 +242,7 @@
 <p><strong>Code:</strong> 500</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
@@ -242,6 +255,7 @@
 <p><strong>Code:</strong> 500</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
@@ -254,6 +268,7 @@
 <p><strong>Code:</strong> 500</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
@@ -266,6 +281,7 @@
 <p><strong>Code:</strong> 503</p>
 <p><strong>Content:</strong></p>
 <pre><code>{
+    &quot;timestamp&quot; : &quot;a_long&quot;,
     &quot;requestID&quot; : &quot;a_request_ID&quot;,
     &quot;operation&quot; : (OPERATION),
     &quot;from&quot; : &quot;server&quot;,
