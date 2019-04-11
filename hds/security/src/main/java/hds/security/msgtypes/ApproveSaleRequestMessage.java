@@ -4,7 +4,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 public class ApproveSaleRequestMessage extends SaleRequestMessage {
-    long wrappingTimestamp;
+    @NotNull(message = "The wrappingTimestamp cannot be null.")
+    private long wrappingTimestamp;
 
     @NotNull(message = "The wrappingOperation cannot be null.")
     @NotEmpty(message = "The wrappingOperation cannot be empty.")

@@ -5,8 +5,7 @@ import javax.validation.constraints.NotNull;
 
 public class BasicMessage {
     @NotNull(message = "The timestamp cannot be null.")
-    @NotEmpty(message = "The timestamp cannot be empty.")
-    long timestamp;
+    private long timestamp;
 
     @NotNull(message = "The requestID cannot be null.")
     @NotEmpty(message = "The requestID cannot be empty.")
