@@ -1,7 +1,11 @@
 package hds.server.controllers;
 
+import hds.security.helpers.ControllerErrorConsts;
 import hds.security.helpers.inputValidation.ValidGoodID;
+import hds.security.helpers.inputValidation.ValidGoodIDValidator;
+import hds.security.helpers.inputValidation.inputValidation;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.GoodStateResponse;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
@@ -23,6 +27,8 @@ import javax.validation.constraints.NotNull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static hds.security.DateUtils.generateTimestamp;
 
@@ -34,14 +40,16 @@ public class GetStateOfGoodController {
 	private static final String OPERATION = "getStateOfGood";
 
 	@GetMapping(value = "/stateOfGood", params = { "goodID" })
-	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") @NotNull @NotEmpty @ValidGoodID String goodID, BindingResult result) {
+	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") @NotNull @NotEmpty String goodID) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Get State of Good request.");
 		logger.info("\tGoodID - " + goodID);
 
 		MetaResponse metaResponse;
-		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
+		if (!isValidGoodID(goodID)) {
+			String reason = "The GoodID " + goodID + " is not valid.";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ControllerErrorConsts.BAD_PARAMS, reason);
+			metaResponse = new MetaResponse(400, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
 		}
 
@@ -63,5 +71,13 @@ public class GetStateOfGoodController {
 			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
 		}
 	}
+
+	private static boolean isValidGoodID(String value) {
+		value = inputValidation.cleanString(value);
+		Pattern pattern = Pattern.compile("^good[0-9]+$");
+		Matcher matcher = pattern.matcher(value);
+		return matcher.matches();
+	}
+
 }
 
