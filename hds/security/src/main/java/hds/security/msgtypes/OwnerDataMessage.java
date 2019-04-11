@@ -4,8 +4,9 @@ import hds.security.helpers.inputValidation.ValidClientID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
-public class OwnerDataMessage extends GoodDataMessage {
+public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @NotNull(message = "The ownerID cannot be null.")
     @NotEmpty(message = "The ownerID cannot be empty.")
     @ValidClientID
