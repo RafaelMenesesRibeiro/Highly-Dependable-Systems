@@ -28,11 +28,11 @@ public class InputValidation {
         Pattern pattern = Pattern.compile("^[0-9]+$");
         Matcher matcher = pattern.matcher(str);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("The clientID " + str + "does not exist.");
+            throw new IllegalArgumentException("The " + clientIDType + " " + str + "does not exist.");
         }
         int clientID = Integer.parseInt(str);
         if (clientID <= ServerApplication.getServerPort() || clientID > ServerApplication.getMaxClientId()) {
-            throw new IllegalArgumentException("The clientID " + str + "does not exist.");
+            throw new IllegalArgumentException("The " + clientIDType + " " + str + "does not exist.");
         }
     }
 
