@@ -58,8 +58,7 @@ public class IntentionToSellController {
 	}
 
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException,
-					DBSQLException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());

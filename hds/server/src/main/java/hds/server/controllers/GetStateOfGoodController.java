@@ -78,6 +78,4 @@ public class GetStateOfGoodController {
 		Matcher matcher = pattern.matcher(value);
 		return matcher.matches();
 	}
-
 }
-
