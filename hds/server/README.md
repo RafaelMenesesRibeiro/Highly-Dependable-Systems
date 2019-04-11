@@ -38,6 +38,7 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
     ```
     {
+        "timestamp" : "a_long",
         "requestID" : "0",
         "operation" : "getStateOfGood",
         "from" : "server",
@@ -68,13 +69,14 @@ Errors specific to an endpoint are listed on its corresponding section
 * **Data Params**
    ```
    {
-       "requestID" : "a_request_ID",
-       "operation" : "markForSale",
-       "from" : "a_client_ID",
-       "to" : "server",
-       "signature" : "a_signature",
-       "goodID" : "a_good_ID",
-       "owner" : "a_client_ID"
+	   "timestamp" : "a_long",
+	   "requestID" : "a_request_ID",
+	   "operation" : "markForSale",
+	   "from" : "a_client_ID",
+	   "to" : "server",
+	   "signature" : "a_signature",
+	   "goodID" : "a_good_ID",
+	   "owner" : "a_client_ID"
    }
    ```
 
@@ -85,11 +87,12 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
     ```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "markForSale",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature"
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "markForSale",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature"
     }
     ```
     
@@ -100,13 +103,14 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
      ```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "transferGood",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature",
-        "message" : "The signatures do not match the received data.",
-        "reason" : "The Seller's signature is not valid.""The Seller's signature is not valid."
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The signatures do not match the received data.",
+		"reason" : "The Seller's signature is not valid.""The Seller's signature is not valid."
     }
     ```
 
@@ -117,13 +121,14 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
      ```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "transferGood",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature",
-        "message" : "You do not have permission to put this item on sale.",
-        "reason" : "The user '" + sellerID + "' does not own the good '" + goodID + "'."
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "You do not have permission to put this item on sale.",
+		"reason" : "The user '" + sellerID + "' does not own the good '" + goodID + "'."
     }
     ```
 
@@ -146,20 +151,21 @@ Errors specific to an endpoint are listed on its corresponding section
    
 * **Data Params**
    ```
-  {
-      "requestID" : "a_request_ID",
-      "operation" : "buyGood",
-      "from" : "a_buyer_ID",
-      "to" : "a_seller_ID",
-      "signature" : "a_buyer_signature",
-      "goodID" : "a_good_ID",
-      "buyerID" : "a_client_ID",
-      "sellerID" : "a_client_ID",
-      "wrappingOperation" : "transferGood",
-      "wrappingFrom" : "a_seller_ID",
-      "wrappingTo" : "server",
-      "wrappingSignature" : "a_seller_signature"
-  }
+	{
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "buyGood",
+		"from" : "a_buyer_ID",
+		"to" : "a_seller_ID",
+		"signature" : "a_buyer_signature",
+		"goodID" : "a_good_ID",
+		"buyerID" : "a_client_ID",
+		"sellerID" : "a_client_ID",
+		"wrappingOperation" : "transferGood",
+		"wrappingFrom" : "a_seller_ID",
+		"wrappingTo" : "server",
+		"wrappingSignature" : "a_seller_signature"
+	}
   ```
     
 * **Success Response:**
@@ -169,15 +175,16 @@ Errors specific to an endpoint are listed on its corresponding section
 	**Content:**
 	```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "transferGood",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature",
-        "notaryServer" : "Certified by Notary",
-        "goodID" : "a_good_ID",
-        "previousOwner" : "a_client_ID",
-        "newOwner" : "a_client_ID"
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"notaryServer" : "Certified by Notary",
+		"goodID" : "a_good_ID",
+		"previousOwner" : "a_client_ID",
+		"newOwner" : "a_client_ID"
     }
     ```
    
@@ -188,13 +195,14 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
      ```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "transferGood",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature",
-        "message" : "The transaction is not valid.",
-        "reason" : "a_reason"
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The transaction is not valid.",
+		"reason" : "a_reason"
     }
     ```
 
@@ -205,13 +213,14 @@ Errors specific to an endpoint are listed on its corresponding section
     **Content:**
      ```
     {
-        "requestID" : "a_request_ID",
-        "operation" : "transferGood",
-        "from" : "server",
-        "to" : "a_client_ID",
-        "signature" : "a_signature",
-        "message" : "The server cannot continue.",
-        "reason" : "a_reason"
+		"timestamp" : "a_long",
+		"requestID" : "a_request_ID",
+		"operation" : "transferGood",
+		"from" : "server",
+		"to" : "a_client_ID",
+		"signature" : "a_signature",
+		"message" : "The server cannot continue.",
+		"reason" : "a_reason"
     }
     ```
 
@@ -228,13 +237,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "The parameters are not correct.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The parameters are not correct.",
+	"reason" : "a_reason"
 }
 ```
 
@@ -243,13 +253,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "The connection to the database was refused.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The connection to the database was refused.",
+	"reason" : "a_reason"
 }
 ```
 
@@ -258,13 +269,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "The database did not return a response for the query.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The database did not return a response for the query.",
+	"reason" : "a_reason"
 }
 ```
 
@@ -273,13 +285,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "Caught an SQL Exception.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "Caught an SQL Exception.",
+	"reason" : "a_reason"
 }
 ```
 
@@ -288,13 +301,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "The server cannot continue.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The server cannot continue.",
+	"reason" : "a_reason"
 }
 ```
 
@@ -303,13 +317,14 @@ Errors specific to an endpoint are listed on its corresponding section
 **Content:**
 ```
 {
-    "requestID" : "a_request_ID",
-    "operation" : (OPERATION),
-    "from" : "server",
-    "to" : "a_client_ID",
-    "signature" : "a_signature",
-    "message" : "The connection to the database was closed.",
-    "reason" : "a_reason"
+	"timestamp" : "a_long",
+	"requestID" : "a_request_ID",
+	"operation" : (OPERATION),
+	"from" : "server",
+	"to" : "a_client_ID",
+	"signature" : "a_signature",
+	"message" : "The connection to the database was closed.",
+	"reason" : "a_reason"
 }
 ```
  ----
