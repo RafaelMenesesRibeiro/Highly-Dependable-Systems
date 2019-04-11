@@ -33,6 +33,13 @@
             <artifactId>jackson-annotations</artifactId>
             <version>2.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>pteidlib</groupId>
+            <artifactId>pteidlib</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+        </dependency>
     </dependencies>
 
 
