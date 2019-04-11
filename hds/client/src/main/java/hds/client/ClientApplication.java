@@ -14,6 +14,8 @@ import org.springframework.web.client.ResourceAccessException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -91,7 +93,7 @@ public class ClientApplication {
             getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (ResponseMessageException | JSONException | IOException exc) {
+        } catch (ResponseMessageException | SignatureException | JSONException | IOException exc) {
            printError(exc.getMessage());
         }
     }
