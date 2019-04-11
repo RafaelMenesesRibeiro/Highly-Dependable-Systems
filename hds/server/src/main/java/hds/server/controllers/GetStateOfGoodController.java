@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 @RestController
 public class GetStateOfGoodController {
+	private static final String NO_REQUEST_ID = "0";
 	private static final String TO_UNKNOWN = "unknown";
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "getStateOfGood";
@@ -39,8 +40,8 @@ public class GetStateOfGoodController {
 
 		MetaResponse metaResponse;
 		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, "0", TO_UNKNOWN, OPERATION);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, "0", TO_UNKNOWN, OPERATION);
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
 		}
 
 		try {
@@ -48,9 +49,9 @@ public class GetStateOfGoodController {
 			metaResponse = new MetaResponse(execute(goodID));
 		}
 		catch (Exception ex) {
-			metaResponse = GeneralControllerHelper.handleException(ex, "0", TO_UNKNOWN, OPERATION);
+			metaResponse = GeneralControllerHelper.handleException(ex, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
 		}
-		return GeneralControllerHelper.getResponseEntity(metaResponse, "0", TO_UNKNOWN, OPERATION);
+		return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
 	}
 
 	private GoodStateResponse execute(String goodID)
@@ -58,7 +59,7 @@ public class GetStateOfGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
-			return new GoodStateResponse("0", OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
+			return new GoodStateResponse(NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
 		}
 	}
 }
