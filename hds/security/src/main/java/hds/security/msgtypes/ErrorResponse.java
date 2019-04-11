@@ -4,8 +4,9 @@ public class ErrorResponse extends BasicMessage {
     private String message;
     private String reason;
 
-    public ErrorResponse(String requestID, String operation, String from, String to, String signature, String message, String reason) {
-        super(requestID, operation, from, to, signature);
+    public ErrorResponse(long timestamp, String requestID, String operation, String from, String to, String signature,
+                         String message, String reason) {
+        super(timestamp, requestID, operation, from, to, signature);
         this.message = message;
         this.reason = reason;
     }

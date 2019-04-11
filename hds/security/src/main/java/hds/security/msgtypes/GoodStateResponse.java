@@ -14,8 +14,9 @@ public class GoodStateResponse extends BasicMessage {
     @NotNull(message = "The onSale cannot be null.")
     private boolean onSale;
 
-    public GoodStateResponse(String requestID, String operation, String from, String to, String signature, String ownerID, boolean onSale) {
-        super(requestID, operation, from, to, signature);
+    public GoodStateResponse(long timestamp, String requestID, String operation, String from, String to,
+                             String signature, String ownerID, boolean onSale) {
+        super(timestamp, requestID, operation, from, to, signature);
         this.ownerID = ownerID;
         this.onSale = onSale;
     }
