@@ -13,14 +13,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 import java.sql.SQLException;
-import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 
 public class GeneralControllerHelper {
-	private static final Hashtable<UserRequestIDKey, BasicMessage> recentMessages = new Hashtable<>();
+	private static final LinkedHashMap<UserRequestIDKey, BasicMessage> recentMessages = new LinkedHashMap<>();
 	private static final String FROM_SERVER = "server";
 
 	public static void cacheRecentRequest(UserRequestIDKey key, BasicMessage value) {
