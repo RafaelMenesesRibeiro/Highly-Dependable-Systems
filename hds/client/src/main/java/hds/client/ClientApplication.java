@@ -1,28 +1,20 @@
 package hds.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.helpers.ClientProperties;
+import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.SaleRequestMessage;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.net.SocketTimeoutException;
 import java.net.HttpURLConnection;
-import java.security.PrivateKey;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.ConvertUtils.bytesToBase64String;
-import static hds.security.ConvertUtils.objectToByteArray;
-import static hds.security.CryptoUtils.generateUniqueRequestId;
-import static hds.security.CryptoUtils.signData;
-import static hds.security.ResourceManager.*;
+import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.SecurityManager.setMessageSignature;
 
 @SpringBootApplication
@@ -40,10 +32,17 @@ public class ClientApplication {
         String maxPortId = args[1];
         ClientProperties.setPort(portId);
         ClientProperties.setMaxPortId(maxPortId);
-        SpringApplication app = new SpringApplication(ClientApplication.class);
-        app.setDefaultProperties(Collections.singletonMap("server.port", portId));
-        app.run(args);
+        runClientServer(args);
+        runClientInterface();
+    }
 
+    private static void runClientServer(String[] args) {
+        SpringApplication app = new SpringApplication(ClientApplication.class);
+        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getPort()));
+        app.run(args);
+    }
+
+    private static void runClientInterface() {
         while (true) {
             print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
             int input;
@@ -81,7 +80,7 @@ public class ClientApplication {
     private static void buyGood() {
         try {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
-            HttpURLConnection connection = initiatePOSTConnection(String.format("http://localhost:%s/wantToBuy", message.getTo()));
+            HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             processResponse(connection, HDS_NOTARY_PORT);
         } catch (SocketTimeoutException exc) {
@@ -92,13 +91,12 @@ public class ClientApplication {
     }
 
     public static SaleRequestMessage newSaleRequestMessage() {
-        String requestId = generateUniqueRequestId();
         String from = ClientProperties.getPort();
-        String buyerId = from;
         String to = requestSellerId();
-        String sellerId = to;
         String goodId = requestGoodId();
-        return new SaleRequestMessage(requestId, "buyGood", from, to,"", goodId,buyerId, sellerId);
+        String buyerId = from;
+        String sellerId = to;
+        return new SaleRequestMessage(newUUIDString(),"buyGood", from, to,"", goodId,buyerId, sellerId);
     }
 
     /***********************************************************
@@ -108,30 +106,31 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void intentionToSell() {
-        String sellerId = ClientProperties.getPort();
         try {
-            PrivateKey sellerPrivateKey = getPrivateKeyFromResource(sellerId);
-            OwnerData payload = new OwnerData(sellerId, requestGoodId());
-            SignedOwnerData signedOwnerData = new SignedOwnerData();
-            String signedPayload = bytesToBase64String(signData(sellerPrivateKey, objectToByteArray(payload)));
-            signedOwnerData.setPayload(payload);
-            signedOwnerData.setSignature(signedPayload);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JSONObject requestData = new JSONObject(objectMapper.writeValueAsString(signedOwnerData));
-
-            String requestUrl = String.format("%s%s", HDS_NOTARY_HOST, "intentionToSell");
-            HttpURLConnection connection = initiatePOSTConnection(requestUrl);
-            sendPostRequest(connection, requestData);
-
+            OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage());
+            HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
+            sendPostRequest(connection, newJSONObject(message));
             processResponse(connection, HDS_NOTARY_PORT);
-
         } catch (SocketTimeoutException exc) {
-            printError("Target node did not respond within expected limits. Try again at your discretion.");
+            printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (Exception exc) {
             printError(exc.getMessage());
         }
     }
+
+    private static OwnerDataMessage newOwnerDataMessage() {
+        String from = getPort();
+        String to = HDS_NOTARY_PORT;
+        String goodId = requestGoodId();
+        String owner = getPort();
+        return new OwnerDataMessage(newUUIDString(),"intentionToSell", from, to,"", goodId, owner);
+    }
+
+    /***********************************************************
+     *
+     * GET STATE OF GOOD RELATED METHODS
+     *
+     ***********************************************************/
 
     private static void getStateOfGood() {
         try {
