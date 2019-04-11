@@ -13,10 +13,8 @@ public class MarkForSale {
 	}
 
 	public static void markForSale(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'markForSale' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
+
 		String query = "update goods set onSale = ? where goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");

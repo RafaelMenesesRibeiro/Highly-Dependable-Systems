@@ -28,7 +28,7 @@ public class GeneralControllerHelper {
 	}
 
 	public static MetaResponse handleException(Exception ex, String requestID, String to, String operation) {
-		if (ex instanceof IllegalArgumentException || ex instanceof InvalidQueryParameterException) {
+		if (ex instanceof IllegalArgumentException) {
 			ErrorResponse payload = new ErrorResponse(requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
 			return new MetaResponse(400, payload);
 		}

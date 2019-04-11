@@ -12,7 +12,7 @@ public class TransferGood {
 	}
 
 	public static void transferGood(Connection conn, String sellerID, String buyerID, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException {
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
 
 		String query = "UPDATE goods SET onSale = ? WHERE goodID = ?";
 		List<String> args = new ArrayList<>();

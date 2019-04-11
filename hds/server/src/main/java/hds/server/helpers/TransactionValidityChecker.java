@@ -20,7 +20,7 @@ public class TransactionValidityChecker {
 	}
 
 	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException,
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
 					IOException, SignatureException, IncorrectSignatureException {
 
 		String buyerID = transactionData.getBuyerID();
@@ -43,10 +43,8 @@ public class TransactionValidityChecker {
 	}
 
 	public static String getCurrentOwner(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getCurrentOwner' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+
 		String query = "select userID from ownership where goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
@@ -62,10 +60,8 @@ public class TransactionValidityChecker {
 	}
 
 	public static Boolean getIsOnSale(Connection conn, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, InvalidQueryParameterException, DBNoResultsException {
-		if (goodID == null || goodID.equals("")) {
-			throw new InvalidQueryParameterException("The parameter 'goodID' in query 'getIsOnSale' is either null or an empty string.");
-		}
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+
 		String query = "select onSale from goods where goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);

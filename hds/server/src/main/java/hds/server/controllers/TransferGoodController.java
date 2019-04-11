@@ -57,7 +57,7 @@ public class TransferGoodController {
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
-					InvalidQueryParameterException, DBNoResultsException, IOException {
+					DBNoResultsException, IOException {
 
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
