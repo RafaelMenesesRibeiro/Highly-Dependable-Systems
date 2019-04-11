@@ -85,3 +85,44 @@ rename it to 'application.properties' or make a copy then rename it.
        spring.datasource.username=postgresql
        spring.datasource.password=rootroot
 
+Congratulations... Your database can now be used by the HDS Project
+
+#### Extra notes regarding the database schemas adopted by this project.
+* For simplicity, each user in the system is identified by the port where their REST Endpoints are located.
+* The notary endpoint is always 8000, you should not try to change this behaviour. That's why the server.port property is set to 8000
+* If you want to add new users to the system to test loading capacity, identify them with a port that's bigger or equal to 8001
+
+
+### 4 Setting up the project
+* Open a your IDE terminal or your Windows CMD terminal.
+* Head over to the root of the Maven project, it should be something like '~/Highly-Dependable-Systems/hds'
+* You now have to install the inter-dependencies between the various project modules. Do the following command:
+
+        mvn clean install -DskipTests
+        
+ * If no errors are displayed, you are now ready to test the project
+ * To run a server issue the following command two commands(launch only one of these):
+        
+        cd server
+        
+        mvn spring-boot:run -Dspring-boot.run.arguments=8000,8010
+  
+     Where the first argument is the port where the notary server will be listening to REST requests and the second argument
+     is the userId with the highest port in the system, assuming that no client is dead, unreachable and that clients will
+     be created contiguously, without gaps between their ports.
+     
+ * To run a client, first go back in your folder structures and then into the client folder like so:
+ 
+        cd ../client
+        
+        
+ * Now you can launch as many clients as you want issue the following command repeatedly:
+ 
+        mvn spring-boot:run -Dspring-boot.run.arguments=8001,8010
+        
+    Where the first argument is the port (userId) of the running client and the second argument  is the the number of 
+    clients you will run in total plus eight-thousand, that is the highest userId in the system assuming the same as in
+    the server launch command.
+ 
+        
+        
