@@ -168,7 +168,6 @@ public class ClientApplication {
         }
     }
 
-
     private static String requestGoodId() {
         return scanString("Provide good identifier: ");
     }
