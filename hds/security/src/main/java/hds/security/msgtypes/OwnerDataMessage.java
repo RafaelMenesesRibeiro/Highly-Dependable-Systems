@@ -1,6 +1,9 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotNull;
+
 public class OwnerDataMessage extends GoodDataMessage {
+    @NotNull(message = "THE OWNER DATA IS NULL")
     private String owner;
 
     public OwnerDataMessage(String requestID, String operation, String from, String to, String signature, String goodID, String owner) {

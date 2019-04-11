@@ -11,13 +11,19 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
@@ -30,7 +36,7 @@ public class IntentionToSellController {
 
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody OwnerDataMessage ownerData) {
+	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Intention to Sell request.");
 
@@ -39,6 +45,22 @@ public class IntentionToSellController {
 		logger.info("\tSellerID - " + sellerID);
 		logger.info("\tGoodID - " + goodID);
 		MetaResponse metaResponse;
+
+		if(result.hasErrors()) {
+			logger.info("RequestBody not valid.");
+			List<ObjectError> errors = result.getAllErrors();
+			for (ObjectError error : errors) {
+				if (error instanceof FieldError) {
+					FieldError ferror = (FieldError) error;
+					String reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
+							" is not acceptable: " + ferror.getDefaultMessage();
+					ErrorResponse payload = new ErrorResponse(ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_PARAMS, reason);
+					metaResponse = new MetaResponse(400, payload);
+					return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+				}
+			}
+		}
+
 		try {
 			InputValidation.isValidClientID(sellerID, "sellerID");
 			InputValidation.isValidGoodID(goodID);
