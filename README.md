@@ -5,20 +5,17 @@
 
 
 ## 1 - Introduction
-
 Create a Highly Dependable Notary application.  
 The main goal of HDSNotary is to certify the transfer os ownership of goods between users.  
 
 ## 2 - Setup for testing
-
 Notice: the guide that follows is meant to be followed on a Windows 10 operating system. The current project works
 similarly well on linux distributions, but it's not guaranteed that the setup steps are exactly the same, as such, if 
 you prefer to test this project under a another operating system, it's up to you to correctly setup everything that
 might be different from the present guide;
 
 ### 2.1 Databases
-#### 2.1.1 Installing PostgreSQL and PGAdmin4
-
+#### 2.1.1 Downloading and installing both PostgreSQL and PGAdmin4
 * Go ahead to https://www.enterprisedb.com/downloads/postgres-postgresql-downloads.
 * Download PostgreSQL Version 11.2 Windows x86-64 or whichever version fits you.
 * Execute the item you just downloaded and leave Post
@@ -33,8 +30,11 @@ just leave the default port.
  
 #### 2.1.2 Verifying your installation
 
-* Open your terminal (windows cmd) and type in 'psql --version' if you have followed the previous steps correctly you 
-should see the following message appearing on your cmd window:
+* Open your terminal (windows cmd) and type in
+
+        psql --version
+      
+if you have followed the previous steps correctly you should see the following message appearing on your cmd window:
 
         psql (PostgreSQL) 11.2
 
@@ -73,7 +73,6 @@ command inside the query tool:
     In PGAdmin4 you do not need the semicolon after any command unless you intend to piggyback/chain multiple commands.
 
 #### 2.1.6 Finishing up the setup
-
 * You reached the last step for this configuration. Head over to our project's folders and find the file 'application.properties.template'
 rename it to 'application.properties' or make a copy then rename it.
 * Change the following fields according to the previous steps, ignore the lines preceded by $ in this snippet:
@@ -92,12 +91,14 @@ Congratulations... Your database can now be used by the HDS Project
 * The notary endpoint is always 8000, you should not try to change this behaviour. That's why the server.port property is set to 8000
 * If you want to add new users to the system to test loading capacity, identify them with a port that's bigger or equal to 8001
 
-### 2.2 Maven
+### 2.3 Maven
+#### 2.3.1 Downloading Maven
 * Head over to https://maven.apache.org/download.cgi and download the newest Maven version in Binary Zip Archive format.
 At the time of writing that would be: 
         
         apache-maven-3.6.0-bin.zip
-        
+ 
+#### 2.3.2 Installing Maven
 * Go the folder where you've downloaded the item and extract it's contents to a folder where you wish your maven to be
 installed.
 * Now, open your windows task bar and search for 'environment variables' and open the appropriate result. A small window will open
@@ -107,17 +108,31 @@ maven contents followed by \bin, for example like so:
 
         C:\Program Files\apache-maven-3.6.0\bin
         
-* You can move to the next phase.
-        
-### 2.3 Executing
+#### 2.3.3 Verifying your installation
+* Open your terminal (windows cmd) and type in
+
+        mvn --version
+      
+if you have followed the previous steps correctly you should see the following message appearing on your cmd window:
+
+        Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T19:41:47+01:00)
+        Maven home: C:\Program Files\apache-maven-3.6.0\bin\..
+        Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk1.8.0_191\jre
+        Default locale: en_US, platform encoding: Cp1252
+        OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+
+### 2.4 Executing
+#### 2.4.1 Installing dependencies and compiling the project
 * Open a your IDE terminal or your Windows CMD terminal.
 * Head over to the root of the Maven project, it should be something like '~/Highly-Dependable-Systems/hds'
 * You now have to install the inter-dependencies between the various project modules. Do the following command:
 
         mvn clean install -DskipTests
         
- * If no errors are displayed, you are now ready to test the project
- * To run a server issue the following command two commands(launch only one of these):
+* If no errors are displayed, you are now ready to test the project
+ 
+#### 2.4.2 Running client and server programs
+* To run a server issue the following command two commands(launch only one of these):
         
         cd server
         
@@ -127,12 +142,12 @@ maven contents followed by \bin, for example like so:
      is the userId with the highest port in the system, assuming that no client is dead, unreachable and that clients will
      be created contiguously, without gaps between their ports.
      
- * To run a client, first go back in your folder structures and then into the client folder like so:
+* To run a client, first go back in your folder structures and then into the client folder like so:
  
         cd ../client
         
         
- * Now you can launch as many clients as you want issue the following command repeatedly:
+* Now you can launch as many clients as you want issue the following command repeatedly:
  
         mvn spring-boot:run -Dspring-boot.run.arguments=8001,8010
         
