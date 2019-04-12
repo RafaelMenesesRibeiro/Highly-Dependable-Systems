@@ -159,5 +159,8 @@ The database can now be used by the HDS Project
      clients you will run in total plus eight-thousand, that is the highest userId in the system assuming the same as in 
      the server launch command.
  
- 
+ ## 3 - Documentation
+* DESIGNDECISIONS.md - for a concise description and justification of the design decisions.
+* THREATANALYSIS.md - for an analysis of the possible threats and corresponding protection mechanisms.
+
  
