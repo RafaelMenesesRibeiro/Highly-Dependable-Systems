@@ -92,8 +92,24 @@ Congratulations... Your database can now be used by the HDS Project
 * The notary endpoint is always 8000, you should not try to change this behaviour. That's why the server.port property is set to 8000
 * If you want to add new users to the system to test loading capacity, identify them with a port that's bigger or equal to 8001
 
+### 2.2 Maven
+* Head over to https://maven.apache.org/download.cgi and download the newest Maven version in Binary Zip Archive format.
+At the time of writing that would be: 
+        
+        apache-maven-3.6.0-bin.zip
+        
+* Go the folder where you've downloaded the item and extract it's contents to a folder where you wish your maven to be
+installed.
+* Now, open your windows task bar and search for 'environment variables' and open the appropriate result. A small window will open
+* On that window, on the bottom right corner you'll find a bottom saying 'environment variables', click it.
+* Under system path, select the variable 'Path' and click 'Edit' > 'New' and type in the path where you installed your 
+maven contents followed by \bin, for example like so:
 
-### 4 Setting up the project
+        C:\Program Files\apache-maven-3.6.0\bin
+        
+* You can move to the next phase.
+        
+### 2.3 Executing
 * Open a your IDE terminal or your Windows CMD terminal.
 * Head over to the root of the Maven project, it should be something like '~/Highly-Dependable-Systems/hds'
 * You now have to install the inter-dependencies between the various project modules. Do the following command:
