@@ -160,6 +160,8 @@ The database can now be used by the HDS Project
      the server launch command.
  
  ## 3 - Documentation
+ The main documentation are in the /docs directory at the root of the project
+ 
 * DESIGNDECISIONS.md - for a concise description and justification of the design decisions.
 * THREATANALYSIS.md - for an analysis of the possible threats and corresponding protection mechanisms.
 
