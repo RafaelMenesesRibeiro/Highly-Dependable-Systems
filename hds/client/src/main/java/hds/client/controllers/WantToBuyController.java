@@ -68,7 +68,7 @@ public class WantToBuyController {
 
         try {
             setMessageSignature(getPrivateKey(), message);
-        } catch (IOException | SignatureException e) {
+        } catch (SignatureException e) {
             return newErrorResponse(requestMessage, "The seller has thrown an exception while signing the message");
         }
 

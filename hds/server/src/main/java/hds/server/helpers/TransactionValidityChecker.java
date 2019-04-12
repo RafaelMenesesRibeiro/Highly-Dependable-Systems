@@ -6,13 +6,18 @@ import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+import static hds.security.ConvertUtils.bytesToBase64String;
+import static hds.security.ConvertUtils.objectToByteArray;
+import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
 public class TransactionValidityChecker {
@@ -77,7 +82,7 @@ public class TransactionValidityChecker {
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload);
+			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload.toString());
 		}
 		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
 			throw new SignatureException(e.getMessage());
