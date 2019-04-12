@@ -34,7 +34,7 @@ public class WantToBuyController {
     public ResponseEntity<BasicMessage> wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
         String validationResult = isValidMessage(ClientProperties.getPort(), requestMessage);
         if (!"".equals(validationResult)) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, validationResult), HttpStatus.valueOf(401));
+            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating request from node :" + validationResult + "."), HttpStatus.valueOf(401));
         }
         return execute(requestMessage);
     }
@@ -47,7 +47,7 @@ public class WantToBuyController {
                 ClientProperties.getPort(), // from me
                 receivedRequest.getFrom(),  // to callee
                 "",
-                "bad request",
+                "bad request.",
                 reason
         );
     }
@@ -73,7 +73,7 @@ public class WantToBuyController {
         try {
             setMessageWrappingSignature(getPrivateKey(), message);
         } catch (SignatureException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while signing the message"), HttpStatus.valueOf(500));
+            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while signing the message."), HttpStatus.valueOf(500));
         }
 
         try {
@@ -82,17 +82,17 @@ public class WantToBuyController {
             BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
             String validationResult = isValidMessage(requestMessage.getFrom(), responseMessage);
             if (!validationResult.equals("")) {
-                return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating response from server :" + validationResult), HttpStatus.valueOf(401));
+                return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating response from server :" + validationResult + "."), HttpStatus.valueOf(401));
             }
 
             System.out.println("[o] " + responseMessage.toString());
             return new ResponseEntity<>(responseMessage, HttpStatus.valueOf(connection.getResponseCode()));
         } catch (JsonProcessingException | JSONException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while creating the json to send to the notary"), HttpStatus.valueOf(500));
+            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while creating the json to send to the notary."), HttpStatus.valueOf(500));
         } catch (IOException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while reading/writing message from/to notary"), HttpStatus.valueOf(500));
+            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while reading/writing message from/to notary."), HttpStatus.valueOf(500));
         } catch (ResponseMessageException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while receiving the response from notary"), HttpStatus.valueOf(500));
+            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while receiving the response from notary."), HttpStatus.valueOf(500));
         }
     }
 }
