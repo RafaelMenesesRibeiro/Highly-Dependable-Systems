@@ -129,7 +129,9 @@ The database can now be used by the HDS Project
 * Plug in the card reader/keyboard with the Citizen Card
 * In the same terminal as the previous step type:
 
-        java -Djava.library.path=/usr/local/lib -cp ./security/target/classes:./security/src/main/resources/pteidlibj.jar hds.security.AuthCertExtractor ./client/src/main/resources/certs/server.pem        
+         mkdir client/src/main/resources/certs
+         
+         java -Djava.library.path=/usr/local/lib -cp ./security/target/classes:./security/src/main/resources/pteidlibj.jar hds.security.AuthCertExtractor ./client/src/main/resources/certs/server.pem        
 
 * If no errors are displayed, you are now ready to test the project.
  
