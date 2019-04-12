@@ -1,1 +1,0 @@
-##### This folder contains an application that serves as a launcher for N client applications and one server application
