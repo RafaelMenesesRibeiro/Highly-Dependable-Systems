@@ -1,5 +1,6 @@
 package hds.security;
 
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import sun.security.pkcs11.wrapper.PKCS11;
 
@@ -23,6 +24,12 @@ public class SecurityManager {
      * PUBLIC METHODS
      *
      ***********************************************************/
+
+    public static BasicMessage setMessageWrappingSignature(PrivateKey privateKey, ApproveSaleRequestMessage message) throws SignatureException {
+        message.setWrappingSignature(bytesToBase64String(signData(privateKey, message.toString().getBytes(Charset.forName("UTF-8")))));
+        return message;
+    }
+
 
     public static BasicMessage setMessageSignature(PrivateKey privateKey, BasicMessage message) throws SignatureException {
         message.setSignature(bytesToBase64String(signData(privateKey, message.toString().getBytes(Charset.forName("UTF-8")))));

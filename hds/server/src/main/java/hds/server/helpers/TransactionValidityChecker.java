@@ -3,6 +3,7 @@ package hds.server.helpers;
 import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
+import hds.security.msgtypes.SaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
@@ -34,13 +35,28 @@ public class TransactionValidityChecker {
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
 
-		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
+		SaleRequestMessage saleRequestMessage = new SaleRequestMessage(
+				transactionData.getTimestamp(),
+				transactionData.getRequestID(),
+				transactionData.getOperation(),
+				transactionData.getFrom(),
+				transactionData.getTo(),
+				"",
+				transactionData.getGoodID(),
+				transactionData.getBuyerID(),
+				transactionData.getSellerID()
+		);
+
+		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		// TODO - Cannot use transactionData to verify buyer's signature. Create SaleRequest message. //
-		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
+
+		String wrappingSignature = transactionData.getWrappingSignature();
+		transactionData.setWrappingSignature("");
+		if (!isClientWilling(sellerID, wrappingSignature, transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
+		transactionData.setWrappingSignature(wrappingSignature);
 
 		String currentOwner = getCurrentOwner(conn, goodID);
 		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
