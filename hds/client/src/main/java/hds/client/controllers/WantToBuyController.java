@@ -1,10 +1,12 @@
 package hds.client.controllers;
 
-import ch.qos.logback.core.net.server.Client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hds.client.exceptions.ResponseMessageException;
 import hds.client.helpers.ClientProperties;
-import hds.security.msgtypes.*;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
+import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,8 @@ import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.*;
+import static hds.security.SecurityManager.isValidMessage;
+import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 @RestController
 public class WantToBuyController {
