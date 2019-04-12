@@ -18,8 +18,7 @@ import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.isValidMessage;
-import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.*;
 
 @RestController
 public class WantToBuyController {
@@ -67,8 +66,8 @@ public class WantToBuyController {
         );
 
         try {
-            setMessageSignature(getPrivateKey(), message);
-        } catch (IOException | SignatureException e) {
+            setMessageWrappingSignature(getPrivateKey(), message);
+        } catch (SignatureException e) {
             return newErrorResponse(requestMessage, "The seller has thrown an exception while signing the message");
         }
 

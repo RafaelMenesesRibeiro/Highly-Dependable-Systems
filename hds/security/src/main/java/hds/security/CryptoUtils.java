@@ -7,6 +7,7 @@ import sun.security.pkcs11.wrapper.*;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -23,7 +24,7 @@ public class CryptoUtils {
      *
      ***********************************************************/
 
-    static byte[] signData(PrivateKey key, byte[] data) throws SignatureException {
+    public static byte[] signData(PrivateKey key, byte[] data) throws SignatureException {
         try {
             Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
             sign.initSign(key);
@@ -53,18 +54,18 @@ public class CryptoUtils {
      *
      ***********************************************************/
 
-    public static boolean authenticateSignatureWithPubKey(PublicKey key, String signedData, Object payload) throws IOException, SignatureException {
-        return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
+    public static boolean authenticateSignatureWithPubKey(PublicKey key, String signedData, String payloadString) throws SignatureException {
+        return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), payloadString.getBytes(Charset.forName("UTF-8")));
     }
 
-    public static boolean authenticateSignatureWithCert(X509Certificate certificate, String signedData, Object payload)
+    public static boolean authenticateSignatureWithCert(X509Certificate certificate, String signedData, String payloadString)
             throws IOException, CertificateException, SignatureException {
         try {
             certificate.checkValidity();
         } catch (CertificateExpiredException | CertificateNotYetValidException exc) {
             throw new CertificateException(exc.getMessage());
         }
-        return authenticateSignature(certificate.getPublicKey(), ConvertUtils.base64StringToBytes(signedData), ConvertUtils.objectToByteArray(payload));
+        return authenticateSignature(certificate.getPublicKey(), ConvertUtils.base64StringToBytes(signedData), payloadString.getBytes(Charset.forName("UTF-8")));
     }
 
     /***********************************************************

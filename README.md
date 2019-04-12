@@ -122,9 +122,18 @@ The database can now be used by the HDS Project
 
         mvn clean install -DskipTests
         
+* If no errors are displayed, you are now ready to extract the authentication certificate from Citizen Card.
+ 
+#### 2.4.2 Extract authentication certificate from Citizen Card
+* You now have to extract the authentiaction certificate from the the Citizen Card
+* Plug in the card reader/keyboard with the Citizen Card
+* In the same terminal as the previous step type:
+
+        java -Djava.library.path=/usr/local/lib -cp ./security/target/classes:./security/src/main/resources/pteidlibj.jar hds.security.AuthCertExtractor ./client/src/main/resources/certs/server.pem        
+
 * If no errors are displayed, you are now ready to test the project.
  
-#### 2.4.2 Running client and server programs
+#### 2.4.3 Running client and server programs
 * To run a server issue the following command two commands (launch only one of these):
         
         cd server

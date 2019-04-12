@@ -3,10 +3,13 @@ package hds.server.helpers;
 import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
+import hds.security.msgtypes.SaleRequestMessage;
 import hds.server.exception.*;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -14,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static hds.security.ConvertUtils.bytesToBase64String;
+import static hds.security.ConvertUtils.objectToByteArray;
+import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
 public class TransactionValidityChecker {
@@ -29,12 +35,28 @@ public class TransactionValidityChecker {
 		String sellerID = transactionData.getSellerID();
 		String goodID = transactionData.getGoodID();
 
-		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
+		SaleRequestMessage saleRequestMessage = new SaleRequestMessage(
+				transactionData.getTimestamp(),
+				transactionData.getRequestID(),
+				transactionData.getOperation(),
+				transactionData.getFrom(),
+				transactionData.getTo(),
+				"",
+				transactionData.getGoodID(),
+				transactionData.getBuyerID(),
+				transactionData.getSellerID()
+		);
+
+		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
+
+		String wrappingSignature = transactionData.getWrappingSignature();
+		transactionData.setWrappingSignature("");
+		if (!isClientWilling(sellerID, wrappingSignature, transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
+		transactionData.setWrappingSignature(wrappingSignature);
 
 		String currentOwner = getCurrentOwner(conn, goodID);
 		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
@@ -78,12 +100,9 @@ public class TransactionValidityChecker {
 			throws SignatureException {
 		try {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
-			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload);
+			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload.toString());
 		}
 		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
-			Logger logger = Logger.getAnonymousLogger();
-			logger.warning("CAUGHT EXCEPTION " + e.getMessage());
-			e.printStackTrace();
 			throw new SignatureException(e.getMessage());
 		}
 	}

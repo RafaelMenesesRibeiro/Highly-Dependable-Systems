@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.DateUtils.isFreshTimestamp;
 
 @RestController
 public class TransferGoodController {
@@ -34,7 +36,7 @@ public class TransferGoodController {
 	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<BasicMessage> transferGood(@RequestBody ApproveSaleRequestMessage transactionData, BindingResult result) {
+	public ResponseEntity<BasicMessage> transferGood(@RequestBody @Valid ApproveSaleRequestMessage transactionData, BindingResult result) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Transfer Good request.");
 		logger.info("\tRequest: " + transactionData.toString());
@@ -43,6 +45,14 @@ public class TransferGoodController {
 		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
 		if (cachedResponse != null) {
 			return cachedResponse;
+		}
+
+		long timestamp = transactionData.getTimestamp();
+		if (!isFreshTimestamp(timestamp)) {
+			String reason = "Timestamp " + timestamp + " is too old";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+			MetaResponse metaResponse = new MetaResponse(408, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
 
 		MetaResponse metaResponse;
