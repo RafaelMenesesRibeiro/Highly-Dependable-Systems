@@ -12,6 +12,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
@@ -80,6 +81,9 @@ public class TransactionValidityChecker {
 			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
+			Logger logger = Logger.getAnonymousLogger();
+			logger.warning("CAUGHT EXCEPTION " + e.getMessage());
+			e.printStackTrace();
 			throw new SignatureException(e.getMessage());
 		}
 	}
