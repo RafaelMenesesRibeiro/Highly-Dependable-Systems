@@ -3,9 +3,9 @@ package hds.server.helpers;
 import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
-import hds.server.exception.DBSQLException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class TransferGood {
 	}
 
 	public static void transferGood(Connection conn, String sellerID, String buyerID, String goodID)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException {
 
 		String query = "UPDATE goods SET onSale = ? WHERE goodID = ?";
 		List<String> args = new ArrayList<>();
@@ -31,7 +31,7 @@ public class TransferGood {
 			DatabaseInterface.queryDB(conn, query, "", args);
 			DatabaseInterface.queryDB(conn, query2, "", args2);
 		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBSQLException | DBNoResultsException
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
 		catch (IndexOutOfBoundsException | NullPointerException ex) {
 			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");

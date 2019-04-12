@@ -74,8 +74,7 @@ public class TransferGoodController {
 	}
 
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException,
-					DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
@@ -97,6 +96,12 @@ public class TransferGoodController {
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
+		}
+		catch (SQLException | DBNoResultsException ex) {
+			if (conn != null) {
+				conn.rollback();
+			}
+			throw ex;
 		}
 		catch (IncorrectSignatureException isex){
 			if (conn != null) {

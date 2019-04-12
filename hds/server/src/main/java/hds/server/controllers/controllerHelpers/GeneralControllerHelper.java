@@ -62,7 +62,7 @@ public class GeneralControllerHelper {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.NO_RESP, ex.getMessage());
 			return new MetaResponse(500, payload);
 		}
-		else if (ex instanceof DBSQLException || ex instanceof SQLException) {
+		else if (ex instanceof SQLException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_SQL, ex.getMessage());
 			return new MetaResponse(500, payload);
 		}

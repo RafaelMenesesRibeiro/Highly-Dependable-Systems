@@ -3,12 +3,10 @@ package hds.server.helpers;
 import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
-import hds.server.exception.DBSQLException;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 class DatabaseInterface {
 
@@ -17,7 +15,7 @@ class DatabaseInterface {
 	}
 
 	static List<String> queryDB(Connection conn, String query, String returnColumn, List<String> args)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, SQLException {
 
 		List<String> results = new ArrayList<>();
 		try (
@@ -57,21 +55,13 @@ class DatabaseInterface {
 				case "08007": // transaction_resolution_unknown
 				case "08P01": // protocol_violation
 					throw new DBConnectionRefusedException(sqlex.getMessage());
-				case "2F000": // sql_routine_exception
-				case "2F003": // prohibited_sql_statement_attempted
-				case "42703": // undefined_column
-				case "42P01": // undefined_table
-					throw new DBSQLException(sqlex.getMessage());
 				case "02000": // no_data
 					if (!returnColumn.equals("")) {
 						throw new DBNoResultsException(sqlex.getMessage());
 					}
 					break;
 				default:
-					Logger logger = Logger.getAnonymousLogger();
-					logger.warning(sqlex.getSQLState());
-					logger.warning(sqlex.getMessage());
-					System.exit(1);
+					throw sqlex;
 			}
 		}
 		return results;

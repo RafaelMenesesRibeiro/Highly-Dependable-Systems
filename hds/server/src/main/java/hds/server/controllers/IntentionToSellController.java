@@ -12,7 +12,6 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
-import hds.server.exception.DBSQLException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +77,7 @@ public class IntentionToSellController {
 	}
 
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBSQLException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -109,7 +108,7 @@ public class IntentionToSellController {
 			BasicMessage payload = new BasicMessage(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
 			return new MetaResponse(payload);
 		}
-		catch (SQLException | DBSQLException | DBNoResultsException ex) {
+		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
