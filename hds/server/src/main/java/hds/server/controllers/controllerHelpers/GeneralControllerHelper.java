@@ -12,7 +12,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
-import java.io.IOException;
 import java.security.SignatureException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;

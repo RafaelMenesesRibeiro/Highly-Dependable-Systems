@@ -3,7 +3,6 @@ package hds.security;
 import pteidlib.PTEID_Certif;
 import pteidlib.PteidException;
 import pteidlib.pteid;
-
 import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
