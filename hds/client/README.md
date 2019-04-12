@@ -3,8 +3,6 @@
 
 * Buy Good
 
-All endpoint parameters are specified as Data params.  
-
 This documentation also includes a generalized error session, most endpoints can throw all or part of these errors.  
 Errors specific to an endpoint are listed on its corresponding section
 
