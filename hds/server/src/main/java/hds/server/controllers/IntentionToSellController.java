@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.DateUtils.isFreshTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -47,6 +48,14 @@ public class IntentionToSellController {
 		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
 		if (cachedResponse != null) {
 			return cachedResponse;
+		}
+
+		long timestamp = ownerData.getTimestamp();
+		if (!isFreshTimestamp(timestamp)) {
+			String reason = "Timestamp " + timestamp + " is too old";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+			MetaResponse metaResponse = new MetaResponse(408, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
 
 		MetaResponse metaResponse;

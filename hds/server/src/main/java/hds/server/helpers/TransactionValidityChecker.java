@@ -32,6 +32,7 @@ public class TransactionValidityChecker {
 		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
+		// TODO - Cannot use transactionData to verify buyer's signature. Create SaleRequest message. //
 		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}
@@ -81,9 +82,6 @@ public class TransactionValidityChecker {
 			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload);
 		}
 		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
-			Logger logger = Logger.getAnonymousLogger();
-			logger.warning("CAUGHT EXCEPTION " + e.getMessage());
-			e.printStackTrace();
 			throw new SignatureException(e.getMessage());
 		}
 	}
