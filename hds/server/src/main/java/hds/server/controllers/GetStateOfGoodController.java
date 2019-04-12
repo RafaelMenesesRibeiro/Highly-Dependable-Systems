@@ -1,8 +1,6 @@
 package hds.server.controllers;
 
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.helpers.inputValidation.ValidGoodID;
-import hds.security.helpers.inputValidation.ValidGoodIDValidator;
 import hds.security.helpers.inputValidation.inputValidation;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
@@ -17,7 +15,6 @@ import hds.server.exception.DBSQLException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;

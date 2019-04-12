@@ -6,7 +6,10 @@ import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.security.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
