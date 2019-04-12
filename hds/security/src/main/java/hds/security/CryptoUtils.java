@@ -1,6 +1,5 @@
 package hds.security;
 
-import hds.security.msgtypes.BasicMessage;
 import pteidlib.PteidException;
 import pteidlib.pteid;
 import sun.security.pkcs11.wrapper.*;
