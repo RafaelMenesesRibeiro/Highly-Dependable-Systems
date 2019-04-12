@@ -13,6 +13,7 @@ public class ControllerErrorConsts {
 	public static final String BAD_SQL = "Caught an SQL Exception.";
 
 	public static final String NO_PERMISSION = "You do not have permission to put this item on sale.";
+	public static final String OLD_MESSAGE = "This request has expired.";
 
 	public static final String CONN_REF = "The connection to the database was refused.";
 	public static final String CONN_CLOSED = "The connection to the database was closed.";

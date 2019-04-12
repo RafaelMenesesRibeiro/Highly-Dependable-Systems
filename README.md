@@ -114,6 +114,7 @@ The database can now be used by the HDS Project
         OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
 
 ### 2.4 Executing
+
 #### 2.4.1 Installing dependencies and compiling the project
 * Open your IDE terminal or your Windows CMD terminal.
 * Head over to the root of the Maven project, it should be something like '~/Highly-Dependable-Systems/hds'.
@@ -128,10 +129,11 @@ The database can now be used by the HDS Project
         
         cd server
         
-        mvn spring-boot:run -Dspring-boot.run.arguments=8010
+        mvn spring-boot:run -Dspring-boot.run.arguments=8010 -Pwindows
   
      The first argument is the userId with the highest port in the system, assuming that no client is dead, 
-     unreachable and that clients will be created contiguously, without gaps between their ports.
+     unreachable and that clients will be created contiguously, without gaps between their ports. If you are running
+     this project on Linux Distribution use -Plinux instead.
      
 * To run a client, first go back in your folder structures and then into the client folder like so:
  

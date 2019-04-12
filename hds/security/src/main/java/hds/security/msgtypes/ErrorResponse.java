@@ -13,7 +13,7 @@ public class ErrorResponse extends BasicMessage implements Serializable {
         this.reason = reason;
     }
 
-    public ErrorResponse(String message) {
+    public ErrorResponse() {
     }
 
     public String getMessage() {

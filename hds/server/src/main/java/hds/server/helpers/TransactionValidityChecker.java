@@ -14,6 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.ConvertUtils.objectToByteArray;
@@ -36,6 +37,7 @@ public class TransactionValidityChecker {
 		if (!isClientWilling(buyerID, transactionData.getSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
+		// TODO - Cannot use transactionData to verify buyer's signature. Create SaleRequest message. //
 		if (!isClientWilling(sellerID, transactionData.getWrappingSignature(), transactionData)) {
 			throw new IncorrectSignatureException("The Seller's signature is not valid.");
 		}

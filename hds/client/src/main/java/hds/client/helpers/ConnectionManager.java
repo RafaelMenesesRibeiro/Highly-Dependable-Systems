@@ -100,17 +100,28 @@ public class ConnectionManager {
         return new JSONObject(objectMapper.writeValueAsString(object));
     }
 
-    public static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
+    private static boolean is400Response(HttpURLConnection connection) throws IOException {
+        return (connection.getResponseCode() >= HttpURLConnection.HTTP_BAD_REQUEST &&
+                connection.getResponseCode() < HttpURLConnection.HTTP_SERVER_ERROR);
+    }
+
+    private static InputStreamReader getBufferedReaderFromHttpURLConnection(HttpURLConnection connection, boolean isBadRequest)
+            throws IOException {
+
+        if (isBadRequest) {  return new InputStreamReader(connection.getErrorStream()); }
+        return new InputStreamReader(connection.getInputStream());
+    }
+
+    private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
         String currentLine;
-        StringBuilder jsonString = new StringBuilder();
-        InputStreamReader inputStream = new InputStreamReader(connection.getInputStream());
+        StringBuilder jsonResponse = new StringBuilder();
+        InputStreamReader inputStream = getBufferedReaderFromHttpURLConnection(connection, is400Response(connection));
         BufferedReader bufferedReader = new BufferedReader(inputStream);
         while ((currentLine = bufferedReader.readLine()) != null) {
-            jsonString.append(currentLine);
+            jsonResponse.append(currentLine);
         }
         bufferedReader.close();
         inputStream.close();
-        return jsonString.toString();
+        return jsonResponse.toString();
     }
-
 }
