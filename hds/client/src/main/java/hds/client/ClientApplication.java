@@ -171,9 +171,8 @@ public class ClientApplication {
         String validationResult = isValidMessage(ClientProperties.getPort(), responseMessage);
         if (!"".equals(validationResult)) {
             printError(validationResult);
-        } else {
-            print(responseMessage.toString());
         }
+        print(responseMessage.toString());
     }
 
     private static String scanString(String requestString) {
