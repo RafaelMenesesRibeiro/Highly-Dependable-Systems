@@ -1,6 +1,6 @@
-server.port=SERVER_PORT
+server.port=8000
 spring.datasource.driverClassName=org.postgresql.Driver
 spring.datasource.platform=postgres
-spring.datasource.url=jdbc:postgresql://IP:PORT/DB_NAME
-spring.datasource.username=DB_USER
-spring.datasource.password=BD_PASSWORD
+spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/notary-db
+spring.datasource.username=postgresql
+spring.datasource.password=rootroot
