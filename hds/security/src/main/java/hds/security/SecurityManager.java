@@ -1,16 +1,19 @@
 package hds.security;
 
 import hds.security.msgtypes.BasicMessage;
+import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.ConvertUtils.objectToByteArray;
-import static hds.security.CryptoUtils.authenticateSignature;
-import static hds.security.CryptoUtils.signData;
+import static hds.security.CryptoUtils.*;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.ResourceManager.getCertificateFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
 public class SecurityManager {
@@ -27,8 +30,14 @@ public class SecurityManager {
         return message;
     }
 
+    public static BasicMessage setMessageSignature(PKCS11 pkcs11, long ccSessionID, long ccSignatureKey, BasicMessage message) throws IOException, SignatureException {
+        message.setSignature(bytesToBase64String(signData(pkcs11, ccSessionID, ccSignatureKey, objectToByteArray(message))));
+        return message;
+    }
+
     public static String isValidMessage(String selfId, BasicMessage message) {
-        if (!selfId.equals(message.getTo())) {
+        if (!selfId.equals(message.getTo()) &&
+                !(message.getOperation().equals("getStateOfGood") && message.getTo().equals("unknown"))) {
             return "wrong host address";
         }
 
@@ -36,8 +45,14 @@ public class SecurityManager {
             return "message is more than five minutes old";
         }
 
-        if (!isValidSignature(message)) {
-            return "invalid signature";
+        if (message.getFrom().equals("server")) {
+            if (!isValidSignatureFromServer(message)) {
+                return "invalid signature";
+            }
+        } else {
+            if (!isValidSignatureFromNode(message)) {
+                return "invalid signature";
+            }
         }
 
         return "";
@@ -49,15 +64,28 @@ public class SecurityManager {
      *
      ***********************************************************/
 
-    private static boolean isValidSignature(BasicMessage message) {
+    private static boolean isValidSignatureFromNode(BasicMessage message) {
         try {
             PublicKey signersPublicKey = getPublicKeyFromResource(message.getFrom());
             String signature = message.getSignature();
             message.setSignature("");
-            boolean result = authenticateSignature(signersPublicKey, signature, message);
+            boolean result = authenticateSignatureWithPubKey(signersPublicKey, signature, message);
             message.setSignature(signature);
             return result;
         } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | SignatureException exc) {
+            return false;
+        }
+    }
+
+    private static boolean isValidSignatureFromServer(BasicMessage message) {
+        try {
+            X509Certificate serverCertificate = getCertificateFromResource();
+            String signature = message.getSignature();
+            message.setSignature("");
+            boolean result = authenticateSignatureWithCert(serverCertificate, signature, message);
+            message.setSignature(signature);
+            return result;
+        } catch (IOException | SignatureException | CertificateException exc) {
             return false;
         }
     }

@@ -1,6 +1,7 @@
 package hds.server;
 
 import hds.security.ResourceManager;
+import hds.server.helpers.ServerProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -19,6 +20,7 @@ public class ServerApplication {
 	public static void main(String[] args) {
 		try {
 			fetchProperties();
+			ServerProperties.bootstrap();
 		}
 		catch (Exception ex) {
 			Logger logger = Logger.getAnonymousLogger();

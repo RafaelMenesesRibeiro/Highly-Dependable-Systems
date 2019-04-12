@@ -4,8 +4,9 @@ import hds.security.helpers.inputValidation.ValidClientID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
-public class GoodStateResponse extends BasicMessage {
+public class GoodStateResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The OwnerID cannot be null.")
     @NotEmpty(message = "The OwnerID cannot be empty.")
     @ValidClientID

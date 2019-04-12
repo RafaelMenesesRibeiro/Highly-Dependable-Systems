@@ -5,8 +5,9 @@ import hds.security.helpers.inputValidation.ValidGoodID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
-public class SaleCertificateResponse extends BasicMessage {
+public class SaleCertificateResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The NotaryCertificationMessage cannot be null.")
     @NotEmpty(message = "The NotaryCertificationMessage cannot be empty.")
     private String notaryServer;

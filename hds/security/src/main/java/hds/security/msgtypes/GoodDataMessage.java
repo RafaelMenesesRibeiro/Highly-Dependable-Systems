@@ -4,8 +4,9 @@ import hds.security.helpers.inputValidation.ValidGoodID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
-public class GoodDataMessage extends BasicMessage {
+public class GoodDataMessage extends BasicMessage implements Serializable {
     @NotNull(message = "The GoodID cannot be null.")
     @NotEmpty(message = "The GoodID cannot be empty.")
     @ValidGoodID

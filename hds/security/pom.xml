@@ -60,7 +60,7 @@
             <artifactId>pteidlib</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/pteidlibj.jar</systemPath>
         </dependency>
     </dependencies>
 

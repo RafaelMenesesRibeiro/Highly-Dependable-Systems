@@ -1,22 +1,17 @@
 package hds.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hds.client.exceptions.ResponseMessageException;
 import hds.client.helpers.ClientProperties;
-import hds.client.helpers.ConnectionManager;
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
