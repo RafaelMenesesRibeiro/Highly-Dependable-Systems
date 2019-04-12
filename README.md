@@ -14,8 +14,11 @@ similarly well on Linux distributions, but it's not guaranteed that the setup st
 you prefer to test this project under another operating system, it's up to you to correctly setup everything that
 might be different from the present guide;
 
-### 2.1 Databases
-#### 2.1.1 Downloading and installing both PostgreSQL and PGAdmin4
+#### 2.2 Java (JDK 1.8)
+* It is assumed that you already have jdk 1.8 installed on your system with the respective environment variables configured. If you don't follow this guide https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html
+
+### 2.2 Databases
+#### 2.2.1 Downloading and installing both PostgreSQL and PGAdmin4
 * Go ahead to https://www.enterprisedb.com/downloads/postgres-postgresql-downloads.
 * Download PostgreSQL Version 11.2 Windows x86-64 or whichever version fits you.
 * Execute the item you just downloaded.
@@ -27,7 +30,7 @@ a command line interface uncheck the PGAdmin4 checkbox.
 * Choose a locale for the database
 * Wait until installation is complete.
  
-#### 2.1.2 Verifying your installation
+#### 2.2.2 Verifying your installation
 * Open your terminal (windows cmd) and type in  
   
       psql --version
@@ -36,7 +39,7 @@ a command line interface uncheck the PGAdmin4 checkbox.
   
       psql (PostgreSQL) 11.2
   
-#### 2.1.3 Setting up your postgreSQL Server
+#### 2.2.3 Setting up your postgreSQL Server
 * Open the newly installed application PGAdmin4. This will launch a new browser window.
 * On the left panel of your screen, right click 'Servers', choose 'Create' > 'Server'.
 * A small window will pop up with a few fields. Enter any name you desire on the 'Name' field, for example 'hds-db'.
@@ -46,12 +49,12 @@ a command line interface uncheck the PGAdmin4 checkbox.
 * Fill in 'Username' and 'Password' to match the ones in step 2.1.1.
 * Click 'Save' and connect to the server. After saving it's likely that the connection is done automatically, but if doesn't double click the database server you just created in the left panel.
 
-#### 2.1.4 Setting up your postgreSQL Database (used in this project)
+#### 2.2.4 Setting up your postgreSQL Database (used in this project)
 * On the top menu click 'Object' > 'Create' > 'Database' and give it a 'Name' for example 'notary-db', leave the remaining
 fields as default.
 * Click 'Save' then double click the database you just created in the left panel to connect to it.
 
-#### 2.1.5 Setting up your database schemas
+#### 2.2.5 Setting up your database schemas
 * Now, on the top menu, click 'Tools' > 'Query Tool' or alternatively just click the thundering symbol near 'File'.
 * Head to our project's folder. Under ~/docs/psql/ you'll find two important .sql files named 'schemas.sql' and 'populate.sql'.
 * Copy & Paste the contents of schemas.sql into your query tool and press 'F5' on your keyboard, or the thunder that appears
@@ -65,7 +68,7 @@ command inside the query tool:
   
     In PGAdmin4 you do not need the semicolon after any command unless you intend to piggyback/chain multiple commands.
 
-#### 2.1.6 Finishing up the setup
+#### 2.2.6 Finishing up the setup
 * Go to our project's folders and find the file 'application.properties.template'. Rename it to 'application.properties'.
 * Change the following fields according to the previous steps, ignore the lines preceded by $ in this snippet:
 
