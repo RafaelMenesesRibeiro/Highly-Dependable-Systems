@@ -2,6 +2,11 @@ package hds.server.controllers.controllerHelpers;
 
 import java.util.Objects;
 
+/**
+ * TODO - @FranciscoBarros
+ *
+ * @author 		Francisco Barros
+ */
 public class UserRequestIDKey {
     private final String callee;
     private final String requestID;
