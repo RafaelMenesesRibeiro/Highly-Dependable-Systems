@@ -7,6 +7,11 @@ import sun.security.pkcs11.wrapper.PKCS11Exception;
 
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * TODO - @DiogoVilela
+ *
+ * @author 		Diogo Vilela
+ */
 public class ServerProperties {
 
     private static PKCS11 pkcs11;

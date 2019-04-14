@@ -9,13 +9,30 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Transfers a GoodID from the SellerID to the BuyerID
+ *
+ * @author 		Rafael Ribeiro
+ */
 public class TransferGood {
 	private TransferGood() {
 		// This is here so the class can't be instantiated. //
 	}
 
+	/**
+	 * Marks a GoodID for sale in the database.
+	 *
+	 * @param 	conn		Database connection
+	 * @param 	sellerID	SellerID
+	 * @param 	buyerID		BuyerID
+	 * @param 	goodID		GoodID to be transferred
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static void transferGood(Connection conn, String sellerID, String buyerID, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "UPDATE goods SET onSale = ? WHERE goodID = ?";
 		List<String> args = new ArrayList<>();
