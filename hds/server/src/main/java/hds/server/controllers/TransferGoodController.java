@@ -27,12 +27,32 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
 
+/**
+ * Responsible for handling POST requests for the endpoint /transferGood.
+ * Confirms authenticity and integrity of the request and wrapped request.
+ * Confirms the SellerID owns the GoodID.
+ * Confirms the GoodID is on sale.
+ * Transfers a GoodID from the SellerID to the BuyerID.
+ *
+ * @author 		Rafael Ribeiro
+ * @see 		ApproveSaleRequestMessage
+ */
+
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "transferGood";
 	private static final String CERTIFIED = "Certified by Notary";
 
+	/**
+	 * REST Controller responsible for transferring a GoodID.
+	 *
+	 * @param 	transactionData	GoodID, BuyerID and SellerID
+	 * @param 	result    		result of validators for inputs of transactionData
+	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
+	 * @see		ApproveSaleRequestMessage
+	 * @see 	BindingResult
+	 */
 	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
@@ -73,6 +93,22 @@ public class TransferGoodController {
 		return response;
 	}
 
+	/**
+	 * Confirms authenticity and integrity of the request and wrapped request.
+	 * Confirms the SellerID owns the GoodID.
+	 * Confirms the GoodID is on sale.
+	 * Transfers a GoodID from the SellerID to the BuyerID.
+	 *
+	 * @param 	transactionData 	GoodID and SellerID
+	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
+	 * @throws 	SQLException					The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	ApproveSaleRequestMessage
+	 * @see 	SaleCertificateResponse
+	 * @see 	MetaResponse
+	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
@@ -112,7 +148,6 @@ public class TransferGoodController {
 		finally {
 			if (conn != null) {
 				conn.setAutoCommit(true);
-				// TODO - Should this close? //
 				conn.close();
 			}
 		}

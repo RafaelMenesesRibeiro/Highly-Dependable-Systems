@@ -28,6 +28,12 @@ import java.util.regex.Pattern;
 
 import static hds.security.DateUtils.generateTimestamp;
 
+/**
+ * Responsible for handling GET requests for the endpoint /stateOfGood.
+ * With a GoodID, returns the current owner and if it is on sale.
+ *
+ * @author 		Rafael Ribeiro
+ */
 @RestController
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
@@ -36,8 +42,9 @@ public class GetStateOfGoodController {
 	private static final String OPERATION = "getStateOfGood";
 
 	/**
-	 * REST Controller responsible for returning the state of a given GoodID. Returns information regarding
-	 * the current owner of the good and whether or not it is on sale.
+	 * REST Controller responsible for returning the state of a given GoodID.
+	 * Returns information regarding the current owner of the good and whether or not it is on sale.
+	 *
 	 * @param 	goodID 			The GoodID which is going to be looked up (for ownerID and if it is on sale)
 	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
 	 */
@@ -68,12 +75,13 @@ public class GetStateOfGoodController {
 
 	/**
 	 * Gets the state of the given GoodID.
-	 * @param goodID 				The GoodID which is going to be looked up (for ownerID and if it is on sale)
-	 * @return GoodStateResponse 	Contains the state of the goodID
-	 * @throws SQLException					The DB threw an SQLException.
-	 * @throws DBClosedConnectionException	Can't access the DB.
-	 * @throws DBConnectionRefusedException	Can't access the DB.
-	 * @throws DBNoResultsException			The DB did not return any results.
+	 *
+	 * @param 	goodID 				The GoodID which is going to be looked up (for ownerID and if it is on sale)
+	 * @return 	GoodStateResponse 	Contains the state of the goodID
+	 * @throws 	SQLException					The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	private GoodStateResponse execute(String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
@@ -87,7 +95,8 @@ public class GetStateOfGoodController {
 	/**
 	 * Returns whether the GoodID is valid or not.
 	 * The GoodID String needs start with "good" followed by digits and a new line.
-	 * @param value 	The String to verify
+	 *
+	 * @param	value 	The String to verify
 	 * @return			Represents if the value is a valid GoodID
 	 */
 	private static boolean isValidGoodID(String value) {

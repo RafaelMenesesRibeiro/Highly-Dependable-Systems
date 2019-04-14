@@ -30,11 +30,28 @@ import static hds.security.DateUtils.isFreshTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
+/**
+ * Responsible for handling POST requests for the endpoint /intentionToSell.
+ * Confirms authenticity and integrity of the request.
+ * Marks a GoodID for sale in the database.
+ *
+ * @author 		Rafael Ribeiro
+ * @see 		OwnerDataMessage
+ */
 @RestController
 public class IntentionToSellController {
 	private static final String FROM_SERVER = "server";
 	private static final String OPERATION = "markForSale";
 
+	/**
+	 * REST Controller responsible for marking a goodID for sale.
+	 *
+	 * @param 	ownerData 		GoodID and SellerID
+	 * @param 	result    		result of validators for inputs of ownerData
+	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
+	 * @see		OwnerDataMessage
+	 * @see 	BindingResult
+	 */
 	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
@@ -76,6 +93,19 @@ public class IntentionToSellController {
 		return response;
 	}
 
+	/**
+	 * Confirms authenticity and integrity of the request.
+	 * Marks a GoodID for sale in the database.
+	 *
+	 * @param 	ownerData 			GoodID and SellerID
+	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
+	 * @throws 	SQLException					The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	OwnerDataMessage
+	 * @see 	MetaResponse
+	 */
 	private MetaResponse execute(OwnerDataMessage ownerData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
@@ -123,7 +153,6 @@ public class IntentionToSellController {
 		finally {
 			if (conn != null) {
 				conn.setAutoCommit(true);
-				// TODO - Should this close? //
 				conn.close();
 			}
 		}
