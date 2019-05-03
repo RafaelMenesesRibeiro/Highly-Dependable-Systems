@@ -8,12 +8,32 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Responsible for querying the database.
+ *
+ * @author 		Rafael Ribeiro
+ */
 class DatabaseInterface {
 
 	private DatabaseInterface() {
 		// This is here so the class can't be instantiated. //
 	}
 
+	/**
+	 * Queries the database.
+	 *
+	 * @param 	conn         Database connection
+	 * @param 	query        Query to be transformed into a PreparedStatement
+	 * @param 	returnColumn Return column for the query
+	 * @param 	args         Arguments of the PreparedStatement
+	 * @return 	List		 Represents the list of the query's results
+	 * @throws 	SQLException					The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	Connection
+	 * @see 	PreparedStatement
+	 */
 	static List<String> queryDB(Connection conn, String query, String returnColumn, List<String> args)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, SQLException {
 

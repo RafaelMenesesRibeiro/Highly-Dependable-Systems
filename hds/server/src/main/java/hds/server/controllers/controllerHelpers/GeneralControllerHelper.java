@@ -21,19 +21,43 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.setMessageSignature;
 
+/**
+ * Contains methods used by all Server's Controllers.
+ *
+ * @author 		Rafael Ribeiro
+ * @author 		Francisco Barros
+ */
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = "server";
 	private static final int MAX_CACHED_ENTRIES = 128;
 
+	/**
+	 * TODO - @FranciscoBarros
+	 */
 	public static void cacheRecentRequest(UserRequestIDKey key, ResponseEntity<BasicMessage> value) {
 		recentMessages.put(key, value);	 // TODO should be persistable
 	}
 
+	/**
+	 * TODO - @FranciscoBarros
+	 */
 	public static ResponseEntity<BasicMessage> tryGetRecentRequest(UserRequestIDKey key) {
 		return recentMessages.get(key);
 	}
 
+	/**
+	 * Returns the ResponseEntity with the given HttpStatus code and BasicMessage as payload.
+	 * If the BasicMessage cannot be signed, the signature field is an empty String.
+	 *
+	 * @param   metaResponse	Contains int to represent HttpStatus code and BasicMessage
+	 * @param 	requestID		RequestID of the request. Same requestID for the response
+	 * @param	to				ID of the response receiver
+	 * @param 	operation		Represents the operation regarding the request/response
+	 * @return  ResponseEntity	The wrapper to be sent as response
+	 * @see     MetaResponse
+	 * @see     ResponseEntity
+	 */
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
@@ -46,6 +70,18 @@ public class GeneralControllerHelper {
 		}
 	}
 
+	/**
+	 * Returns a MetaResponse encapsulating an HttpStatus code to identify the exception and an ErrorResponse
+	 * describing the exception.
+	 *
+	 * @param   ex				Thrown exception
+	 * @param 	requestID		RequestID of the request. Same requestID for the response
+	 * @param	to				ID of the response receiver
+	 * @param 	operation		Represents the operation regarding the request/response
+	 * @return  MetaResponse	Contains HttpStatus code and ErrorResponse
+	 * @see     MetaResponse
+	 * @see 	ErrorResponse
+	 */
 	public static MetaResponse handleException(Exception ex, String requestID, String to, String operation) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.warning("\tException caught - " + ex.getClass().getName());
@@ -74,6 +110,18 @@ public class GeneralControllerHelper {
 		return new MetaResponse(500, payload);
 	}
 
+	/**
+	 * Returns a MetaResponse encapsulating an HttpStatus code 400 and an ErrorResponse with the reason the input
+	 * was invalid.
+	 *
+	 * @param   result			BindingResult from input validators
+	 * @param 	requestID		RequestID of the request. Same requestID for the response
+	 * @param	to				ID of the response receiver
+	 * @param 	operation		Represents the operation regarding the request/response
+	 * @return  MetaResponse	Contains HttpStatus code 400 and ErrorResponse
+	 * @see     MetaResponse
+	 * @see     ErrorResponse
+	 */
 	public static MetaResponse handleInputValidationResults(BindingResult result, String requestID, String to, String operation) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("\tRequestBody not valid:");

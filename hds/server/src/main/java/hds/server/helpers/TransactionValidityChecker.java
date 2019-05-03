@@ -17,13 +17,35 @@ import java.util.List;
 
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
+/**
+ * Verifies if the transaction is valid.
+ *
+ * @author 		Rafael Ribeiro
+ */
 public class TransactionValidityChecker {
 	private TransactionValidityChecker() {
 		// This is here so the class can't be instantiated. //
 	}
 
+	/**
+	 * Verifies if the transaction is valid.
+	 * Confirms authenticity and integrity of the request and wrapped request.
+	 * Confirms the SellerID owns the GoodID.
+	 * Confirms the GoodID is on sale.
+	 *
+	 * @param   conn        	Database connection
+	 * @param 	transactionData	ApproveSaleRequestMessage with GoodID, BuyerID, SellerID and all the signatures
+	 * @return 	boolean			Represents if the transaction is valid.
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @throws 	SignatureException				Couldn't verify the payload's signature
+	 * @throws	IncorrectSignatureException		The payload's signature does not match its contents
+	 */
 	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, SignatureException, IncorrectSignatureException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException,
+					SignatureException, IncorrectSignatureException {
 
 		String buyerID = transactionData.getBuyerID();
 		String sellerID = transactionData.getSellerID();
@@ -56,6 +78,17 @@ public class TransactionValidityChecker {
 		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
 	}
 
+	/**
+	 * Gets the current owner of the GoodID.
+	 *
+	 * @param   conn        Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	String		ID of the GoodID's owner
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static String getCurrentOwner(Connection conn, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
@@ -73,6 +106,17 @@ public class TransactionValidityChecker {
 		}
 	}
 
+	/**
+	 * Checks if the GoodID is on sale in the database.
+	 *
+	 * @param   conn        Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	Boolean		Represents if the GoodID is on sale
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static Boolean getIsOnSale(Connection conn, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
@@ -90,6 +134,14 @@ public class TransactionValidityChecker {
 		}
 	}
 
+	/**
+	 * Verifies the signature of the payload.
+	 *
+	 * @param 	clientID		The ClientID that sent the payload
+	 * @param 	buyerSignature	The Signature's String of the payload
+	 * @param 	payload			The payload that was signed
+	 * @throws  SignatureException              Couldn't sign the payload
+	 */
 	public static boolean isClientWilling(String clientID, String buyerSignature, Object payload)
 			throws SignatureException {
 		try {

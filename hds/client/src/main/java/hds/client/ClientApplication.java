@@ -16,6 +16,7 @@ import java.security.SignatureException;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
@@ -37,8 +38,18 @@ public class ClientApplication {
     public static void main(String[] args) {
         String portId = args[0];
         String maxPortId = args[1];
+        int maxServerPort = 9000;
+        try {
+             maxServerPort = Integer.parseInt(args[2]);
+        }
+        catch (Exception ex) {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.warning("Exiting:\n" + ex.getMessage());
+            System.exit(-1);
+        }
         ClientProperties.setPort(portId);
         ClientProperties.setMaxPortId(maxPortId);
+        ClientProperties.initializeNotaryReplicasPortsList(maxServerPort);
         runClientServer(args);
         runClientInterface();
     }

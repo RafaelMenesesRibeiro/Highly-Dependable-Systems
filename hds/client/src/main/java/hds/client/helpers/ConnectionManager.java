@@ -102,7 +102,7 @@ public class ConnectionManager {
 
     private static boolean is400Response(HttpURLConnection connection) throws IOException {
         return (connection.getResponseCode() >= HttpURLConnection.HTTP_BAD_REQUEST &&
-                connection.getResponseCode() < HttpURLConnection.HTTP_SERVER_ERROR);
+                connection.getResponseCode() < 500);
     }
 
     private static InputStreamReader getBufferedReaderFromHttpURLConnection(HttpURLConnection connection, boolean isBadRequest)
