@@ -52,18 +52,14 @@ public class ClientProperties {
     }
 
     public static ArrayList<String> getNotaryReplicas() {
-        return null;
-    }
-
-    public ArrayList<String> getNotaryReplicas() {
         return ClientProperties.notaryReplicasPorts;
     }
 
-    public void updateNotaryReplicas(ArrayList<String> newSet) {
+    public static void updateNotaryReplicas(ArrayList<String> newSet) {
         notaryReplicasPorts = newSet;
     }
 
-    public void removeNotaryReplica(String replicaPort) {
+    public static void removeNotaryReplica(String replicaPort) {
         ClientProperties.notaryReplicasPorts.remove(replicaPort);
     }
 
