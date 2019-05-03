@@ -13,7 +13,7 @@ public class ClientProperties {
 
     private static String portId;
     private static String maxPortId;
-    private static ArrayList<Integer> notaryReplicasPorts;
+    private static ArrayList<String> notaryReplicasPorts;
     private static PrivateKey privateKey;
     public static final String HDS_BASE_HOST = "http://localhost:";
     public static final String HDS_NOTARY_HOST = "http://localhost:8000/";
@@ -52,22 +52,22 @@ public class ClientProperties {
     }
 
 
-    public ArrayList<Integer> getNotaryReplicas() {
+    public ArrayList<String> getNotaryReplicas() {
         return ClientProperties.notaryReplicasPorts;
     }
 
-    public void updateNotaryReplicas(ArrayList<Integer> newSet) {
+    public void updateNotaryReplicas(ArrayList<String> newSet) {
         notaryReplicasPorts = newSet;
     }
 
-    public void removeNotaryReplica(int replicaPort) {
+    public void removeNotaryReplica(String replicaPort) {
         ClientProperties.notaryReplicasPorts.remove(replicaPort);
     }
 
     public static void initializeNotaryReplicasPortsList(int maxServerPort) {
-        ArrayList<Integer> replicas = new ArrayList<>();
+        ArrayList<String> replicas = new ArrayList<>();
         for (int replicaPort = HDS_NOTARY_REPLICAS_FIRST_PORT; replicaPort <= maxServerPort; replicaPort++) {
-            replicas.add(replicaPort);
+            replicas.add("" + replicaPort);
         }
         ClientProperties.notaryReplicasPorts = replicas;
     }
