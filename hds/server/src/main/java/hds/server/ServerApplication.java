@@ -34,7 +34,8 @@ public class ServerApplication {
 
 			fetchProperties();
 			// If it's the main server, starts with the Citizen Card feature.
-			if (serverPort == 9000) {
+			// TODO - Change this to final value. //
+			if (serverPort == 9005) {
 				ServerProperties.bootstrap();
 			}
 
