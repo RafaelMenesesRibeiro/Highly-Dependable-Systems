@@ -7,10 +7,10 @@ import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ConnectionManager.*;
 
-public class GetStateOfGoodTask implements Callable<BasicMessage> {
+public class GetStateOfGoodCallable implements Callable<BasicMessage> {
     private String address;
 
-    public GetStateOfGoodTask(String address) {
+    public GetStateOfGoodCallable(String address) {
         this.address = address;
     }
 
