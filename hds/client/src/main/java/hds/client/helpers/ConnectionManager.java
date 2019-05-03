@@ -68,8 +68,7 @@ public class ConnectionManager {
      *
      ***********************************************************/
 
-    public static BasicMessage getResponseMessage(HttpURLConnection conn, Expect type)
-            throws IOException, ResponseMessageException {
+    public static BasicMessage getResponseMessage(HttpURLConnection conn, Expect type) throws IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = getJSONStringFromHttpResponse(conn);
@@ -82,10 +81,9 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
                     return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
-                default:
-                    throw new ResponseMessageException("Unknown message type received at endpoint");
             }
         }
+
         return objectMapper.readValue(jsonString, ErrorResponse.class);
     }
 
