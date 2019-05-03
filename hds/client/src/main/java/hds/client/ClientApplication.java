@@ -1,6 +1,7 @@
 package hds.client;
 
 import hds.client.domain.GetStateOfGoodCallable;
+import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
@@ -42,7 +43,7 @@ public class ClientApplication {
         String maxPortId = args[1];
         int maxServerPort = 9000;
         try {
-             maxServerPort = Integer.parseInt(args[2]);
+            maxServerPort = Integer.parseInt(args[2]);
         }
         catch (Exception ex) {
             Logger logger = Logger.getAnonymousLogger();
@@ -93,6 +94,92 @@ public class ClientApplication {
 
     /***********************************************************
      *
+     * GET STATE OF GOOD RELATED METHODS
+     *
+     ***********************************************************/
+
+    private static void getStateOfGood() {
+        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+        final String goodId = requestGoodId();
+
+        List<Callable<BasicMessage>> callableList = new ArrayList<>();
+        for (String replicaId : replicasList) {
+            callableList.add(new GetStateOfGoodCallable(replicaId, goodId));
+        }
+        for (Callable<BasicMessage> callable : callableList) {
+            completionService.submit(callable);
+        }
+        processCompletionService(replicasList.size(), completionService);
+        executorService.shutdown();
+    }
+
+    private static void processCompletionService(int replicasCount,
+                                                 ExecutorCompletionService<BasicMessage> completionService) {
+
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                BasicMessage resultContent = futureResult.get();
+                if (processResponse(resultContent)) break;
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+    }
+
+    /***********************************************************
+     *
+     * INTENTION TO SELL RELATED METHODS
+     *
+     ***********************************************************/
+
+    private static void intentionToSell() {
+        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final String goodId = requestGoodId();
+        final String requestId = newUUIDString();
+        final long timestamp = generateTimestamp();
+
+        for (String replicaId : replicasList) {
+            callableList.add(new IntentionToSellCallable(timestamp, requestId, replicaId, goodId));
+        }
+
+        List<Future<BasicMessage>> futuresList = new ArrayList<>();
+        try {
+            futuresList = executorService.invokeAll(callableList);
+        } catch (InterruptedException ie) {
+            printError(ie.getMessage());
+        }
+        processFuturesList(futuresList);
+        executorService.shutdown();
+    }
+
+    private static void processFuturesList(List<Future<BasicMessage>> futuresList) {
+        for (Future<BasicMessage> future : futuresList) {
+            try {
+                BasicMessage resultContent = future.get();
+                processResponse(resultContent);
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                if (cause instanceof SocketTimeoutException) {
+                    printError("Target node did not respond within expected limits. Try again at your discretion...");
+                } else {
+                    printError(cause.getMessage());
+                }
+            }
+        }
+    }
+
+    /***********************************************************
+     *
      * BUY GOOD RELATED METHODS
      *
      ***********************************************************/
@@ -107,7 +194,7 @@ public class ClientApplication {
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
-           printError(exc.getMessage());
+            printError(exc.getMessage());
         }
     }
 
@@ -125,81 +212,7 @@ public class ClientApplication {
                 goodId,
                 ClientProperties.getPort(),
                 sellerId
-            );
-    }
-
-    /***********************************************************
-     *
-     * INTENTION TO SELL RELATED METHODS
-     *
-     ***********************************************************/
-
-    private static void intentionToSell() {
-        String goodId = requestGoodId();
-        try {
-            OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage(goodId));
-            HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
-            sendPostRequest(connection, newJSONObject(message));
-            BasicMessage responseMessage = getResponseMessage(connection, Expect.BASIC_MESSAGE);
-            processResponse(responseMessage);
-        } catch (SocketTimeoutException ste) {
-            printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (SignatureException | JSONException | IOException exc) {
-            printError(exc.getMessage());
-        }
-    }
-
-    private static OwnerDataMessage newOwnerDataMessage(String goodId) {
-
-        return new OwnerDataMessage(
-                generateTimestamp(), newUUIDString(),"intentionToSell", getPort(), HDS_NOTARY_PORT,"", goodId, getPort()
         );
-    }
-
-    /***********************************************************
-     *
-     * GET STATE OF GOOD RELATED METHODS
-     *
-     ***********************************************************/
-
-    private static void getStateOfGood() {
-        String goodId = requestGoodId();
-
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
-        final int replicasCount = replicasList.size();
-
-        final ExecutorService executorService = Executors.newFixedThreadPool(replicasCount);
-        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
-
-        for (String replicaId : replicasList) {
-            String address = String.format("http://localhost:%s/stateOfGood?goodID=%s", replicaId, goodId);
-            Callable<BasicMessage> callable = new GetStateOfGoodCallable(address);
-            callableList.add(callable);
-        }
-
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
-        }
-
-        for (int i = 0; i < replicasCount; i++) {
-            try {
-                Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage resultContent = futureResult.get();
-                if (processResponse(resultContent)) {
-                    break;
-                }
-            } catch (ExecutionException ee) {
-                Throwable cause = ee.getCause();
-                printError(cause.getMessage());
-                // TODO Handle inner exception properly in ExecutionException case
-            } catch (InterruptedException ie) {
-                printError(ie.getMessage());
-            }
-        }
-
-        executorService.shutdown();
     }
 
     /***********************************************************
