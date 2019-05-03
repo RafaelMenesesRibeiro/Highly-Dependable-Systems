@@ -2,11 +2,14 @@ package hds.server;
 
 import hds.security.ResourceManager;
 import hds.server.helpers.ServerProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -17,19 +20,33 @@ public class ServerApplication {
 	private static String user;
 	private static String password;
 
+	@Autowired
+	private static Environment env;
+
 	public static void main(String[] args) {
+		Logger logger = Logger.getAnonymousLogger();
+		int serverPort = 9000;
 		try {
+			serverPort = Integer.parseInt(args[0]);
+			ResourceManager.setServerPort(serverPort);
+			int maxClientID = Integer.parseInt(args[1]);
+			ResourceManager.setMaxClientId(maxClientID);
+
 			fetchProperties();
-			ServerProperties.bootstrap();
+			// If it's the main server, starts with the Citizen Card feature.
+			if (serverPort == 9000) {
+				ServerProperties.bootstrap();
+			}
+
+			logger.info("Started server in port " + serverPort + " and max client id " + maxClientID);
 		}
 		catch (Exception ex) {
-			Logger logger = Logger.getAnonymousLogger();
-			logger.warning(ex.getMessage());
-			logger.warning("Exiting.");
+			logger.warning("Exiting:\n" + ex.getMessage());
 			System.exit(1);
 		}
-		ResourceManager.setMaxClientId(Integer.parseInt(args[0]));
-		SpringApplication.run(ServerApplication.class, args);
+		SpringApplication app = new SpringApplication(ServerApplication.class);
+		app.setDefaultProperties(Collections.singletonMap("server.port", serverPort));
+		app.run(args);
 	}
 
 	private static void fetchProperties() throws IOException {
@@ -39,7 +56,6 @@ public class ServerApplication {
 				throw new IOException("application.properties not found.");
 			}
 			properties.load(input);
-			ResourceManager.setServerPort(Integer.parseInt(properties.getProperty("server.port")));
 			driver = properties.getProperty("spring.datasource.driverClassName");
 			url = properties.getProperty("spring.datasource.url");
 			user = properties.getProperty("spring.datasource.username");
