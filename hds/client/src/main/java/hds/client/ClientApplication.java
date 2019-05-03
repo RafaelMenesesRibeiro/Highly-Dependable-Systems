@@ -1,6 +1,6 @@
 package hds.client;
 
-import hds.client.exceptions.ResponseMessageException;
+import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.security.SignatureException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -104,7 +106,7 @@ public class ClientApplication {
             processResponse(responseMessage);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (ResponseMessageException | SignatureException | JSONException | IOException exc) {
+        } catch (SignatureException | JSONException | IOException exc) {
            printError(exc.getMessage());
         }
     }
@@ -141,7 +143,7 @@ public class ClientApplication {
             processResponse(responseMessage);
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (ResponseMessageException | SignatureException | JSONException | IOException exc) {
+        } catch (SignatureException | JSONException | IOException exc) {
             printError(exc.getMessage());
         }
     }
@@ -160,16 +162,43 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void getStateOfGood() {
-        try {
-            String requestUrl = HDS_NOTARY_HOST + "stateOfGood?goodID=" + requestGoodId();
-            HttpURLConnection connection = initiateGETConnection(requestUrl);
-            BasicMessage responseMessage = getResponseMessage(connection, Expect.GOOD_STATE_RESPONSE);
-            processResponse(responseMessage);
-        } catch (SocketTimeoutException ste) {
-            printError("Target node did not respond within expected limits. Try again at your discretion...");
-        } catch (ResponseMessageException | IOException exc) {
-            printError(exc.getMessage());
+        String goodId = requestGoodId();
+
+        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final int replicasCount = replicasList.size();
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasCount);
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        List<Callable<BasicMessage>> callableList = new ArrayList<>();
+
+        for (String replicaId : replicasList) {
+            String address = String.format("http://localhost:%s/stateOfGood?goodID=%s", replicaId, goodId);
+            Callable<BasicMessage> callable = new GetStateOfGoodCallable(address);
+            callableList.add(callable);
         }
+
+        for (Callable<BasicMessage> callable : callableList) {
+            completionService.submit(callable);
+        }
+
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                BasicMessage resultContent = futureResult.get();
+                if (processResponse(resultContent)) {
+                    break;
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+                // TODO Handle inner exception properly in ExecutionException case
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+
+        executorService.shutdown();
     }
 
     /***********************************************************
@@ -178,12 +207,15 @@ public class ClientApplication {
      *
      ***********************************************************/
 
-    private static void processResponse(BasicMessage responseMessage) {
+    private static boolean processResponse(BasicMessage responseMessage) {
+        // TODO Improve return value. Use something other than true/false;
         String validationResult = isValidMessage(ClientProperties.getPort(), responseMessage);
         if (!"".equals(validationResult)) {
             printError(validationResult);
+            return false;
         }
         print(responseMessage.toString());
+        return true;
     }
 
     private static String scanString(String requestString) {
@@ -201,13 +233,5 @@ public class ClientApplication {
 
     private static String requestSellerId() {
         return scanString("Provide the owner of the good you want to buy.");
-    }
-
-    private static void print(String msg) {
-        System.out.println("[o] " + msg);
-    }
-
-    private static void printError(String msg) {
-        System.out.println("    [x] " + msg);
     }
 }

@@ -51,16 +51,15 @@ public class ClientProperties {
         return privateKey;
     }
 
-
-    public ArrayList<String> getNotaryReplicas() {
+    public static ArrayList<String> getNotaryReplicas() {
         return ClientProperties.notaryReplicasPorts;
     }
 
-    public void updateNotaryReplicas(ArrayList<String> newSet) {
+    public static void updateNotaryReplicas(ArrayList<String> newSet) {
         notaryReplicasPorts = newSet;
     }
 
-    public void removeNotaryReplica(String replicaPort) {
+    public static void removeNotaryReplica(String replicaPort) {
         ClientProperties.notaryReplicasPorts.remove(replicaPort);
     }
 
@@ -72,4 +71,11 @@ public class ClientProperties {
         ClientProperties.notaryReplicasPorts = replicas;
     }
 
+    public static void print(String msg) {
+        System.out.println("[o] " + msg);
+    }
+
+    public static void printError(String msg) {
+        System.out.println("    [x] " + msg);
+    }
 }
