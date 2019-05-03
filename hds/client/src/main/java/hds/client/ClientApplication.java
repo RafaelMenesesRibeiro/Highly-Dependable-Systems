@@ -135,8 +135,9 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void intentionToSell() {
+        String goodId = requestGoodId();
         try {
-            OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage());
+            OwnerDataMessage message = (OwnerDataMessage)setMessageSignature(getPrivateKey(), newOwnerDataMessage(goodId));
             HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "intentionToSell");
             sendPostRequest(connection, newJSONObject(message));
             BasicMessage responseMessage = getResponseMessage(connection, Expect.BASIC_MESSAGE);
@@ -148,8 +149,8 @@ public class ClientApplication {
         }
     }
 
-    private static OwnerDataMessage newOwnerDataMessage() {
-        String goodId = requestGoodId();
+    private static OwnerDataMessage newOwnerDataMessage(String goodId) {
+
         return new OwnerDataMessage(
                 generateTimestamp(), newUUIDString(),"intentionToSell", getPort(), HDS_NOTARY_PORT,"", goodId, getPort()
         );
