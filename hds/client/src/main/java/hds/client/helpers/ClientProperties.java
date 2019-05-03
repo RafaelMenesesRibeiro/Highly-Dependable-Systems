@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
@@ -43,5 +44,17 @@ public class ClientProperties {
 
     public static PrivateKey getPrivateKey() {
         return privateKey;
+    }
+
+    public static ArrayList<String> getNotaryReplicas() {
+        return null;
+    }
+
+    public static void print(String msg) {
+        System.out.println("[o] " + msg);
+    }
+
+    public static void printError(String msg) {
+        System.out.println("    [x] " + msg);
     }
 }
