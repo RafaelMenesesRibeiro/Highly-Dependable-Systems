@@ -84,15 +84,12 @@ public class WantToBuyController {
             if (!validationResult.equals("")) {
                 return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating response from server :" + validationResult + "."), HttpStatus.valueOf(401));
             }
-
             System.out.println("[o] " + responseMessage.toString());
             return new ResponseEntity<>(responseMessage, HttpStatus.valueOf(connection.getResponseCode()));
         } catch (JsonProcessingException | JSONException e) {
             return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while creating the json to send to the notary."), HttpStatus.valueOf(500));
         } catch (IOException e) {
             return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while reading/writing message from/to notary."), HttpStatus.valueOf(500));
-        } catch (ResponseMessageException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while receiving the response from notary."), HttpStatus.valueOf(500));
         }
     }
 }
