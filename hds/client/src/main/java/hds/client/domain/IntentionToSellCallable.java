@@ -27,7 +27,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
         setMessageSignature(getPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
-        return getResponseMessage(connection, Expect.BASIC_MESSAGE);
+        return (BasicMessage) getResponseMessage(connection, Expect.BASIC_MESSAGE);
     }
 
     private OwnerDataMessage newOwnerDataMessage(long timestamp, String requestId, String to, String goodId) {
