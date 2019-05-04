@@ -193,10 +193,14 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-            List<BasicMessage> responseEntityList = (List<BasicMessage>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+
+            List<ResponseEntity<BasicMessage>> responseEntityList =
+                    (List<ResponseEntity<BasicMessage>>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+            /*
             for (BasicMessage responseMessage : responseEntityList) {
                 processResponse(responseMessage);
             }
+            */
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
