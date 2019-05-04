@@ -9,6 +9,7 @@ import hds.security.msgtypes.GoodStateResponse;
 import hds.security.msgtypes.SaleCertificateResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.ResponseEntity;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -85,7 +86,9 @@ public class ConnectionManager {
                 case SALE_CERT_RESPONSE:
                     return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
                 case SALE_CERT_RESPONSES:
-                    return objectMapper.readValue(jsonString, new TypeReference<List<SaleCertificateResponse>>(){});
+                    return objectMapper.readValue(
+                            jsonString, new TypeReference<List<ResponseEntity<SaleCertificateResponse>>>(){}
+                    );
             }
         }
 
