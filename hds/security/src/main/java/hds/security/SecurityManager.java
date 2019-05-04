@@ -54,16 +54,22 @@ public class SecurityManager {
             return "message is more than five minutes old";
         }
 
-        if (message.getFrom().equals("server")) {
-            if (!isValidSignatureFromServer(message)) {
+        int from = Integer.parseInt(message.getFrom());
+
+        if (from > 9000) {
+            if (!isValidSignatureFromNode(message))
                 return "invalid signature";
-            }
-        } else {
-            if (!isValidSignatureFromNode(message)) {
+        } else if (from == 9000) {
+            if (!isValidSignatureFromNode(message)) // TODO Delete this line and de-comment the if below
+            //if (!isValidSignatureFromServer(message))
                 return "invalid signature";
-            }
+        }
+        else if (from >= 8000 && from < 9000){
+            if (!isValidSignatureFromNode(message))
+                return "invalid signature";
         }
 
+        // Blank string means True, but we can't actually use a boolean.
         return "";
     }
 
