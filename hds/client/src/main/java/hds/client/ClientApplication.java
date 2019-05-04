@@ -1,10 +1,12 @@
 package hds.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.springframework.boot.SpringApplication;
@@ -196,11 +198,11 @@ public class ClientApplication {
 
             List<ResponseEntity<BasicMessage>> responseEntityList =
                     (List<ResponseEntity<BasicMessage>>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
-            /*
-            for (BasicMessage responseMessage : responseEntityList) {
-                processResponse(responseMessage);
+
+            for (ResponseEntity<BasicMessage> httpResponse : responseEntityList) {
+                processResponse(httpResponse.getBody());
             }
-            */
+
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
