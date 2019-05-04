@@ -27,15 +27,15 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 public class KeyPairGeneratorScript {
-	private static final int FIRST_PORT = 8000;
-	private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
-	private static final String PUBLIC_KEY_BASE_FILENAME = "HDSNotary_PublicK_ID_";
+	private static final int FIRST_PORT = 9000;
+	private static final String PRIVATE_KEY_BASE_FILENAME = "HDSReplica_PrivateK_ID_";
+	private static final String PUBLIC_KEY_BASE_FILENAME = "HDSReplica_PublicK_ID_";
 	private static final String KEY_FACTORY_ALGORITHM = "RSA";
 	private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
 	public static void main(String[] args) {
 		if (args.length != 1) {
-			System.out.println("Input the number of known nodes in the HDSNotary System.");
+			System.out.println("Input the number of known replicas in the HDSNotary System.");
 			System.exit(-1);
 		}
 		
