@@ -193,7 +193,7 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-            List<BasicMessage> responseEntityList = (List<BasicMessage>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+            List<BasicMessage> responseEntityList = (List<BasicMessage>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
             for (BasicMessage responseMessage : responseEntityList) {
                 processResponse(responseMessage);
             }

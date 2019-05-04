@@ -19,7 +19,8 @@ public class ConnectionManager {
     public enum Expect {
         BASIC_MESSAGE,
         GOOD_STATE_RESPONSE,
-        SALE_CERT_RESPONSE
+        SALE_CERT_RESPONSE,
+        SALE_CERT_RESPONSES
     }
 
     public static final int MAX_WAIT_BEFORE_TIMEOUT = 5000;
@@ -82,7 +83,8 @@ public class ConnectionManager {
                 case GOOD_STATE_RESPONSE:
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
-                    // return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                    return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                case SALE_CERT_RESPONSES:
                     return objectMapper.readValue(jsonString, new TypeReference<List<SaleCertificateResponse>>(){});
             }
         }

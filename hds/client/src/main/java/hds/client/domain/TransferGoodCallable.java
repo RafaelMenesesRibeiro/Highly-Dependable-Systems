@@ -28,7 +28,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
         setMessageSignature(getPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
-        return getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+        return (BasicMessage) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
     }
 
     private ApproveSaleRequestMessage newApproveSaleRequestMessage(long timestamp,

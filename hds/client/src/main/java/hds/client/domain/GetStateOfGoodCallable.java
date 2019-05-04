@@ -19,6 +19,6 @@ public class GetStateOfGoodCallable implements Callable<BasicMessage> {
     @Override
     public BasicMessage call() throws Exception {
         HttpURLConnection connection = initiateGETConnection(address);
-        return getResponseMessage(connection, Expect.GOOD_STATE_RESPONSE);
+        return (BasicMessage) getResponseMessage(connection, Expect.GOOD_STATE_RESPONSE);
     }
 }
