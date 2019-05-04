@@ -3,6 +3,7 @@ package hds.server.controllers.controllerHelpers;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
+import hds.server.ServerApplication;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.ServerProperties;
@@ -12,13 +13,18 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.SecurityManager.setMessageSignature;
 
 /**
@@ -61,10 +67,11 @@ public class GeneralControllerHelper {
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
-			setMessageSignature(ServerProperties.getPKCS11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
+			PrivateKey pKey = getPrivateKeyFromResource(ServerApplication.getPort());
+			setMessageSignature(pKey, payload);
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
-		catch (SignatureException  ex) {
+		catch (SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
 			ErrorResponse unsignedPayload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}

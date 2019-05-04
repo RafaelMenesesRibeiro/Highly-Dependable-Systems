@@ -15,19 +15,19 @@ import java.util.logging.Logger;
 
 @SpringBootApplication
 public class ServerApplication {
+	private static String port;
 	private static String driver;
 	private static String url;
 	private static String user;
 	private static String password;
 
-	@Autowired
-	private static Environment env;
-
 	public static void main(String[] args) {
 		Logger logger = Logger.getAnonymousLogger();
 		int serverPort = 9000;
 		try {
-			serverPort = Integer.parseInt(args[0]);
+			String port = args[0];
+			ServerApplication.port = port;
+			serverPort = Integer.parseInt(port);
 			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
 			ResourceManager.setMaxClientId(maxClientID);
@@ -62,6 +62,10 @@ public class ServerApplication {
 			user = properties.getProperty("spring.datasource.username");
 			password = properties.getProperty("spring.datasource.password");
 		}
+	}
+
+	public static String getPort() {
+		return port;
 	}
 
 	public static String getDriver() {
