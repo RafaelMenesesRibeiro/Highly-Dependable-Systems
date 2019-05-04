@@ -1,8 +1,8 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.client.exceptions.ResponseMessageException;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.GoodStateResponse;
@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 public class ConnectionManager {
     public enum Expect {
@@ -68,7 +69,8 @@ public class ConnectionManager {
      *
      ***********************************************************/
 
-    public static BasicMessage getResponseMessage(HttpURLConnection conn, Expect type) throws IOException {
+    // public static BasicMessage getResponseMessage(HttpURLConnection conn, Expect type) throws IOException {
+    public static Object getResponseMessage(HttpURLConnection conn, Expect type) throws IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = getJSONStringFromHttpResponse(conn);
@@ -80,7 +82,8 @@ public class ConnectionManager {
                 case GOOD_STATE_RESPONSE:
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
-                    return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                    // return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                    return objectMapper.readValue(jsonString, new TypeReference<List<SaleCertificateResponse>>(){});
             }
         }
 
