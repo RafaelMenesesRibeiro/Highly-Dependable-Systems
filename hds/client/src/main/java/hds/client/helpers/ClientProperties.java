@@ -10,16 +10,13 @@ import java.util.ArrayList;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
+    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+    public static final String HDS_BASE_HOST = "http://localhost:";
 
     private static String portId;
     private static String maxPortId;
     private static ArrayList<String> notaryReplicasPorts;
     private static PrivateKey privateKey;
-    public static final String HDS_BASE_HOST = "http://localhost:";
-    public static final String HDS_NOTARY_HOST = "http://localhost:8000/";
-    // TODO - Remove this. //
-    public static final String HDS_NOTARY_PORT = "8000";
-    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 
     private ClientProperties() {}
 
