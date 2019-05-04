@@ -6,11 +6,9 @@ import hds.security.msgtypes.OwnerDataMessage;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
-import static hds.client.helpers.ClientProperties.*;
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
+import static hds.client.helpers.ClientProperties.getPort;
+import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.CryptoUtils.newUUIDString;
-import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.setMessageSignature;
 
 public class IntentionToSellCallable implements Callable<BasicMessage> {
