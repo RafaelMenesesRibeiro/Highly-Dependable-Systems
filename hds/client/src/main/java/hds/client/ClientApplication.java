@@ -156,7 +156,9 @@ public class ClientApplication {
         } catch (InterruptedException ie) {
             printError(ie.getMessage());
         }
+
         processFuturesList(futuresList);
+
         executorService.shutdown();
     }
 
