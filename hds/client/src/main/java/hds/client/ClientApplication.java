@@ -9,6 +9,7 @@ import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -191,8 +192,11 @@ public class ClientApplication {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-            BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-            processResponse(responseMessage);
+            // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+            List<BasicMessage> responseEntityList = (List<BasicMessage>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+            for (BasicMessage responseMessage : responseEntityList) {
+                processResponse(responseMessage);
+            }
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
