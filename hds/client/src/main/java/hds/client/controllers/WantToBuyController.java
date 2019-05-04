@@ -1,29 +1,25 @@
 package hds.client.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import hds.client.exceptions.ResponseMessageException;
+import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
-import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleRequestMessage;
-import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
-import static hds.client.helpers.ClientProperties.HDS_NOTARY_HOST;
-import static hds.client.helpers.ClientProperties.getPrivateKey;
-import static hds.client.helpers.ConnectionManager.*;
+import static hds.client.helpers.ClientProperties.printError;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.isValidMessage;
-import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 @RestController
 public class WantToBuyController {
@@ -31,12 +27,84 @@ public class WantToBuyController {
     private static final String OPERATION = "wantToBuy";
 
     @PostMapping(value = "/wantToBuy")
-    public ResponseEntity<BasicMessage> wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
+    public ResponseEntity<List<ResponseEntity<BasicMessage>>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
         String validationResult = isValidMessage(ClientProperties.getPort(), requestMessage);
         if (!"".equals(validationResult)) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating request from node :" + validationResult + "."), HttpStatus.valueOf(401));
+            String reason = "Seller encountered the following error validating request from node:" + validationResult;
+            List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
+            responseEntityList.add(
+                    new ResponseEntity<>(newErrorResponse(requestMessage, reason), HttpStatus.UNAUTHORIZED)
+            );
+            return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
         }
-        return execute(requestMessage);
+        return tryDoTransfer(requestMessage);
+    }
+
+    private ResponseEntity<List<ResponseEntity<BasicMessage>>> tryDoTransfer(SaleRequestMessage requestMessage) {
+
+        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final long timestamp = generateTimestamp();
+
+        for (String replicaId : replicasList) {
+            callableList.add(new TransferGoodCallable(timestamp, replicaId, requestMessage));
+        }
+
+        List<Future<BasicMessage>> futuresList = new ArrayList<>();
+        try {
+            futuresList = executorService.invokeAll(callableList);
+        } catch (InterruptedException ie) {
+            printError(ie.getMessage());
+        }
+
+        List<BasicMessage> basicMessageList = getBasicMessagesFromFutures(futuresList);
+        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processBasicMessages(basicMessageList);
+
+        executorService.shutdown();
+
+        return httpResponse;
+    }
+
+    private List<BasicMessage> getBasicMessagesFromFutures(List<Future<BasicMessage>> futuresList) {
+        List<BasicMessage> basicMessageList = new ArrayList<>();
+        for (Future<BasicMessage> future : futuresList) {
+            try {
+                BasicMessage resultContent = future.get();
+                basicMessageList.add(resultContent);
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                if (cause instanceof SocketTimeoutException) {
+                    printError("A node did not respond within expected limits...");
+                } else if (cause instanceof SignatureException) {
+                    printError("Seller could not sign a message to be sent to at least one of the replicas...");
+                } else {
+                    printError(cause.getMessage());
+                }
+            }
+        }
+        return  basicMessageList;
+    }
+
+    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processBasicMessages(List<BasicMessage> basicMessageList) {
+        List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
+
+        for (BasicMessage message : basicMessageList) {
+            String validationResult = isValidMessage(message.getFrom(), message);
+            if (!validationResult.equals("")) {
+                String reason = "Seller encountered error validating response from notary: " + validationResult;
+                responseEntityList.add(
+                        new ResponseEntity<>(newErrorResponse(message, reason), HttpStatus.UNAUTHORIZED)
+                );
+            } else {
+                responseEntityList.add(new ResponseEntity<>(message, HttpStatus.OK));
+                System.out.println("[o] " + message.toString());
+            }
+        }
+
+        return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
     }
 
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
@@ -50,46 +118,5 @@ public class WantToBuyController {
                 "bad request.",
                 reason
         );
-    }
-
-    private ResponseEntity<BasicMessage> execute(SaleRequestMessage requestMessage) {
-        ApproveSaleRequestMessage message = new ApproveSaleRequestMessage(
-                requestMessage.getTimestamp(),
-                requestMessage.getRequestID(),
-                requestMessage.getOperation(),
-                requestMessage.getFrom(),
-                requestMessage.getTo(),
-                requestMessage.getSignature(),
-                requestMessage.getGoodID(),
-                requestMessage.getBuyerID(),
-                requestMessage.getSellerID(),
-                generateTimestamp(),
-                "transferGood",
-                ClientProperties.getPort(),
-                ClientProperties.HDS_NOTARY_PORT,
-                ""
-        );
-
-        try {
-            setMessageWrappingSignature(getPrivateKey(), message);
-        } catch (SignatureException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while signing the message."), HttpStatus.valueOf(500));
-        }
-
-        try {
-            HttpURLConnection connection = initiatePOSTConnection(HDS_NOTARY_HOST + "transferGood");
-            sendPostRequest(connection, newJSONObject(message));
-            BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-            String validationResult = isValidMessage(requestMessage.getFrom(), responseMessage);
-            if (!validationResult.equals("")) {
-                return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has encountered the following error validating response from server :" + validationResult + "."), HttpStatus.valueOf(401));
-            }
-            System.out.println("[o] " + responseMessage.toString());
-            return new ResponseEntity<>(responseMessage, HttpStatus.valueOf(connection.getResponseCode()));
-        } catch (JsonProcessingException | JSONException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while creating the json to send to the notary."), HttpStatus.valueOf(500));
-        } catch (IOException e) {
-            return new ResponseEntity<>(newErrorResponse(requestMessage, "The seller has thrown an exception while reading/writing message from/to notary."), HttpStatus.valueOf(500));
-        }
     }
 }
