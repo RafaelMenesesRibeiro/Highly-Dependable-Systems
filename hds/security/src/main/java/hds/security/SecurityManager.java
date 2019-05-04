@@ -56,7 +56,11 @@ public class SecurityManager {
 
         int from = Integer.parseInt(message.getFrom());
 
-        if (from >= 9000) {
+        if (from >= 10000) {
+            if (!isValidSignatureFromServer(message))
+                return "invalid signature";
+        }
+        else if (from >= 9000 && from < 10000) {
             if (!isValidSignatureFromNode(message))
                 return "invalid signature";
         }
