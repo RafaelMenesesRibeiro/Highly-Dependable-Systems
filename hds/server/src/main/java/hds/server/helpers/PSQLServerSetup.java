@@ -7,7 +7,6 @@ import java.sql.*;
 
 import static hds.server.ServerApplication.*;
 
-@SuppressWarnings("Duplicates")
 public class PSQLServerSetup {
 	// TODO - Add to Application.properties just like datasource.url //
 	private static final String URL = "jdbc:postgresql://localhost:5432/";
@@ -26,7 +25,6 @@ public class PSQLServerSetup {
 		Connection connection = null;
 		Connection connection2 = null;
 		try {
-			System.out.println("\n\n\n\n\n\n initSingleDB \n\n\n");
 			Class.forName(ServerApplication.getDriver());
 			connection = DriverManager.getConnection(URL, getUser(), getPassword());
 			createDatabase(connection, dbName);
