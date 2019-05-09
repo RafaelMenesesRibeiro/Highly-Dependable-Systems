@@ -4,7 +4,7 @@ ECHO OFF
 SetLocal EnableDelayedExpansion
 
 set initialClientPort=8001
-set initialServerPort=10000
+set initialServerPort=9000
 
 set /p numberOfClients="Enter number of clients to create : "
 set /p maxNumberOfClients="Enter maximum number of clients in the system: "
