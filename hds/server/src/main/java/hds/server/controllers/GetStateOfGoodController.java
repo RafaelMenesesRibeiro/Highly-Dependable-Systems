@@ -5,6 +5,7 @@ import hds.security.helpers.inputValidation.inputValidation;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.GoodStateResponse;
+import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
@@ -38,7 +39,7 @@ import static hds.security.DateUtils.generateTimestamp;
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
 	private static final String TO_UNKNOWN = "unknown";
-	private static final String FROM_SERVER = "server";
+	private static final String FROM_SERVER = ServerApplication.getPort();
 	private static final String OPERATION = "getStateOfGood";
 
 	/**
