@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 @SpringBootApplication
 public class ServerApplication {
+	public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
 
@@ -35,6 +36,7 @@ public class ServerApplication {
 			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
 			ResourceManager.setMaxClientId(maxClientID);
+			ResourceManager.setMinClientId(HDS_NOTARY_CLIENTS_FIRST_PORT);
 			int maxServerID = Integer.parseInt(args[2]);
 			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
 
