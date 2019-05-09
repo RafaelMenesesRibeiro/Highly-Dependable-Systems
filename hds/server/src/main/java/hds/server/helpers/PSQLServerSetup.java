@@ -10,8 +10,8 @@ import static hds.server.ServerApplication.*;
 @SuppressWarnings("Duplicates")
 public class PSQLServerSetup {
 	// TODO - Add to Application.properties just like datasource.url //
-	private static final String DB_URL = "jdbc:postgresql://localhost:5432/";
-	private static final String DB_NAME_PREFIX = "HDS_REPLICA_";
+	private static final String URL = "jdbc:postgresql://localhost:5432/";
+
 
 	public static void initDatabased() {
 		if (Integer.parseInt(getPort()) == HDS_NOTARY_REPLICAS_FIRST_PORT) {
@@ -24,13 +24,17 @@ public class PSQLServerSetup {
 
 	private static void initiSingleDB(String dbName) throws DBInitException {
 		Connection connection = null;
+		Connection connection2 = null;
 		try {
 			System.out.println("\n\n\n\n\n\n initSingleDB \n\n\n");
 			Class.forName(ServerApplication.getDriver());
-			connection = DriverManager.getConnection(DB_URL, getUser(), getPassword());
+			connection = DriverManager.getConnection(URL, getUser(), getPassword());
 			createDatabase(connection, dbName);
-			createTables(connection);
-			populateTables(connection);
+			String dbURL = URL + dbName;
+			connection2 = DriverManager.getConnection(dbURL, getUser(), getPassword());
+			createTables(connection2);
+			populateTables(connection2);
+
 		}
 		catch (ClassNotFoundException | SQLException ex) {
 			// TODO //
@@ -42,6 +46,9 @@ public class PSQLServerSetup {
 				if (connection != null) {
 					connection.close();
 				}
+				if (connection2 != null) {
+					connection2.close();
+				}
 			}
 			catch(SQLException ex) { /* Nothing can be done. */ }
 		}
@@ -52,7 +59,6 @@ public class PSQLServerSetup {
 		String query = "DROP DATABASE IF EXISTS " + dbName + ";\n" + "CREATE DATABASE " + dbName + ";";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
-
 		}
 		catch (SQLException ex) {
 			System.out.println("\n\n\n\n\n\n EXCEPTION \n\n\n");
@@ -119,7 +125,6 @@ public class PSQLServerSetup {
 				"insert into ownership values ('good2', '8002');" +
 				"insert into ownership values ('good3', '8003');" +
 				"insert into ownership values ('good4', '8004');";
-		query = "insert into users values ('8001')";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
 			System.out.println("Success populate tables.");

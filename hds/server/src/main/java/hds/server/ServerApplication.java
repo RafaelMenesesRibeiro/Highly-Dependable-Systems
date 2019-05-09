@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 @SpringBootApplication
 public class ServerApplication {
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+	public static final String DB_NAME_PREFIX = "hds_replica_";
 
 	private static String port;
 	private static int replicasNumber;
@@ -33,9 +34,9 @@ public class ServerApplication {
 			serverPort = Integer.parseInt(port);
 			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
+			ResourceManager.setMaxClientId(maxClientID);
 			int maxServerID = Integer.parseInt(args[2]);
 			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
-			ResourceManager.setMaxClientId(maxClientID);
 
 			fetchProperties();
 			// If it's the main server, starts with the Citizen Card feature.
@@ -74,7 +75,7 @@ public class ServerApplication {
 			}
 			properties.load(input);
 			driver = properties.getProperty("spring.datasource.driverClassName");
-			url = properties.getProperty("spring.datasource.url");
+			url = properties.getProperty("spring.datasource.url") + DB_NAME_PREFIX + getPort();
 			user = properties.getProperty("spring.datasource.username");
 			password = properties.getProperty("spring.datasource.password");
 		}
@@ -91,6 +92,8 @@ public class ServerApplication {
 	public static String getUrl() {
 		return url;
 	}
+
+	public static void setUrl(String newUrl) { url = newUrl; }
 
 	public static String getUser() {
 		return user;
