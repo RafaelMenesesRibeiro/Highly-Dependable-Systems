@@ -1,11 +1,11 @@
 package hds.server;
 
 import hds.security.ResourceManager;
+import hds.server.exception.DBInitException;
+import hds.server.helpers.PSQLServerSetup;
 import hds.server.helpers.ServerProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +15,10 @@ import java.util.logging.Logger;
 
 @SpringBootApplication
 public class ServerApplication {
+	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+
 	private static String port;
+	private static int replicasNumber;
 	private static String driver;
 	private static String url;
 	private static String user;
@@ -30,6 +33,8 @@ public class ServerApplication {
 			serverPort = Integer.parseInt(port);
 			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
+			int maxServerID = Integer.parseInt(args[2]);
+			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
 			ResourceManager.setMaxClientId(maxClientID);
 
 			fetchProperties();
@@ -45,6 +50,17 @@ public class ServerApplication {
 			logger.warning("Exiting:\n" + ex.getMessage());
 			System.exit(1);
 		}
+
+		try {
+			PSQLServerSetup.initDatabased();
+		}
+		catch (DBInitException ex) {
+			logger.warning("\n\n\n\n\n\n\n asdadadkajoiqjepoqwjepoqwje \n\n\n\n\n\n");
+			logger.warning("Could not create database. Exiting");
+			logger.warning(ex.getMessage());
+			System.exit(-3);
+		}
+
 		SpringApplication app = new SpringApplication(ServerApplication.class);
 		app.setDefaultProperties(Collections.singletonMap("server.port", serverPort));
 		app.run(args);
@@ -82,5 +98,9 @@ public class ServerApplication {
 
 	public static String getPassword() {
 		return password;
+	}
+
+	public static int getReplicasNumber() {
+		return replicasNumber;
 	}
 }

@@ -27,7 +27,7 @@ FOR /L %%N IN (1, 1, %numberOfServers%) DO (
    set number=%%N
    set /A s=!number!+%initialServerPort%-1
    echo s=!s!
-   start cmd /c "cd server && mvn spring-boot:run -Dspring-boot.run.arguments=!s!,%maxClientPort% && pause"
+   start cmd /c "cd server && mvn spring-boot:run -Dspring-boot.run.arguments=!s!,%maxClientPort%,%maxServerPort% && pause"
 )
 
 FOR /L %%N IN (1, 1, %numberOfClients%) DO (
