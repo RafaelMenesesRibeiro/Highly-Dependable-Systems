@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
-    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+    // TODO - Consider Servers in Ports >= 9000 that use CC. //
+    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 10000;
     public static final String HDS_BASE_HOST = "http://localhost:";
 
     private static String portId;
