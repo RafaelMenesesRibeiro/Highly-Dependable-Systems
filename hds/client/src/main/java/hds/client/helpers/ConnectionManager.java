@@ -3,10 +3,7 @@ package hds.client.helpers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.GoodStateResponse;
-import hds.security.msgtypes.SaleCertificateResponse;
+import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,7 +19,8 @@ public class ConnectionManager {
         BASIC_MESSAGE,
         GOOD_STATE_RESPONSE,
         SALE_CERT_RESPONSE,
-        SALE_CERT_RESPONSES
+        SALE_CERT_RESPONSES,
+        WRITE_RESPONSE
     }
 
     public static final int MAX_WAIT_BEFORE_TIMEOUT = 5000;
@@ -86,6 +84,8 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
                     return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                case WRITE_RESPONSE:
+                    return objectMapper.readValue(jsonString, WriteResponse.class);
             }
         } else if (conn.getResponseCode() == HttpURLConnection.HTTP_MULT_CHOICE) {
             try {
