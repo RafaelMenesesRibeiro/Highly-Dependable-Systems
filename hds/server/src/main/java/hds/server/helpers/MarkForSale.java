@@ -23,8 +23,12 @@ public class MarkForSale {
 	/**
 	 * Marks a GoodID for sale in the database.
 	 *
-	 * @param 	conn	Database connection
-	 * @param 	goodID	GoodID to be marked for sale
+	 * @param 	conn			Database connection
+	 * @param 	goodID			GoodID to be marked for sale
+	 * @param 	writerID    	ID of the client responsible for the writing
+	 *                         	(in this context, it's always the owner)
+	 * @param 	writeTimestamp  Writer's own write Logic timestamp. Identifies if this writing is relevant
+	 * @param	writeOperationSignature Signature for the write operation
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
