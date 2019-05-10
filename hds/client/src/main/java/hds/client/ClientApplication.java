@@ -1,12 +1,18 @@
 package hds.client;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.CryptoUtils;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ErrorResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.security.msgtypes.SaleRequestMessage;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
@@ -195,11 +201,22 @@ public class ClientApplication {
             sendPostRequest(connection, newJSONObject(message));
             // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
 
-            List<ResponseEntity<BasicMessage>> responseEntityList =
-                    (List<ResponseEntity<BasicMessage>>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+            JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
 
-            for (ResponseEntity<BasicMessage> httpResponse : responseEntityList) {
-                processResponse(httpResponse.getBody());
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject responseEntityObject = (JSONObject) jsonArray.get(i);
+                JSONObject basicMessageObject = responseEntityObject.getJSONObject("body");
+
+                BasicMessage basicMessage = null;
+                ObjectMapper objectMapper = new ObjectMapper();
+
+                if (basicMessageObject.has("error")) {
+                    objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
+                } else {
+                    objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
+                }
+
+                processResponse(basicMessage);
             }
 
         } catch (SocketTimeoutException ste) {
