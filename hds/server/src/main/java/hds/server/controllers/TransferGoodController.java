@@ -14,6 +14,7 @@ import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
+import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 
@@ -127,8 +129,9 @@ public class TransferGoodController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
+		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
@@ -138,7 +141,26 @@ public class TransferGoodController {
 			conn = DatabaseManager.getConnection();
 			conn.setAutoCommit(false);
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
+
+				// TODO - Verify WriteOnOwnership. //
+				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
+				String writerID = transactionData.getBuyerID();
+				int logicalTimestamp = transactionData.getLogicalTimestamp();
+				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, logicalTimestamp, writeOnOwnershipsSignature);
+				if (!res) {
+					// TODO - Rollback is not needed here. //
+					conn.rollback();
+					String reason = "The Write On Ownership Operation's signature is not valid.";
+					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+					return new MetaResponse(401, payload);
+				}
+
+				// TODO - Write new attributes in DB. //
 				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
+
+				// TODO - Verify WriteOnGoods. //
+				// TODO - Write false (and other fields) in Goods table. //
+
 				conn.commit();
 				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
 				return new MetaResponse(payload);
@@ -150,7 +172,7 @@ public class TransferGoodController {
 				return new MetaResponse(403, payload);
 			}
 		}
-		catch (SQLException | DBNoResultsException ex) {
+		catch (JSONException | SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
