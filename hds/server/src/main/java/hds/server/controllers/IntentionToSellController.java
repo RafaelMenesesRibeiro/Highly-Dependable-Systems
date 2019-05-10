@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -67,6 +68,7 @@ public class IntentionToSellController {
 			return cachedResponse;
 		}
 
+		// TODO - Add this to custom validation. //
 		long timestamp = ownerData.getTimestamp();
 		if (!isFreshTimestamp(timestamp)) {
 			String reason = "Timestamp " + timestamp + " is too old";
@@ -74,6 +76,18 @@ public class IntentionToSellController {
 			MetaResponse metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
+
+		/*
+		// TODO - Add this to custom validation. //
+		String clientID = ownerData.getOwner();
+		int logicTimestamp = ownerData.getLogicalTimeStamp();
+		if (!isFreshLogicTimestamp(clientID, logicTimestamp)) {
+			String reason = "Logic timestamp " + logicTimestamp + " is too old";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+			MetaResponse metaResponse = new MetaResponse(408, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		}
+		*/
 
 		MetaResponse metaResponse;
 		if(result.hasErrors()) {

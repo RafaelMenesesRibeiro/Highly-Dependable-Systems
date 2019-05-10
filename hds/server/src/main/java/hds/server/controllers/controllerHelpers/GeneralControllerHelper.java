@@ -8,6 +8,7 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -81,8 +82,21 @@ public class GeneralControllerHelper {
 	 * @param   clientID		Key for the cached map
 	 * @return  int			 	Client's timestamp
 	 */
-	public static int tryGetClientTimestamp(String clientID) {
+	private static Integer tryGetClientTimestamp(String clientID) {
 		return clientsTimestamps.get(clientID);
+	}
+
+	/**
+	 * @param 	clientID	 	ClientID to compare
+	 * @param 	logicTimestamp	Received logicTimestamp
+	 * @return 	boolean 		Freshness of the logic timestamp
+	 */
+	public static boolean isFreshLogicTimestamp(String clientID, int logicTimestamp) {
+		Integer savedClientLogicTimestamp = tryGetClientTimestamp(clientID);
+		if (savedClientLogicTimestamp == null) {
+			return true;
+		}
+		return logicTimestamp > savedClientLogicTimestamp;
 	}
 
 	/**
