@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
@@ -42,7 +43,7 @@ import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.i
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
-
+@SuppressWarnings("Duplicates")
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
@@ -58,7 +59,6 @@ public class TransferGoodController {
 	 * @see		ApproveSaleRequestMessage
 	 * @see 	BindingResult
 	 */
-	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> transferGood(@RequestBody @Valid ApproveSaleRequestMessage transactionData, BindingResult result) {
@@ -143,8 +143,8 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 
 				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
-				int logicalTimestamp = transactionData.getLogicalTimestamp();
-				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, logicalTimestamp, writeOnOwnershipsSignature);
+				int writeTimestamp = transactionData.getLogicalTimestamp();
+				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
 				if (!res) {
 					// TODO - Rollback is not needed here. //
 					conn.rollback();
@@ -153,11 +153,17 @@ public class TransferGoodController {
 					return new MetaResponse(401, payload);
 				}
 
-				// TODO - Write new attributes in DB. //
-				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
+				String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+				res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, writeTimestamp, writeOnGoodsSignature);
+				if (!res) {
+					// TODO - Rollback is not needed here. //
+					conn.rollback();
+					String reason = "The Write On Goods Operation's signature is not valid.";
+					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+					return new MetaResponse(401, payload);
+				}
 
-				// TODO - Verify WriteOnGoods. //
-				// TODO - Write false (and other fields) in Goods table. //
+				TransferGood.transferGood(conn, goodID, buyerID, ""+writeTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
 
 				conn.commit();
 				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
