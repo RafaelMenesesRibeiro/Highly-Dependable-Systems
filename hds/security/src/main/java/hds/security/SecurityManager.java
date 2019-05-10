@@ -49,11 +49,10 @@ public class SecurityManager {
     }
 
     public static String isValidMessage(String selfId, BasicMessage message) {
-        if (!selfId.equals(message.getTo()) &&
-                !(message.getOperation().equals("getStateOfGood") && message.getTo().equals("unknown"))) {
+        if (!selfId.equals(message.getTo())) {
             return "wrong host address";
         }
-
+        
         if (!isFreshTimestamp(message.getTimestamp())) {
             return "message is more than five minutes old";
         }
