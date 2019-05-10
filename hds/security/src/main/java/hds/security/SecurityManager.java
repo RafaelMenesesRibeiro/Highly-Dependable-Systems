@@ -2,7 +2,7 @@ package hds.security;
 
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
-import org.json.simple.JSONObject;
+
 import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
@@ -14,6 +14,9 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.*;
@@ -112,7 +115,7 @@ public class SecurityManager {
      *
      ***********************************************************/
 
-    public static JSONObject newWriteOperation(Boolean value, String port, int logicalTimestamp) {
+    public static JSONObject newWriteOperation(Boolean value, String port, int logicalTimestamp) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("onSale", value);
         jsonObject.put("writer", port);

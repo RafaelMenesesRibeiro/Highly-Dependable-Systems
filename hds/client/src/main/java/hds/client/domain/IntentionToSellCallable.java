@@ -2,6 +2,7 @@ package hds.client.domain;
 
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
+import org.json.JSONException;
 
 import java.net.HttpURLConnection;
 import java.security.SignatureException;
@@ -27,18 +28,20 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
         onSale = Boolean.TRUE;
     }
 
-    public IntentionToSellCallable(long timestamp, String requestId, String replicaId, String goodId, int logicalTimestamp)
-            throws SignatureException {
+    public IntentionToSellCallable(long timestamp, String requestId, String replicaId, String goodId, int logicalTimestamp) {
 
         this.replicaId = replicaId;
+        try {
+            byte[] writeOpSignature = signData(
+                    getPrivateKey(), newWriteOperation(onSale, getPort(), logicalTimestamp).toString().getBytes()
+            );
+            this.message = newOwnerDataMessage(
+                    timestamp, requestId, replicaId, goodId, logicalTimestamp, bytesToBase64String(writeOpSignature)
+            );
+        } catch (JSONException | SignatureException exc) {
+            throw new RuntimeException(exc.getMessage());
+        }
 
-        byte[] writeOpSignature = signData(
-                getPrivateKey(), newWriteOperation(onSale, getPort(), logicalTimestamp).toString().getBytes()
-        );
-
-        this.message = newOwnerDataMessage(
-                timestamp, requestId, replicaId, goodId, logicalTimestamp, bytesToBase64String(writeOpSignature)
-        );
     }
 
     @Override
