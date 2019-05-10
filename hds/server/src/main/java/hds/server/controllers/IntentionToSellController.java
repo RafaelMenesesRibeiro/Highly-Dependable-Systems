@@ -5,6 +5,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
+import hds.security.msgtypes.WriteResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
@@ -77,9 +79,8 @@ public class IntentionToSellController {
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
 
-		/*
-		// TODO - Add this to custom validation. //
 		String clientID = ownerData.getOwner();
+		// TODO - Add this to custom validation. //
 		int logicTimestamp = ownerData.getLogicalTimeStamp();
 		if (!isFreshLogicTimestamp(clientID, logicTimestamp)) {
 			String reason = "Logic timestamp " + logicTimestamp + " is too old";
@@ -87,7 +88,7 @@ public class IntentionToSellController {
 			MetaResponse metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
-		*/
+		incrementClientTimestamp(clientID);
 
 		MetaResponse metaResponse;
 		if(result.hasErrors()) {
@@ -150,7 +151,7 @@ public class IntentionToSellController {
 			}
 			MarkForSale.markForSale(conn, goodID);
 			conn.commit();
-			BasicMessage payload = new BasicMessage(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "");
+			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getLogicalTimeStamp());
 			return new MetaResponse(payload);
 		}
 		catch (SQLException | DBNoResultsException ex) {

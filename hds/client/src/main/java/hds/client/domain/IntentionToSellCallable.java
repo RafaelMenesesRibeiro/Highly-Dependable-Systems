@@ -48,7 +48,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
         setMessageSignature(getPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
-        return (BasicMessage) getResponseMessage(connection, Expect.BASIC_MESSAGE);
+        return (BasicMessage) getResponseMessage(connection, Expect.WRITE_RESPONSE);
     }
 
     private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final int logicalTimestamp)
