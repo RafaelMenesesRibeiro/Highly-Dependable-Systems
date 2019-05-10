@@ -30,10 +30,12 @@ public class WantToBuyController {
     public ResponseEntity<List<ResponseEntity<BasicMessage>>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
         String validationResult = isValidMessage(ClientProperties.getPort(), requestMessage);
         if (!"".equals(validationResult)) {
-            String reason = "Seller encountered the following error validating request from node:" + validationResult;
             List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
             responseEntityList.add(
-                    new ResponseEntity<>(newErrorResponse(requestMessage, reason), HttpStatus.UNAUTHORIZED)
+                    new ResponseEntity<>(
+                            newErrorResponse(requestMessage, "Seller found error in incoming request:" + validationResult),
+                            HttpStatus.UNAUTHORIZED
+                    )
             );
             return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
         }
