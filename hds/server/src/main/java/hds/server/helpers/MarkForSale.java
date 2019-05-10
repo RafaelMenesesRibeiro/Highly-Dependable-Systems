@@ -30,12 +30,20 @@ public class MarkForSale {
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
-	public static void markForSale(Connection conn, String goodID)
+	public static void markForSale(Connection conn, String goodID, String writerID, String writeTimestamp, String writeOperationSignature)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
-		String query = "update goods set onSale = ? where goods.goodID = ?";
+		String query = "update goods " +
+				"set onSale = ?," +
+					" wid = ?," +
+					" ts = ?," +
+					" sig = ? " +
+				"where goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");
+		args.add(writerID);
+		args.add(writeTimestamp);
+		args.add(writeOperationSignature);
 		args.add(goodID);
 		try {
 			DatabaseInterface.queryDB(conn, query, "", args);

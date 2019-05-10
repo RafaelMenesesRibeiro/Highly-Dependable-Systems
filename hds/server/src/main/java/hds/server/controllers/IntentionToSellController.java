@@ -16,6 +16,7 @@ import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
+import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
@@ -123,7 +125,7 @@ public class IntentionToSellController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -133,6 +135,7 @@ public class IntentionToSellController {
 			conn.setAutoCommit(false);
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
+				// TODO - Rollback is not needed here. //
 				conn.rollback();
 				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
@@ -144,17 +147,33 @@ public class IntentionToSellController {
 			boolean res = isClientWilling(sellerID, signature, ownerData);
 			ownerData.setSignature(signature);
 			if (!res) {
+				// TODO - Rollback is not needed here. //
 				conn.rollback();
 				String reason = "The Seller's signature is not valid.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
 				return new MetaResponse(401, payload);
 			}
-			MarkForSale.markForSale(conn, goodID);
+
+			String writeOperationSignature = ownerData.getWriteOperationSignature();
+			String writerID = ownerData.getOwner();
+			int logicalTimestamp = ownerData.getLogicalTimeStamp();
+			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, logicalTimestamp, writeOperationSignature);
+
+			if (!res) {
+				// TODO - Rollback is not needed here. //
+				conn.rollback();
+				String reason = "The Write On Goods Operation's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
+			}
+
+			MarkForSale.markForSale(conn, goodID, writerID, ""+logicalTimestamp, writeOperationSignature);
 			conn.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getLogicalTimeStamp());
 			return new MetaResponse(payload);
 		}
-		catch (SQLException | DBNoResultsException ex) {
+		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //
+		catch (JSONException | SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
