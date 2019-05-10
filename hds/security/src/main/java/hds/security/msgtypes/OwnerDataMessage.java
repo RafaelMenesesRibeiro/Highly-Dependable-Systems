@@ -51,12 +51,27 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
         this.owner = owner;
     }
 
+    public int getLogicalTimeStamp() {
+        return logicalTimeStamp;
+    }
+
+    public boolean isOnSale() {
+        return onSale;
+    }
+
+    public String getWriteOperationSignature() {
+        return writeOperationSignature;
+    }
+
     @Override
     public String toString() {
         return "OwnerDataMessage{" +
-                "owner='" + owner + '\'' +
+                "logicalTimeStamp=" + logicalTimeStamp +
+                ", onSale=" + onSale +
+                ", owner='" + owner + '\'' +
+                ", writeOperationSignature='" + writeOperationSignature + '\'' +
                 ", goodID='" + goodID + '\'' +
-                ", requestID=" + requestID +
+                ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
