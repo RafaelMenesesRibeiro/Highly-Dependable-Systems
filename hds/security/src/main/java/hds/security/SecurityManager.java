@@ -2,6 +2,7 @@ package hds.security;
 
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
+import org.json.simple.JSONObject;
 import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
@@ -103,5 +104,19 @@ public class SecurityManager {
         } catch (IOException | SignatureException | CertificateException exc) {
             return false;
         }
+    }
+
+    /***********************************************************
+     *
+     * HELPER METHODS
+     *
+     ***********************************************************/
+
+    public static JSONObject newWriteOperation(Boolean value, String port, int logicalTimestamp) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("onSale", value);
+        jsonObject.put("writer", port);
+        jsonObject.put("ts", logicalTimestamp);
+        return  jsonObject;
     }
 }
