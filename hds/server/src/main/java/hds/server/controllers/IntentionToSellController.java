@@ -44,6 +44,7 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  * @author 		Rafael Ribeiro
  * @see 		OwnerDataMessage
  */
+@SuppressWarnings("Duplicates")
 @RestController
 public class IntentionToSellController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
@@ -58,7 +59,6 @@ public class IntentionToSellController {
 	 * @see		OwnerDataMessage
 	 * @see 	BindingResult
 	 */
-	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
