@@ -83,7 +83,7 @@ public class IntentionToSellController {
 
 		String clientID = ownerData.getOwner();
 		// TODO - Add this to custom validation. //
-		int logicTimestamp = ownerData.getLogicalTimeStamp();
+		int logicTimestamp = ownerData.getLogicalTimestamp();
 		if (!isFreshLogicTimestamp(clientID, logicTimestamp)) {
 			String reason = "Logic timestamp " + logicTimestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
@@ -156,7 +156,7 @@ public class IntentionToSellController {
 
 			String writeOperationSignature = ownerData.getWriteOperationSignature();
 			String writerID = ownerData.getOwner();
-			int logicalTimestamp = ownerData.getLogicalTimeStamp();
+			int logicalTimestamp = ownerData.getLogicalTimestamp();
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, logicalTimestamp, writeOperationSignature);
 
 			if (!res) {
@@ -169,7 +169,7 @@ public class IntentionToSellController {
 
 			MarkForSale.markForSale(conn, goodID, writerID, ""+logicalTimestamp, writeOperationSignature);
 			conn.commit();
-			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getLogicalTimeStamp());
+			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getLogicalTimestamp());
 			return new MetaResponse(payload);
 		}
 		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //

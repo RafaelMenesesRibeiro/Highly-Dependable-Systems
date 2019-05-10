@@ -43,11 +43,11 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
 
     public OwnerDataMessage() {}
 
-    public int getLogicalTimeStamp() {
+    public int getLogicalTimestamp() {
         return logicalTimeStamp;
     }
 
-    public void setLogicalTimeStamp(int logicalTimeStamp) {
+    public void setLogicalTimestamp(int logicalTimeStamp) {
         this.logicalTimeStamp = logicalTimeStamp;
     }
 
