@@ -61,7 +61,7 @@ public class WantToBuyController {
         }
 
         List<BasicMessage> basicMessageList = getBasicMessagesFromFutures(futuresList);
-        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processBasicMessages(basicMessageList);
+        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processNotaryResponses(requestMessage, basicMessageList);
 
         executorService.shutdown();
 
@@ -90,10 +90,12 @@ public class WantToBuyController {
         return  basicMessageList;
     }
 
-    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processBasicMessages(List<BasicMessage> basicMessageList) {
+    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processNotaryResponses(SaleRequestMessage requestMessage,
+                                                                                      List<BasicMessage> basicMessageList) {
+
         List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
         for (BasicMessage message : basicMessageList) {
-            String validationResult = isValidMessage(message.getFrom(), message);
+            String validationResult = isValidMessage(requestMessage.getFrom(), message);
             if (!validationResult.equals("")) {
                 String reason = "Seller encountered error validating response from notary: " + validationResult;
                 responseEntityList.add(
