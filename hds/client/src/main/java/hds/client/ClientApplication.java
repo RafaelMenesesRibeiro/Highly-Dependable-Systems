@@ -213,7 +213,7 @@ public class ClientApplication {
                 BasicMessage basicMessage = null;
                 ObjectMapper objectMapper = new ObjectMapper();
 
-                if (basicMessageObject.has("error")) {
+                if (basicMessageObject.has("reason")) {
                     objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
                 } else {
                     objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
