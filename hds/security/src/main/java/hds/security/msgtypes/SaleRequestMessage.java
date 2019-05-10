@@ -18,9 +18,18 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @ValidClientID
     private String sellerID;
 
+    @NotNull(message = "The logical timestamp cannot be null.")
     private int logicalTimestamp;
+
+    @NotNull(message = "The on sale boolean cannot be null.")
     private Boolean onSale;
+
+    @NotNull(message = "The write on good operation signature cannot be null.")
+    @NotEmpty(message = "The write on good operation signature cannot be empty.")
     private String writeOnGoodsSignature;
+
+    @NotNull(message = "The write on ownership operation signature cannot be null.")
+    @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
     private String writeOnOwnershipsSignature;
 
     public SaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
