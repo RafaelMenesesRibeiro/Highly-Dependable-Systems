@@ -90,7 +90,6 @@ public class WantToBuyController {
 
     private ResponseEntity<List<ResponseEntity<BasicMessage>>> processBasicMessages(List<BasicMessage> basicMessageList) {
         List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
-
         for (BasicMessage message : basicMessageList) {
             String validationResult = isValidMessage(message.getFrom(), message);
             if (!validationResult.equals("")) {
@@ -103,7 +102,6 @@ public class WantToBuyController {
                 System.out.println("[o] " + message.toString());
             }
         }
-
         return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
     }
 
