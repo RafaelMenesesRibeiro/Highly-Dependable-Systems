@@ -1,9 +1,13 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class ErrorResponse extends BasicMessage implements Serializable {
+    @NotNull(message = "The error message cannot be null.")
     private String message;
+
+    @NotNull(message = "The error reason cannot be null.")
     private String reason;
 
     public ErrorResponse(long timestamp, String requestID, String operation, String from, String to, String signature,
