@@ -13,7 +13,7 @@ public class ValidClientIDValidator implements ConstraintValidator<ValidClientID
 
 	@Override
 	public void initialize(ValidClientID constraintAnnotation) {
-		this.minValue = ResourceManager.getServerPort() + 1;
+		this.minValue = ResourceManager.getMinClientId();
 		this.maxValue = ResourceManager.getMaxClientId();
 	}
 

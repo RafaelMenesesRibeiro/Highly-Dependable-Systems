@@ -20,6 +20,7 @@ import java.util.Objects;
 
 public class ResourceManager {
     private static int SERVER_PORT;
+    private static int MIN_CLIENT_ID;
     private static int MAX_CLIENT_ID;
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String KEYS_FOLDER_LOCATION = "keys/";
@@ -45,6 +46,14 @@ public class ResourceManager {
 
     public static void setMaxClientId(int maxClientId) {
         MAX_CLIENT_ID = maxClientId;
+    }
+
+    public static int getMinClientId() {
+        return MIN_CLIENT_ID;
+    }
+
+    public static void setMinClientId(int minClientId) {
+        MIN_CLIENT_ID = minClientId;
     }
 
     public static PublicKey getPublicKeyFromResource(String resourceId) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {

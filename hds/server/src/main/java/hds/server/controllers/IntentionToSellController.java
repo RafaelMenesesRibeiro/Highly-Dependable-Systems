@@ -5,6 +5,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
+import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
@@ -40,7 +41,7 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  */
 @RestController
 public class IntentionToSellController {
-	private static final String FROM_SERVER = "server";
+	private static final String FROM_SERVER = ServerApplication.getPort();
 	private static final String OPERATION = "markForSale";
 
 	/**

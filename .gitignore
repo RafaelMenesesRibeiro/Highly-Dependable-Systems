@@ -74,3 +74,4 @@ fabric.properties
 
 hds/server/src/main/resources/application.properties
 hds/client/src/main/resources/certs/server.pem
+docs/scripts/KeyPairGeneratorScript.class

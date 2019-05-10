@@ -4,7 +4,6 @@ import pteidlib.PteidException;
 import pteidlib.pteid;
 import sun.security.pkcs11.wrapper.*;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
@@ -59,7 +58,7 @@ public class CryptoUtils {
     }
 
     public static boolean authenticateSignatureWithCert(X509Certificate certificate, String signedData, String payloadString)
-            throws IOException, CertificateException, SignatureException {
+            throws CertificateException, SignatureException {
         try {
             certificate.checkValidity();
         } catch (CertificateExpiredException | CertificateNotYetValidException exc) {
