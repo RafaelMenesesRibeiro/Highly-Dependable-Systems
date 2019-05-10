@@ -14,6 +14,7 @@ import java.util.List;
  *
  * @author 		Rafael Ribeiro
  */
+@SuppressWarnings("Duplicates")
 public class MarkForSale {
 
 	private MarkForSale() {
@@ -38,10 +39,10 @@ public class MarkForSale {
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "UPDATE goods " +
-				"SET onSale = ?," +
-					" wid = ?," +
-					" ts = ?," +
-					" sig = ? " +
+				"SET onSale = ?, " +
+					"wid = ?, " +
+					"ts = ?, " +
+					"sig = ? " +
 				"WHERE goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");
