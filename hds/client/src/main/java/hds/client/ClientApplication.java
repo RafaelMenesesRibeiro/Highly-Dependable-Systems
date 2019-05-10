@@ -16,6 +16,7 @@ import java.net.SocketTimeoutException;
 import java.security.SignatureException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
@@ -28,6 +29,7 @@ import static hds.security.SecurityManager.setMessageSignature;
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
+    private static final AtomicInteger writeCounter = new AtomicInteger(0);
 
     /***********************************************************
      *
@@ -144,7 +146,7 @@ public class ClientApplication {
         final long timestamp = generateTimestamp();
 
         for (String replicaId : replicasList) {
-            callableList.add(new IntentionToSellCallable(timestamp, requestId, replicaId, goodId));
+            callableList.add(new IntentionToSellCallable(timestamp, requestId, replicaId, goodId, writeCounter.incrementAndGet()));
         }
 
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
