@@ -73,7 +73,12 @@ public class GeneralControllerHelper {
 	 * @param   clientID		Key for the cached map
 	 */
 	public static void incrementClientTimestamp(String clientID) {
-		clientsTimestamps.put(clientID, clientsTimestamps.get(clientID) + 1);
+		try {
+			clientsTimestamps.put(clientID, clientsTimestamps.get(clientID) + 1);
+		}
+		catch (NullPointerException npex) {
+			clientsTimestamps.put(clientID, 1);
+		}
 	}
 
 	/**
