@@ -37,12 +37,12 @@ public class MarkForSale {
 	public static void markForSale(Connection conn, String goodID, String writerID, String writeTimestamp, String writeOperationSignature)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
-		String query = "update goods " +
-				"set onSale = ?," +
+		String query = "UPDATE goods " +
+				"SET onSale = ?," +
 					" wid = ?," +
 					" ts = ?," +
 					" sig = ? " +
-				"where goods.goodID = ?";
+				"WHERE goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");
 		args.add(writerID);
