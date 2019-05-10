@@ -200,8 +200,11 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+
+            if (jsonArray == null) {
+                printError("Failed to deserialize json array (null) on buy goods with sale_cert_responses");
+            }
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject responseEntityObject = (JSONObject) jsonArray.get(i);
@@ -215,7 +218,6 @@ public class ClientApplication {
                 } else {
                     objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
                 }
-
                 processResponse(basicMessage);
             }
 
