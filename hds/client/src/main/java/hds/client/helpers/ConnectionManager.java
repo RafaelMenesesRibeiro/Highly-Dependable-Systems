@@ -86,15 +86,15 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
                     return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
-                case SALE_CERT_RESPONSES:
-                    try {
-                        return new JSONArray(jsonString);
-                    } catch (JSONException jsone) {
-                        return null;
-                    }
+            }
+        } else if (conn.getResponseCode() == HttpURLConnection.HTTP_MULT_CHOICE) {
+            try {
+                return new JSONArray(jsonString);
+            } catch (JSONException jsone) {
+                System.out.println(jsone.getMessage());
+                return null;
             }
         }
-
         return objectMapper.readValue(jsonString, ErrorResponse.class);
     }
 
