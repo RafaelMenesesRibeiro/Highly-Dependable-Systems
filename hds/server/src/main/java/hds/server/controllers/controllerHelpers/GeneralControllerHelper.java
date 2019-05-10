@@ -6,7 +6,6 @@ import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
-import hds.server.helpers.ServerProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -35,21 +34,55 @@ import static hds.security.SecurityManager.setMessageSignature;
  */
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
+	private static final LinkedHashMap<String, Integer> clientsTimestamps = new LinkedHashMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
 	private static final int MAX_CACHED_ENTRIES = 128;
 
 	/**
-	 * TODO - @FranciscoBarros
+	 * Adds a newly responded message to the recent messages cached. Used in case of
+	 * client's duplicate requests.
+	 *
+	 * @param   key				Key for the cached map
+	 * @param 	value			ResponseEntity sent to client
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
 	 */
 	public static void cacheRecentRequest(UserRequestIDKey key, ResponseEntity<BasicMessage> value) {
-		recentMessages.put(key, value);	 // TODO should be persistable
+		recentMessages.put(key, value);
 	}
 
 	/**
-	 * TODO - @FranciscoBarros
+	 * Gets the response sent associated with the @param key.
+	 *
+	 * @param   key				Key for the cached map
+	 * @return  ResponseEntity 	Response sent associated with the key, or null, if the
+	 * 							the request associated with the key was never responded
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
 	 */
 	public static ResponseEntity<BasicMessage> tryGetRecentRequest(UserRequestIDKey key) {
 		return recentMessages.get(key);
+	}
+
+	/**
+	 * Increments the logic timestamp associated with the client with @param clientID
+	 *
+	 * @param   clientID		Key for the cached map
+	 */
+	public static void incrementClientTimestamp(String clientID) {
+		clientsTimestamps.put(clientID, clientsTimestamps.get(clientID) + 1);
+	}
+
+	/**
+	 * Gets the logic timestamp associated with the client with @param clientID
+	 *
+	 * @param   clientID		Key for the cached map
+	 * @return  int			 	Client's timestamp
+	 */
+	public static int tryGetClientTimestamp(String clientID) {
+		return clientsTimestamps.get(clientID);
 	}
 
 	/**
