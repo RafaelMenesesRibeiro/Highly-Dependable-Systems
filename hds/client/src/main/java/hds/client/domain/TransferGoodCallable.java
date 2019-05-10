@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 public class TransferGoodCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "transferGood";
@@ -25,7 +26,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
 
     @Override
     public BasicMessage call() throws Exception {
-        setMessageSignature(getPrivateKey(), message);
+        setMessageWrappingSignature(getPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
         return (BasicMessage) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
