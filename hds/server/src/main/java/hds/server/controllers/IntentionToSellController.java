@@ -159,7 +159,6 @@ public class IntentionToSellController {
 			String writerID = ownerData.getOwner();
 			int logicalTimestamp = ownerData.getLogicalTimestamp();
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, logicalTimestamp, writeOperationSignature);
-
 			if (!res) {
 				// TODO - Rollback is not needed here. //
 				conn.rollback();
