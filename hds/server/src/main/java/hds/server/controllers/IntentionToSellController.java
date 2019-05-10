@@ -72,13 +72,22 @@ public class IntentionToSellController {
 			return cachedResponse;
 		}
 
+		MetaResponse metaResponse;
+
 		// TODO - Add this to custom validation. //
 		long timestamp = ownerData.getTimestamp();
 		if (!isFreshTimestamp(timestamp)) {
 			String reason = "Timestamp " + timestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			MetaResponse metaResponse = new MetaResponse(408, payload);
+			metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+		}
+
+		if(result.hasErrors()) {
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
+			GeneralControllerHelper.cacheRecentRequest(key, response);
+			return response;
 		}
 
 		String clientID = ownerData.getOwner();
@@ -87,18 +96,10 @@ public class IntentionToSellController {
 		if (!isFreshLogicTimestamp(clientID, logicTimestamp)) {
 			String reason = "Logic timestamp " + logicTimestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			MetaResponse metaResponse = new MetaResponse(408, payload);
+			metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 		}
 		incrementClientTimestamp(clientID);
-
-		MetaResponse metaResponse;
-		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-			GeneralControllerHelper.cacheRecentRequest(key, response);
-			return response;
-		}
 
 		try {
 			metaResponse = execute(ownerData);
