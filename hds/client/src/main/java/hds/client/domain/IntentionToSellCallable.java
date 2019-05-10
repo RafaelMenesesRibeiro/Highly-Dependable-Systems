@@ -1,8 +1,10 @@
 package hds.client.domain;
 
+import hds.security.CryptoUtils;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
 import java.security.SignatureException;
@@ -13,33 +15,30 @@ import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.signData;
-import static hds.security.SecurityManager.newWriteOperation;
-import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.*;
 
 public class IntentionToSellCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "intentionToSell";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
-    private static final Boolean onSale;
-
     private final OwnerDataMessage message;
     private final String replicaId;
 
-    static {
-        onSale = Boolean.TRUE;
-    }
-
-    public IntentionToSellCallable(long timestamp, String requestId, String replicaId, String goodId, int logicalTimestamp) {
+    public IntentionToSellCallable(long timestamp,
+                                   String requestId,
+                                   String replicaId,
+                                   String goodId,
+                                   int logicalTimestamp,
+                                   Boolean onSale) {
 
         this.replicaId = replicaId;
         try {
-            byte[] writeOpSignature = signData(
-                    getPrivateKey(), newWriteOperation(onSale, getPort(), logicalTimestamp).toString().getBytes()
-            );
+            byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, logicalTimestamp);
             this.message = newOwnerDataMessage(
-                    timestamp, requestId, replicaId, goodId, logicalTimestamp, bytesToBase64String(writeOpSignature)
+                    timestamp, requestId, replicaId, goodId, logicalTimestamp, onSale, bytesToBase64String(writeOnGoodsSignature)
             );
         } catch (JSONException | SignatureException exc) {
             throw new RuntimeException(exc.getMessage());
+
         }
 
     }
@@ -52,12 +51,20 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
         return (BasicMessage) getResponseMessage(connection, Expect.BASIC_MESSAGE);
     }
 
-    private OwnerDataMessage newOwnerDataMessage(long timestamp,
-                                                 String requestId,
-                                                 String to,
-                                                 String goodId,
-                                                 int logicalTimestamp,
-                                                 String writeOperationJson) {
+    private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final int logicalTimestamp)
+            throws JSONException, SignatureException {
+
+        byte[] rawData = newWriteOnGoodsData(goodId, onSale, getPort(), logicalTimestamp).toString().getBytes();
+        return CryptoUtils.signData(getPrivateKey(), rawData);
+    }
+
+    private OwnerDataMessage newOwnerDataMessage(final long timestamp,
+                                                 final String requestId,
+                                                 final String to,
+                                                 final String goodId,
+                                                 final int logicalTimestamp,
+                                                 final Boolean onSale,
+                                                 final String writeOnGoodsSignature) {
 
         return new OwnerDataMessage(
                 timestamp,
@@ -70,7 +77,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                 getPort(), // owner
                 logicalTimestamp,
                 onSale,
-                writeOperationJson
+                writeOnGoodsSignature
         );
     }
 }

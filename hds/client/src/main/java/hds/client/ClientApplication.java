@@ -3,6 +3,7 @@ package hds.client;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
+import hds.security.CryptoUtils;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
@@ -21,10 +22,10 @@ import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.isValidMessage;
-import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
@@ -146,7 +147,9 @@ public class ClientApplication {
         final long timestamp = generateTimestamp();
 
         for (String replicaId : replicasList) {
-            callableList.add(new IntentionToSellCallable(timestamp, requestId, replicaId, goodId, writeCounter.incrementAndGet()));
+            callableList.add(new IntentionToSellCallable(
+                    timestamp, requestId, replicaId, goodId, writeCounter.incrementAndGet(), Boolean.TRUE)
+            );
         }
 
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
@@ -206,23 +209,52 @@ public class ClientApplication {
         }
     }
 
-    public static SaleRequestMessage newSaleRequestMessage() {
+    private static SaleRequestMessage newSaleRequestMessage() {
         String to = requestSellerId();
         String goodId = requestGoodId();
-        String sellerId = to;
-        return new SaleRequestMessage(
-                generateTimestamp(),
-                newUUIDString(),
-                "buyGood",
-                ClientProperties.getPort(),
-                to,
-                "",
-                goodId,
-                ClientProperties.getPort(),
-                sellerId
-        );
+        Boolean onSale = Boolean.FALSE;
+        int logicalTimestamp = writeCounter.incrementAndGet();
+
+        try {
+            byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, getPort(), logicalTimestamp);
+            byte[] writeOnOwnershipsSignature = newWriteOnOwnershipsDataSignature(goodId, getPort(), logicalTimestamp);
+            return new SaleRequestMessage(
+                    generateTimestamp(),
+                    newUUIDString(),
+                    "buyGood",
+                    ClientProperties.getPort(), // from
+                    to,
+                    "",
+                    goodId,
+                    ClientProperties.getPort(), // buyer
+                    to, // seller
+                    logicalTimestamp,
+                    onSale,
+                    bytesToBase64String(writeOnGoodsSignature),
+                    bytesToBase64String(writeOnOwnershipsSignature)
+            );
+        } catch (JSONException | SignatureException exc) {
+            throw new RuntimeException(exc.getMessage());
+        }
+
     }
 
+    private static byte[] newWriteOnGoodsDataSignature(final String goodId,
+                                                       final Boolean onSale,
+                                                       final String writer,
+                                                       final int logicalTimestamp) throws JSONException, SignatureException {
+
+        byte[] rawData = newWriteOnGoodsData(goodId, onSale, writer, logicalTimestamp).toString().getBytes();
+        return CryptoUtils.signData(getPrivateKey(), rawData);
+    }
+
+    private static byte[] newWriteOnOwnershipsDataSignature(final String goodId,
+                                                   final String writer,
+                                                   final int logicalTimestamp) throws JSONException, SignatureException {
+
+        byte[] rawData = newWriteOnOwnershipsData(goodId, writer, logicalTimestamp).toString().getBytes();
+        return CryptoUtils.signData(getPrivateKey(), rawData);
+    }
     /***********************************************************
      *
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE

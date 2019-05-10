@@ -24,13 +24,26 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
     @NotEmpty(message = "The wrappingSignature cannot be empty.")
     private String wrappingSignature;
 
-    public ApproveSaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
+    public ApproveSaleRequestMessage(long timestamp,
+                                     String requestID,
+                                     String operation,
+                                     String from,
+                                     String to,
                                      String signature,
-                                     String goodID, String buyerID, String sellerID,
-                                     long wrappingTimestamp, String wrappingOperation, String wrappingFrom,
+                                     String goodID,
+                                     String buyerID,
+                                     String sellerID,
+                                     int logicalTimestamp,
+                                     Boolean onSale,
+                                     String writeOnGoodsSignature,
+                                     String writeOnOwnershipsSignature,
+                                     long wrappingTimestamp,
+                                     String wrappingOperation,
+                                     String wrappingFrom,
                                      String wrappingTo,
                                      String wrappingSignature) {
-        super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID);
+
+        super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID, logicalTimestamp, onSale, writeOnGoodsSignature, writeOnOwnershipsSignature);
         this.wrappingTimestamp = wrappingTimestamp;
         this.wrappingOperation = wrappingOperation;
         this.wrappingFrom = wrappingFrom;
@@ -43,6 +56,10 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
 
     public long getWrappingTimestamp() {
         return wrappingTimestamp;
+    }
+
+    public void setWrappingTimestamp(long wrappingTimestamp) {
+        this.wrappingTimestamp = wrappingTimestamp;
     }
 
     public String getWrappingOperation() {
@@ -80,12 +97,13 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
     @Override
     public String toString() {
         return "ApproveSaleRequestMessage{" +
-                "wrappingOperation='" + wrappingOperation + '\'' +
+                "wrappingTimestamp=" + wrappingTimestamp +
+                ", wrappingOperation='" + wrappingOperation + '\'' +
                 ", wrappingFrom='" + wrappingFrom + '\'' +
                 ", wrappingTo='" + wrappingTo + '\'' +
                 ", wrappingSignature='" + wrappingSignature + '\'' +
                 ", goodID='" + goodID + '\'' +
-                ", requestID=" + requestID +
+                ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
