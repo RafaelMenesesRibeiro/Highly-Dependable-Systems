@@ -142,9 +142,7 @@ public class TransferGoodController {
 			conn.setAutoCommit(false);
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 
-				// TODO - Verify WriteOnOwnership. //
 				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
-				String writerID = transactionData.getBuyerID();
 				int logicalTimestamp = transactionData.getLogicalTimestamp();
 				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, logicalTimestamp, writeOnOwnershipsSignature);
 				if (!res) {
