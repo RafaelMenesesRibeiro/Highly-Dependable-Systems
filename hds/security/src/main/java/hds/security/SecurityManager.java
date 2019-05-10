@@ -133,6 +133,21 @@ public class SecurityManager {
      *
      ***********************************************************/
 
+    public static boolean verifyWriteOnGoodsOperationSignature(final String goodID, final Boolean value,
+                                                               final String writerID, final int logicalTimestamp,
+                                                               final String signature)
+                throws JSONException, hds.security.exceptions.SignatureException {
+
+        JSONObject json = newWriteOnGoodsData(goodID, value, writerID, logicalTimestamp);
+        try {
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
+            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
+        }
+        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
+            throw new hds.security.exceptions.SignatureException(ex.getMessage());
+        }
+    }
+
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
