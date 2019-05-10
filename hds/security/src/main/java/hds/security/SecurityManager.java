@@ -49,10 +49,28 @@ public class SecurityManager {
     }
 
     public static String isValidMessage(String selfId, BasicMessage message) {
+
+        // TODO - THIS IS SHIT. THIS ONLY WORKS FOR 30% OF OPERATIONS. DON'T TRY TO SAVE LINES. //
+        /*
         if (!selfId.equals(message.getTo()) &&
                 !(message.getOperation().equals("getStateOfGood") && message.getTo().equals("unknown"))) {
             return "wrong host address";
         }
+        */
+
+        if (message.getOperation().equals("getStateOfGood") && !message.getTo().equals("unknown")) {
+            return "wrong host address";
+        }
+        else if (message.getOperation().equals("markForSale") && !message.getTo().equals(selfId)) {
+            return "wrong host address";
+        }
+        else if (message.getOperation().equals("transferGood")) {
+            // TODO //
+        }
+        else if (message.getOperation().equals("buyGood")) {
+            // TODO //
+        }
+
 
         if (!isFreshTimestamp(message.getTimestamp())) {
             return "message is more than five minutes old";
