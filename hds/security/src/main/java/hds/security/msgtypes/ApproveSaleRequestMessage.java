@@ -24,13 +24,13 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
     @NotEmpty(message = "The wrappingSignature cannot be empty.")
     private String wrappingSignature;
 
-    public ApproveSaleRequestMessage(long timesamp, String requestID, String operation, String from, String to,
+    public ApproveSaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
                                      String signature,
                                      String goodID, String buyerID, String sellerID,
                                      long wrappingTimestamp, String wrappingOperation, String wrappingFrom,
                                      String wrappingTo,
                                      String wrappingSignature) {
-        super(timesamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID);
+        super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID);
         this.wrappingTimestamp = wrappingTimestamp;
         this.wrappingOperation = wrappingOperation;
         this.wrappingFrom = wrappingFrom;
