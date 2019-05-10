@@ -52,7 +52,7 @@ public class SecurityManager {
         if (!selfId.equals(message.getTo())) {
             return "wrong host address";
         }
-        
+
         if (!isFreshTimestamp(message.getTimestamp())) {
             return "message is more than five minutes old";
         }

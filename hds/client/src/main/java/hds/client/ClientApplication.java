@@ -210,14 +210,17 @@ public class ClientApplication {
                 JSONObject responseEntityObject = (JSONObject) jsonArray.get(i);
                 JSONObject basicMessageObject = responseEntityObject.getJSONObject("body");
 
+                System.out.println(basicMessageObject.toString(4));
+
                 BasicMessage basicMessage = null;
                 ObjectMapper objectMapper = new ObjectMapper();
 
                 if (basicMessageObject.has("reason")) {
-                    objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
+                    basicMessage = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
                 } else {
-                    objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
+                    basicMessage = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
                 }
+
                 processResponse(basicMessage);
             }
 
