@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 
 /**
  * Responsible for handling POST requests for the endpoint /transferGood.
@@ -68,21 +70,35 @@ public class TransferGoodController {
 			return cachedResponse;
 		}
 
+		MetaResponse metaResponse;
+
+		// TODO - Add this to custom validation. //
 		long timestamp = transactionData.getTimestamp();
 		if (!isFreshTimestamp(timestamp)) {
 			String reason = "Timestamp " + timestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			MetaResponse metaResponse = new MetaResponse(408, payload);
+			metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
 
-		MetaResponse metaResponse;
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 			GeneralControllerHelper.cacheRecentRequest(key, response);
 			return response;
 		}
+
+		String writerID = transactionData.getBuyerID();
+		// TODO - Add this to custom validation. //
+		int logicTimestamp = transactionData.getLogicalTimestamp();
+		if (!isFreshLogicTimestamp(writerID, logicTimestamp)) {
+			String reason = "Logic timestamp " + logicTimestamp + " is too old";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+			metaResponse = new MetaResponse(408, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		}
+		incrementClientTimestamp(writerID);
+
 		try {
 			metaResponse = execute(transactionData);
 		}
