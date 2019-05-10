@@ -1,12 +1,9 @@
 package hds.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.OwnerDataMessage;
-import hds.security.msgtypes.SaleCertificateResponse;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.json.JSONException;
 import org.springframework.boot.SpringApplication;
@@ -19,9 +16,6 @@ import java.net.SocketTimeoutException;
 import java.security.SignatureException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.Collections;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
