@@ -115,10 +115,24 @@ public class SecurityManager {
      *
      ***********************************************************/
 
-    public static JSONObject newWriteOperation(Boolean value, String port, int logicalTimestamp) throws JSONException {
+    public static JSONObject newWriteOnGoodsData(final String goodId,
+                                                 final Boolean value,
+                                                 final String writer,
+                                                 final int logicalTimestamp) throws JSONException {
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("goodId", goodId);
         jsonObject.put("onSale", value);
-        jsonObject.put("writer", port);
+        jsonObject.put("writer", writer);
+        jsonObject.put("ts", logicalTimestamp);
+        return  jsonObject;
+    }
+
+    public static JSONObject newWriteOnOwnershipsData(final String goodId,
+                                                      final String writer,
+                                                      final int logicalTimestamp) throws JSONException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("goodId", goodId);
+        jsonObject.put("writer", writer);
         jsonObject.put("ts", logicalTimestamp);
         return  jsonObject;
     }

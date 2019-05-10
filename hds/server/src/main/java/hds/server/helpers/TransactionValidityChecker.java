@@ -60,7 +60,11 @@ public class TransactionValidityChecker {
 				"",
 				transactionData.getGoodID(),
 				transactionData.getBuyerID(),
-				transactionData.getSellerID()
+				transactionData.getSellerID(),
+				transactionData.getLogicalTimestamp(),
+				transactionData.getOnSale(),
+				transactionData.getWriteOnGoodsSignature(),
+				transactionData.getwriteOnOwnershipsSignature()
 		);
 
 		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {

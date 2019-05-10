@@ -43,6 +43,22 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
 
     public OwnerDataMessage() {}
 
+    public int getLogicalTimeStamp() {
+        return logicalTimeStamp;
+    }
+
+    public void setLogicalTimeStamp(int logicalTimeStamp) {
+        this.logicalTimeStamp = logicalTimeStamp;
+    }
+
+    public boolean isOnSale() {
+        return onSale;
+    }
+
+    public void setOnSale(boolean onSale) {
+        this.onSale = onSale;
+    }
+
     public String getOwner() {
         return owner;
     }
@@ -51,16 +67,12 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
         this.owner = owner;
     }
 
-    public int getLogicalTimeStamp() {
-        return logicalTimeStamp;
-    }
-
-    public boolean isOnSale() {
-        return onSale;
-    }
-
     public String getWriteOperationSignature() {
         return writeOperationSignature;
+    }
+
+    public void setWriteOperationSignature(String writeOperationSignature) {
+        this.writeOperationSignature = writeOperationSignature;
     }
 
     @Override
