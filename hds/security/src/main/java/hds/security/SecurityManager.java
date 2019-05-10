@@ -49,7 +49,8 @@ public class SecurityManager {
     }
 
     public static String isValidMessage(String selfId, BasicMessage message) {
-        if (!selfId.equals(message.getTo())) {
+        if (!selfId.equals(message.getTo()) &&
+                !(message.getOperation().equals("getStateOfGood") && message.getTo().equals("unknown"))) {
             return "wrong host address";
         }
 
