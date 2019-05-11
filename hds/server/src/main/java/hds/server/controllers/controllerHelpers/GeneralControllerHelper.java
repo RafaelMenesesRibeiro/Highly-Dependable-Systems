@@ -6,6 +6,8 @@ import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
@@ -155,6 +157,10 @@ public class GeneralControllerHelper {
 		}
 		else if (ex instanceof  DBNoResultsException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.NO_RESP, ex.getMessage());
+			return new MetaResponse(500, payload);
+		}
+		else if (ex instanceof JSONException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_JSON, ex.getMessage());
 			return new MetaResponse(500, payload);
 		}
 		else if (ex instanceof SQLException) {

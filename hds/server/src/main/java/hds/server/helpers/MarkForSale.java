@@ -14,6 +14,7 @@ import java.util.List;
  *
  * @author 		Rafael Ribeiro
  */
+@SuppressWarnings("Duplicates")
 public class MarkForSale {
 
 	private MarkForSale() {
@@ -23,19 +24,31 @@ public class MarkForSale {
 	/**
 	 * Marks a GoodID for sale in the database.
 	 *
-	 * @param 	conn	Database connection
-	 * @param 	goodID	GoodID to be marked for sale
+	 * @param 	conn			Database connection
+	 * @param 	goodID			GoodID to be marked for sale
+	 * @param 	writerID    	ID of the client responsible for the writing
+	 *                         	(in this context, it's always the owner)
+	 * @param 	writeTimestamp  Writer's own write Logic timestamp. Identifies if this writing is relevant
+	 * @param	writeOperationSignature Signature for the write operation
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
-	public static void markForSale(Connection conn, String goodID)
+	public static void markForSale(Connection conn, String goodID, String writerID, String writeTimestamp, String writeOperationSignature)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
-		String query = "update goods set onSale = ? where goods.goodID = ?";
+		String query = "UPDATE goods " +
+				"SET onSale = ?, " +
+					"wid = ?, " +
+					"ts = ?, " +
+					"sig = ? " +
+				"WHERE goods.goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add("true");
+		args.add(writerID);
+		args.add(writeTimestamp);
+		args.add(writeOperationSignature);
 		args.add(goodID);
 		try {
 			DatabaseInterface.queryDB(conn, query, "", args);

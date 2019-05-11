@@ -14,6 +14,7 @@ import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
+import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,10 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 
 /**
  * Responsible for handling POST requests for the endpoint /transferGood.
@@ -38,7 +43,7 @@ import static hds.security.DateUtils.isFreshTimestamp;
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
-
+@SuppressWarnings("Duplicates")
 @RestController
 public class TransferGoodController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
@@ -54,7 +59,6 @@ public class TransferGoodController {
 	 * @see		ApproveSaleRequestMessage
 	 * @see 	BindingResult
 	 */
-	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> transferGood(@RequestBody @Valid ApproveSaleRequestMessage transactionData, BindingResult result) {
@@ -68,21 +72,35 @@ public class TransferGoodController {
 			return cachedResponse;
 		}
 
+		MetaResponse metaResponse;
+
+		// TODO - Add this to custom validation. //
 		long timestamp = transactionData.getTimestamp();
 		if (!isFreshTimestamp(timestamp)) {
 			String reason = "Timestamp " + timestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			MetaResponse metaResponse = new MetaResponse(408, payload);
+			metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 		}
 
-		MetaResponse metaResponse;
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 			GeneralControllerHelper.cacheRecentRequest(key, response);
 			return response;
 		}
+
+		String writerID = transactionData.getBuyerID();
+		// TODO - Add this to custom validation. //
+		int logicTimestamp = transactionData.getLogicalTimestamp();
+		if (!isFreshLogicTimestamp(writerID, logicTimestamp)) {
+			String reason = "Logic timestamp " + logicTimestamp + " is too old";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+			metaResponse = new MetaResponse(408, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+		}
+		incrementClientTimestamp(writerID);
+
 		try {
 			metaResponse = execute(transactionData);
 		}
@@ -111,8 +129,9 @@ public class TransferGoodController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
+		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
@@ -122,7 +141,30 @@ public class TransferGoodController {
 			conn = DatabaseManager.getConnection();
 			conn.setAutoCommit(false);
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
-				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
+
+				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
+				int writeTimestamp = transactionData.getLogicalTimestamp();
+				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
+				if (!res) {
+					// TODO - Rollback is not needed here. //
+					conn.rollback();
+					String reason = "The Write On Ownership Operation's signature is not valid.";
+					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+					return new MetaResponse(401, payload);
+				}
+
+				String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+				res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, writeTimestamp, writeOnGoodsSignature);
+				if (!res) {
+					// TODO - Rollback is not needed here. //
+					conn.rollback();
+					String reason = "The Write On Goods Operation's signature is not valid.";
+					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+					return new MetaResponse(401, payload);
+				}
+
+				TransferGood.transferGood(conn, goodID, buyerID, ""+writeTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+
 				conn.commit();
 				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
 				return new MetaResponse(payload);
@@ -134,7 +176,7 @@ public class TransferGoodController {
 				return new MetaResponse(403, payload);
 			}
 		}
-		catch (SQLException | DBNoResultsException ex) {
+		catch (JSONException | SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}

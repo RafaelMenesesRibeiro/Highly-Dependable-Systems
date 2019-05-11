@@ -58,7 +58,6 @@ public class ServerApplication {
 			PSQLServerSetup.initDatabased();
 		}
 		catch (DBInitException ex) {
-			logger.warning("\n\n\n\n\n\n\n asdadadkajoiqjepoqwjepoqwje \n\n\n\n\n\n");
 			logger.warning("Could not create database. Exiting");
 			logger.warning(ex.getMessage());
 			System.exit(-3);

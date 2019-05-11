@@ -75,14 +75,14 @@ public class PSQLServerSetup {
 			"goodId varchar(50), " +
 			"onSale boolean, " +
 			"wid varchar(50), " +
-			"ts smallint, " +
+			"ts varchar(6), " +
 			"sig text, " +
 			"CONSTRAINT pk_goods PRIMARY KEY (goodId));" +
 
 			"CREATE TABLE ownership (" +
 			"goodId varchar(50), " +
 			"userId varchar(50), " +
-			"ts smallint, " +
+			"ts varchar(6), " +
 			"sig text, " +
 			"CONSTRAINT pk_ownership PRIMARY KEY (goodId), " +
 			"CONSTRAINT fk_ownership_goodId FOREIGN KEY (goodId) REFERENCES goods(goodId), " +
@@ -110,15 +110,15 @@ public class PSQLServerSetup {
 			"insert into users values ('8003');" +
 			"insert into users values ('8004');" +
 
-			"insert into goods values ('good1', false, '8001', -1, '-1');" +
-			"insert into goods values ('good2', false, '8002', -1, '-1');" +
-			"insert into goods values ('good3', true, '8003', -1, '-1');" +
-			"insert into goods values ('good4', true, '8004', -1, '-1');" +
+			"insert into goods values ('good1', false, '8001', '-1', '-1');" +
+			"insert into goods values ('good2', false, '8002', '-1', '-1');" +
+			"insert into goods values ('good3', true, '8003', '-1', '-1');" +
+			"insert into goods values ('good4', true, '8004', '-1', '-1');" +
 
-			"insert into ownership values ('good1', '8001', -1, '-1');" +
-			"insert into ownership values ('good2', '8002', -1, '-1');" +
-			"insert into ownership values ('good3', '8003', -1, '-1');" +
-			"insert into ownership values ('good4', '8004', -1, '-1');";
+			"insert into ownership values ('good1', '8001', '-1', '-1');" +
+			"insert into ownership values ('good2', '8002', '-1', '-1');" +
+			"insert into ownership values ('good3', '8003', '-1', '-1');" +
+			"insert into ownership values ('good4', '8004', '-1', '-1');";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
 		}

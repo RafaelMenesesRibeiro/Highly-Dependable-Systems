@@ -1,6 +1,5 @@
 package hds.client;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
@@ -15,7 +14,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -270,11 +268,10 @@ public class ClientApplication {
         return CryptoUtils.signData(getPrivateKey(), rawData);
     }
 
-    private static byte[] newWriteOnOwnershipsDataSignature(final String goodId,
-                                                   final String writer,
+    private static byte[] newWriteOnOwnershipsDataSignature(final String goodId,final String writerID,
                                                    final int logicalTimestamp) throws JSONException, SignatureException {
 
-        byte[] rawData = newWriteOnOwnershipsData(goodId, writer, logicalTimestamp).toString().getBytes();
+        byte[] rawData = newWriteOnOwnershipData(goodId, writerID, logicalTimestamp).toString().getBytes();
         return CryptoUtils.signData(getPrivateKey(), rawData);
     }
     /***********************************************************

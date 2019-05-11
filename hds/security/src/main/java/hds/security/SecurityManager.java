@@ -24,6 +24,7 @@ import static hds.security.DateUtils.isFreshTimestamp;
 import static hds.security.ResourceManager.getCertificateFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 
+@SuppressWarnings("Duplicates")
 public class SecurityManager {
 
     /***********************************************************
@@ -111,6 +112,21 @@ public class SecurityManager {
      *
      ***********************************************************/
 
+    public static boolean verifyWriteOnGoodsOperationSignature(final String goodID, final Boolean value,
+                                                               final String writerID, final int logicalTimestamp,
+                                                               final String signature)
+                throws JSONException, hds.security.exceptions.SignatureException {
+
+        JSONObject json = newWriteOnGoodsData(goodID, value, writerID, logicalTimestamp);
+        try {
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
+            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
+        }
+        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
+            throw new hds.security.exceptions.SignatureException(ex.getMessage());
+        }
+    }
+
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
@@ -123,12 +139,25 @@ public class SecurityManager {
         return  jsonObject;
     }
 
-    public static JSONObject newWriteOnOwnershipsData(final String goodId,
-                                                      final String writer,
-                                                      final int logicalTimestamp) throws JSONException {
+    public static boolean verifyWriteOnOwnershipSignature(final String goodID, final String writerID,
+                                                          final int logicalTimestamp, final String signature)
+            throws JSONException {
+
+        JSONObject json = newWriteOnOwnershipData(goodID, writerID, logicalTimestamp);
+        try {
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
+            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
+        }
+        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
+            throw new hds.security.exceptions.SignatureException(ex.getMessage());
+        }
+    }
+
+    public static JSONObject newWriteOnOwnershipData(final String goodId, final String writerID,
+                                                     final int logicalTimestamp) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
-        jsonObject.put("writer", writer);
+        jsonObject.put("writerId", writerID);
         jsonObject.put("ts", logicalTimestamp);
         return  jsonObject;
     }
