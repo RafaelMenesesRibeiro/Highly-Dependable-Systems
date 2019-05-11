@@ -72,18 +72,18 @@ public class WantToBuyController {
     }
 
     private List<BasicMessage> processTransferGoodResponses(long wts, List<Future<BasicMessage>> futuresList) {
-        List<BasicMessage> basicMessageList = new ArrayList<>();
+        List<BasicMessage> messagesList = new ArrayList<>();
         int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
             if (!future.isCancelled()) {
                 try {
                     BasicMessage message = future.get();
+                    messagesList.add(message);
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         printError("Ignoring invalid message...");
                         continue;
                     }
                     ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
-                    basicMessageList.add(message);
                 } catch (InterruptedException ie) {
                     printError(ie.getMessage());
                 } catch (ExecutionException ee) {
@@ -99,27 +99,9 @@ public class WantToBuyController {
         }
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "transferGood");
         print("Redirecting all messages to client...");
-        return basicMessageList;
+        return messagesList;
     }
-
-    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processNotaryResponses(List<BasicMessage> basicMessageList) {
-
-        List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
-        for (BasicMessage message : basicMessageList) {
-            String validationResult = isValidMessage(message);
-            if (!validationResult.equals("")) {
-                String reason = "Seller encountered error validating response from notary: " + validationResult;
-                responseEntityList.add(
-                        new ResponseEntity<>(newErrorResponse(message, reason), HttpStatus.UNAUTHORIZED)
-                );
-            } else {
-                responseEntityList.add(new ResponseEntity<>(message, HttpStatus.OK));
-                System.out.println("[o] " + message.toString());
-            }
-        }
-        return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
-    }
-
+    
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
         return new ErrorResponse(
                 generateTimestamp(),
