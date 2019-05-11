@@ -1,11 +1,14 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.RelevantTimestamp;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class ApproveSaleRequestMessage extends SaleRequestMessage implements Serializable {
     @NotNull(message = "The wrappingTimestamp cannot be null.")
+    @RelevantTimestamp
     private long wrappingTimestamp;
 
     @NotNull(message = "The wrappingOperation cannot be null.")

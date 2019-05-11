@@ -69,15 +69,6 @@ public class IntentionToSellController {
 
 		MetaResponse metaResponse;
 
-		// TODO - Add this to custom validation. //
-		long timestamp = ownerData.getTimestamp();
-		if (!isFreshTimestamp(timestamp)) {
-			String reason = "Timestamp " + timestamp + " is too old";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			metaResponse = new MetaResponse(408, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-		}
-
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
 			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);

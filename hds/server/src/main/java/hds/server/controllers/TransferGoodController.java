@@ -73,15 +73,6 @@ public class TransferGoodController {
 
 		MetaResponse metaResponse;
 
-		// TODO - Add this to custom validation. //
-		long timestamp = transactionData.getTimestamp();
-		if (!isFreshTimestamp(timestamp)) {
-			String reason = "Timestamp " + timestamp + " is too old";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			metaResponse = new MetaResponse(408, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-
 		if(result.hasErrors()) {
 			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
 			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
