@@ -28,7 +28,7 @@ public class WantToBuyController {
 
     @PostMapping(value = "/wantToBuy")
     public ResponseEntity<List<ResponseEntity<BasicMessage>>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
-        String validationResult = isValidMessage(ClientProperties.getPort(), requestMessage);
+        String validationResult = isValidMessage(requestMessage);
         if (!"".equals(validationResult)) {
             List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
             responseEntityList.add(
@@ -61,7 +61,7 @@ public class WantToBuyController {
         }
 
         List<BasicMessage> basicMessageList = getBasicMessagesFromFutures(futuresList);
-        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processNotaryResponses(requestMessage, basicMessageList);
+        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processNotaryResponses(basicMessageList);
 
         executorService.shutdown();
 
@@ -90,12 +90,11 @@ public class WantToBuyController {
         return  basicMessageList;
     }
 
-    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processNotaryResponses(SaleRequestMessage requestMessage,
-                                                                                      List<BasicMessage> basicMessageList) {
+    private ResponseEntity<List<ResponseEntity<BasicMessage>>> processNotaryResponses(List<BasicMessage> basicMessageList) {
 
         List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
         for (BasicMessage message : basicMessageList) {
-            String validationResult = isValidMessage(requestMessage.getFrom(), message);
+            String validationResult = isValidMessage(message);
             if (!validationResult.equals("")) {
                 String reason = "Seller encountered error validating response from notary: " + validationResult;
                 responseEntityList.add(

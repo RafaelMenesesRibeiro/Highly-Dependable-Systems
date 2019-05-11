@@ -49,7 +49,7 @@ public class SecurityManager {
         return message;
     }
 
-    public static String isValidMessage(String selfId, BasicMessage message) {
+    public static String isValidMessage(BasicMessage message) {
         
         if (!isFreshTimestamp(message.getTimestamp())) {
             return "message is more than five minutes old";

@@ -282,7 +282,7 @@ public class ClientApplication {
 
     private static boolean processResponse(BasicMessage responseMessage) {
         // TODO Improve return value. Use something other than true/false;
-        String validationResult = isValidMessage(ClientProperties.getPort(), responseMessage);
+        String validationResult = isValidMessage(responseMessage);
         if (!"".equals(validationResult)) {
             printError(validationResult);
             return false;
