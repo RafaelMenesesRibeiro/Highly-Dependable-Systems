@@ -199,7 +199,7 @@ public class ClientApplication {
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
         final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
-        // Store the logical timestamp of this operation in order to validate incoming responses
+        // Store the write operation timestamp of this operation in order to validate incoming responses
         long wts = generateTimestamp();
         // Create a list of callable, so that servers can be called in parallel by this client
         for (String replicaId : replicasList) {

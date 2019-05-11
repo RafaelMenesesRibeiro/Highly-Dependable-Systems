@@ -75,14 +75,14 @@ public class PSQLServerSetup {
 			"goodId varchar(50), " +
 			"onSale boolean, " +
 			"wid varchar(50), " +
-			"ts varchar(6), " +
+			"ts text, " +
 			"sig text, " +
 			"CONSTRAINT pk_goods PRIMARY KEY (goodId));" +
 
 			"CREATE TABLE ownership (" +
 			"goodId varchar(50), " +
 			"userId varchar(50), " +
-			"ts varchar(6), " +
+			"ts text, " +
 			"sig text, " +
 			"CONSTRAINT pk_ownership PRIMARY KEY (goodId), " +
 			"CONSTRAINT fk_ownership_goodId FOREIGN KEY (goodId) REFERENCES goods(goodId), " +

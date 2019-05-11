@@ -78,7 +78,7 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @Override
     public String toString() {
         return "OwnerDataMessage{" +
-                "wts=" + writeTimestamp +
+                "writeTimestamp=" + writeTimestamp +
                 ", onSale=" + onSale +
                 ", owner='" + owner + '\'' +
                 ", writeOperationSignature='" + writeOperationSignature + '\'' +

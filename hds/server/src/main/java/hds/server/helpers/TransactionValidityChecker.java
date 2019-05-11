@@ -147,18 +147,42 @@ public class TransactionValidityChecker {
 	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
-		String query = "SELECT goodID, onSale, wid, ts, sig FROM ownership WHERE goodId = ?";
+		String query = "SELECT * FROM goods WHERE goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
 		List<String> returnColumns = new ArrayList<>();
-		args.add("goodID");
-		args.add("onSale");
-		args.add("wid");
-		args.add("ts");
-		args.add("sig");
+		returnColumns.add("goodID");
+		returnColumns.add("onSale");
+		returnColumns.add("wid");
+		returnColumns.add("ts");
+		returnColumns.add("sig");
 		try {
 			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
 			return results.get(0);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	// TODO - Add Javadoc. //
+	public static long getOnGoodsTimestamp(Connection connection, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+		String query = "SELECT ts FROM goods WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		String returnColumn = "ts";
+		returnColumns.add(returnColumn);
+		try {
+			List<JSONObject> results = queryDB(connection, query, returnColumns, args);
+			JSONObject json = results.get(0);
+			String timestamp = json.getString(returnColumn);
+			return Long.parseLong(timestamp);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.

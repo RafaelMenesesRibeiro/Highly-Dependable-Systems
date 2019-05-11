@@ -28,13 +28,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.DateUtils.*;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
-import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
-import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
+import static hds.server.helpers.TransactionValidityChecker.*;
 
 /**
  * Responsible for handling POST requests for the endpoint /intentionToSell.
@@ -90,17 +88,6 @@ public class IntentionToSellController {
 			return response;
 		}
 
-		String clientID = ownerData.getOwner();
-		// TODO - Add this to custom validation. //
-		long wts = ownerData.getWriteTimestamp();
-		if (!isFreshLogicTimestamp(clientID, wts)) {
-			String reason = "write timestamp " + wts + " is too old";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			metaResponse = new MetaResponse(408, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-		}
-		incrementClientTimestamp(clientID);
-
 		try {
 			metaResponse = execute(ownerData);
 		}
@@ -126,7 +113,7 @@ public class IntentionToSellController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -134,6 +121,17 @@ public class IntentionToSellController {
 		try {
 			conn = DatabaseManager.getConnection();
 			conn.setAutoCommit(false);
+
+			String clientID = ownerData.getOwner();
+			long requestWriteTimestamp = ownerData.getWriteTimestamp();
+			long databaseWriteTimestamp = getOnGoodsTimestamp(conn, goodID);
+			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
+				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+				return new MetaResponse(408, payload);
+			}
+			incrementClientTimestamp(clientID);
+
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
 				// TODO - Rollback is not needed here. //
@@ -157,8 +155,7 @@ public class IntentionToSellController {
 
 			String writeOperationSignature = ownerData.getWriteOperationSignature();
 			String writerID = ownerData.getOwner();
-			long wts = ownerData.getWriteTimestamp();
-			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, wts, writeOperationSignature);
+			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
 			if (!res) {
 				// TODO - Rollback is not needed here. //
 				conn.rollback();
@@ -167,7 +164,7 @@ public class IntentionToSellController {
 				return new MetaResponse(401, payload);
 			}
 
-			MarkForSale.markForSale(conn, goodID, writerID, ""+wts, writeOperationSignature);
+			MarkForSale.markForSale(conn, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);
 			conn.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);
