@@ -114,12 +114,14 @@ public class SecurityManager {
      *
      ***********************************************************/
 
-    public static boolean verifyWriteOnGoodsOperationSignature(final String goodID, final Boolean value,
-                                                               final String writerID, final int logicalTimestamp,
+    public static boolean verifyWriteOnGoodsOperationSignature(final String goodID,
+                                                               final Boolean value,
+                                                               final String writerID,
+                                                               final long wts,
                                                                final String signature)
                 throws JSONException, hds.security.exceptions.SignatureException {
 
-        JSONObject json = newWriteOnGoodsData(goodID, value, writerID, logicalTimestamp);
+        JSONObject json = newWriteOnGoodsData(goodID, value, writerID, wts);
         try {
             PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
@@ -141,8 +143,10 @@ public class SecurityManager {
         return  jsonObject;
     }
 
-    public static boolean verifyWriteOnOwnershipSignature(final String goodID, final String writerID,
-                                                          final long wts, final String signature)
+    public static boolean verifyWriteOnOwnershipSignature(final String goodID,
+                                                          final String writerID,
+                                                          final long wts,
+                                                          final String signature)
             throws JSONException {
 
         JSONObject json = newWriteOnOwnershipData(goodID, writerID, wts);
@@ -157,11 +161,11 @@ public class SecurityManager {
 
     public static JSONObject newWriteOnOwnershipData(final String goodId,
                                                      final String writerID,
-                                                     final long logicalTimestamp) throws JSONException {
+                                                     final long wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("writerId", writerID);
-        jsonObject.put("ts", logicalTimestamp);
+        jsonObject.put("wts", wts);
         return  jsonObject;
     }
 }
