@@ -132,20 +132,20 @@ public class SecurityManager {
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
-                                                 final int logicalTimestamp) throws JSONException {
+                                                 final long wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("onSale", value);
         jsonObject.put("writer", writer);
-        jsonObject.put("ts", logicalTimestamp);
+        jsonObject.put("wts", wts);
         return  jsonObject;
     }
 
     public static boolean verifyWriteOnOwnershipSignature(final String goodID, final String writerID,
-                                                          final int logicalTimestamp, final String signature)
+                                                          final long wts, final String signature)
             throws JSONException {
 
-        JSONObject json = newWriteOnOwnershipData(goodID, writerID, logicalTimestamp);
+        JSONObject json = newWriteOnOwnershipData(goodID, writerID, wts);
         try {
             PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
@@ -155,8 +155,9 @@ public class SecurityManager {
         }
     }
 
-    public static JSONObject newWriteOnOwnershipData(final String goodId, final String writerID,
-                                                     final int logicalTimestamp) throws JSONException {
+    public static JSONObject newWriteOnOwnershipData(final String goodId,
+                                                     final String writerID,
+                                                     final long logicalTimestamp) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("writerId", writerID);
