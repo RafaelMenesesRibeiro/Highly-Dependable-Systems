@@ -5,6 +5,7 @@ import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.CryptoUtils;
+import hds.security.DateUtils;
 import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -123,7 +124,7 @@ public class ClientApplication {
                                                        ExecutorCompletionService<BasicMessage> completionService) {
 
         int ackCount = 0;
-        List<BasicMessage> readList = new ArrayList<>();
+        List<GoodStateResponse> readList = new ArrayList<>();
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
@@ -148,19 +149,19 @@ public class ClientApplication {
 
     }
 
-    private static BasicMessage highestValue(List<BasicMessage> readList) {
-        BasicMessage highest = null;
-        for (BasicMessage message : readList) {
+    private static BasicMessage highestValue(List<GoodStateResponse> readList) {
+        GoodStateResponse highest = null;
+        for (GoodStateResponse message : readList) {
             if (highest == null) {
                 highest = message;
-            } else if (highest.getTimestamp() < message.getTimestamp()) {
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
                 highest = message;
             }
         }
         return highest;
     }
 
-    private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<BasicMessage> readList) {
+    private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
         } else if (message instanceof GoodStateResponse) {
@@ -180,7 +181,7 @@ public class ClientApplication {
                 return 0;
             }
 
-            readList.add(message);
+            readList.add(goodStateResponse);
             return 1;
         }
         printError(message.toString());
@@ -239,7 +240,6 @@ public class ClientApplication {
                     printError(cause.getMessage());
                 }
             }
-
             ackCount += isWriteResponseAcknowledge(wts, resultContent);
         }
         assertOperationSuccess(ackCount, "intentionToSell");
