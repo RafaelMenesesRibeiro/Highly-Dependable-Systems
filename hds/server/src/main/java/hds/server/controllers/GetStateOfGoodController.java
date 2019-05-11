@@ -107,8 +107,9 @@ public class GetStateOfGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			// TODO - Add transaction here. //
 
-			// boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
-			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
+
+			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID); // TODO - Return this wid, ts and sig. //
+
 			JSONObject goodsInfo = getOnGoodsInfo(conn, goodID);
 			boolean state = goodsInfo.getString("onSale").equals("t");
 			String writerID = goodsInfo.getString("wid");

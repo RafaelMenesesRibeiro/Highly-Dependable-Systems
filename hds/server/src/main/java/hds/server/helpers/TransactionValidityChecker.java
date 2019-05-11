@@ -147,15 +147,16 @@ public class TransactionValidityChecker {
 	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
-		String query = "SELECT goodID, onSale, wid, ts, sig FROM ownership WHERE goodId = ?";
+		String query = "SELECT * FROM goods WHERE goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
 		List<String> returnColumns = new ArrayList<>();
-		args.add("goodID");
-		args.add("onSale");
-		args.add("wid");
-		args.add("ts");
-		args.add("sig");
+		returnColumns.add("goodID");
+		returnColumns.add("onSale");
+		returnColumns.add("wid");
+		returnColumns.add("ts");
+		returnColumns.add("sig");
 		try {
 			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
 			return results.get(0);
