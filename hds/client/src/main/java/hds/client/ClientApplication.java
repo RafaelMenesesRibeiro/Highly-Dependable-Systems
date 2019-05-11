@@ -115,7 +115,6 @@ public class ClientApplication {
         }
 
         processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
-
         executorService.shutdown();
     }
 
@@ -128,7 +127,10 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                if (!futureResult.isCancelled()) {
+                if (futureResult == null) {
+                    // replica contacted by this callable timed out
+                    continue;
+                } else if (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
@@ -166,7 +168,6 @@ public class ClientApplication {
         }
 
         processIntentionToSellResponses(wts, replicasList.size(), completionService);
-
         executorService.shutdown();
     }
 
@@ -178,7 +179,10 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                if (!futureResult.isCancelled()) {
+                if (futureResult == null) {
+                    // replica contacted by this callable timed out
+                    continue;
+                } else if (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
