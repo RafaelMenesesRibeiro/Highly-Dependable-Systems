@@ -147,8 +147,8 @@ public class TransferGoodController {
 			}
 
 			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
-			long wts = transactionData.getWts();
-			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, wts, writeOnOwnershipsSignature);
+			long writeTimestamp = transactionData.getWts();
+			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
 			if (!res) {
 				connection.close();
 				String reason = "The Write On Ownership Operation's signature is not valid.";
@@ -157,7 +157,7 @@ public class TransferGoodController {
 			}
 
 			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
-			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, wts, writeOnGoodsSignature);
+			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, writeTimestamp, writeOnGoodsSignature);
 			if (!res) {
 				connection.close();
 				String reason = "The Write On Goods Operation's signature is not valid.";
@@ -165,7 +165,7 @@ public class TransferGoodController {
 				return new MetaResponse(401, payload);
 			}
 
-			TransferGood.transferGood(connection, goodID, buyerID, ""+wts, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			TransferGood.transferGood(connection, goodID, buyerID, ""+writeTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
 			connection.commit();
 			connection.close();
 			SaleCertificateResponse payload = new SaleCertificateResponse(
