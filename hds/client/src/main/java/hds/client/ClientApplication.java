@@ -163,12 +163,12 @@ public class ClientApplication {
             printError(ie.getMessage());
         }
 
-        processFuturesList(futuresList);
+        processIntentionToSellResponses(futuresList);
 
         executorService.shutdown();
     }
 
-    private static void processFuturesList(List<Future<BasicMessage>> futuresList) {
+    private static void processIntentionToSellResponses(List<Future<BasicMessage>> futuresList) {
         for (Future<BasicMessage> future : futuresList) {
             try {
                 BasicMessage resultContent = future.get();
