@@ -191,7 +191,7 @@ public class ClientApplication {
 
     private static int isAckResponse(int wts, BasicMessage resultContent) {
         if (resultContent instanceof WriteResponse) {
-            if (((WriteResponse) resultContent).getWriteTimestamp() == wts) {
+            if (((WriteResponse) resultContent).getWts() == wts) {
                 return 1;
             } else {
                 printError("Response contained wts different than the one that was sent on request");
