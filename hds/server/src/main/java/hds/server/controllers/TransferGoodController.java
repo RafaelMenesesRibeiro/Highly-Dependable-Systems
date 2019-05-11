@@ -1,5 +1,6 @@
 package hds.server.controllers;
 
+import hds.security.exceptions.SignatureException;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
@@ -10,10 +11,7 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
-import hds.server.exception.DBClosedConnectionException;
-import hds.server.exception.DBConnectionRefusedException;
-import hds.server.exception.DBNoResultsException;
-import hds.server.exception.IncorrectSignatureException;
+import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
@@ -119,7 +117,7 @@ public class TransferGoodController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, OldMessageException {
 
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
@@ -134,34 +132,27 @@ public class TransferGoodController {
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
-				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-				return new MetaResponse(408, payload);
+				connection.close();
+				throw new SignatureException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}
 
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
 				connection.close();
-				String reason = "The transaction is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
-				return new MetaResponse(403, payload);
+				throw new SignatureException("The transaction is not valid.");
 			}
 
 			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
 			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
 			if (!res) {
 				connection.close();
-				String reason = "The Write On Ownership Operation's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-				return new MetaResponse(401, payload);
+				throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
 			}
 
 			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
 			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
 			if (!res) {
 				connection.close();
-				String reason = "The Write On Goods Operation's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-				return new MetaResponse(401, payload);
+				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
 			TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
