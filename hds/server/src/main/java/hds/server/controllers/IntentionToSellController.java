@@ -126,7 +126,7 @@ public class IntentionToSellController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -173,7 +173,7 @@ public class IntentionToSellController {
 			return new MetaResponse(payload);
 		}
 		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //
-		catch (JSONException | SQLException | DBNoResultsException ex) {
+		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}

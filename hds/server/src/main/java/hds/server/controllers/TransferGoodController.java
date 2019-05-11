@@ -129,7 +129,7 @@ public class TransferGoodController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
@@ -176,7 +176,7 @@ public class TransferGoodController {
 				return new MetaResponse(403, payload);
 			}
 		}
-		catch (JSONException | SQLException | DBNoResultsException ex) {
+		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
