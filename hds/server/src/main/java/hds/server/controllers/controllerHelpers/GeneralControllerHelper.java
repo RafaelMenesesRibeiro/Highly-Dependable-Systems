@@ -95,15 +95,15 @@ public class GeneralControllerHelper {
 
 	/**
 	 * @param 	clientID	 	ClientID to compare
-	 * @param 	logicTimestamp	Received logicTimestamp
+	 * @param 	wts				Received physical timestamp associated with a write operation
 	 * @return 	boolean 		Freshness of the logic timestamp
 	 */
-	public static boolean isFreshLogicTimestamp(String clientID, int logicTimestamp) {
+	public static boolean isFreshLogicTimestamp(String clientID, long wts) {
 		Integer savedClientLogicTimestamp = tryGetClientTimestamp(clientID);
 		if (savedClientLogicTimestamp == null) {
 			return true;
 		}
-		return logicTimestamp > savedClientLogicTimestamp;
+		return wts > savedClientLogicTimestamp;
 	}
 
 	/**
