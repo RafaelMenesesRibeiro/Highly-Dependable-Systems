@@ -114,16 +114,33 @@ public class SecurityManager {
      *
      ***********************************************************/
 
-    public static boolean verifyWriteOnGoodsOperationSignature(final String goodID,
+    public static boolean verifyWriteOnGoodsOperationSignature(final String goodId,
                                                                final Boolean value,
-                                                               final String writerID,
+                                                               final String writerId,
                                                                final long wts,
                                                                final String signature)
                 throws JSONException, hds.security.exceptions.SignatureException {
 
-        JSONObject json = newWriteOnGoodsData(goodID, value, writerID, wts);
+        JSONObject json = newWriteOnGoodsData(goodId, value, writerId, wts);
         try {
-            PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
+            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
+        }
+        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
+            throw new hds.security.exceptions.SignatureException(ex.getMessage());
+        }
+    }
+
+    public static boolean verifyNewWriteOnGoodsDataResponseSignature(final String goodId,
+                                                                     final Boolean value,
+                                                                     final String writerId,
+                                                                     final long wts,
+                                                                     final String signature)
+            throws JSONException, hds.security.exceptions.SignatureException {
+
+        JSONObject json = newWriteOnGoodsDataResponse(goodId, value, writerId, wts);
+        try {
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
         }
         catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
