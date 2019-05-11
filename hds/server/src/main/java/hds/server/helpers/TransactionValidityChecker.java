@@ -168,6 +168,29 @@ public class TransactionValidityChecker {
 		}
 	}
 
+	// TODO - Add Javadoc. //
+	public static long getOnGoodsTimestamp(Connection connection, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+		String query = "SELECT ts FROM goods WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		String returnColumn = "ts";
+		returnColumns.add(returnColumn);
+		try {
+			List<JSONObject> results = queryDB(connection, query, returnColumns, args);
+			JSONObject json = results.get(0);
+			String timestamp = json.getString(returnColumn);
+			return Long.parseLong(timestamp);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
 	/**
 	 * Verifies the signature of the payload.
 	 *
