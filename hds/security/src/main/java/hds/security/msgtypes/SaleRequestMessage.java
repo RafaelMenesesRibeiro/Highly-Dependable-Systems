@@ -6,7 +6,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
-public class SaleRequestMessage extends  GoodDataMessage implements Serializable {
+public class SaleRequestMessage extends GoodDataMessage implements Serializable {
     @NotNull(message = "The BuyerID cannot be null.")
     @NotEmpty(message = "The BuyerID cannot be empty.")
     @ValidClientID
@@ -30,7 +30,6 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @NotNull(message = "The write on ownership operation signature cannot be null.")
     @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
     private String writeOnOwnershipsSignature;
-
 
     public SaleRequestMessage(long timestamp,
                               String requestID,
