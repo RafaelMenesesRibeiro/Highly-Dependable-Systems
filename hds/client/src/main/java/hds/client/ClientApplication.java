@@ -134,7 +134,7 @@ public class ClientApplication {
                     continue;
                 }
 
-                ackCount += ONRRMajorityVoting.isGoodStateResponseAcknowledge(rid, message, readList);
+                ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -187,7 +187,7 @@ public class ClientApplication {
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
                 } catch (InterruptedException ie) {
                     printError(ie.getMessage());
                 } catch (ExecutionException ee) {
@@ -248,7 +248,7 @@ public class ClientApplication {
                     continue;
                 }
 
-                ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+                ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
                 
             } catch (Exception exc) {
                 continue;

@@ -36,27 +36,27 @@ public class ONRRMajorityVoting {
         return highest;
     }
 
-    public static int isWriteResponseAcknowledge(long wts, BasicMessage message) {
+    public static int iwWriteAcknowledge(long wts, BasicMessage message) {
         if (message == null) {
             return 0;
         } else if (message instanceof WriteResponse) {
             if (((WriteResponse) message).getWts() == wts) {
                 return 1;
-            } else {
-                printError("Response contained wts different than the one that was sent on request");
-                return 0;
             }
+            printError("Response contained wts different than the one that was sent on request");
+            return 0;
         } else if (message instanceof SaleCertificateResponse) {
             if (((SaleCertificateResponse) message).getWts() == wts) {
                 return 1;
             }
+            printError("Response contained wts different than the one that was sent on request");
             return 0;
         }
         printError(message.toString());
         return 0;
     }
 
-    public static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
+    public static int isGoodStateReadAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
         } else if (message instanceof GoodStateResponse) {

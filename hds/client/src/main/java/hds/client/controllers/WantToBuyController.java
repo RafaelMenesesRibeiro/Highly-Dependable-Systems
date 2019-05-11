@@ -2,7 +2,6 @@ package hds.client.controllers;
 
 import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
-import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
@@ -23,7 +22,6 @@ import static hds.client.helpers.ClientProperties.printError;
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientSecurityManager.isMessageFreshAndAuthentic;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.isValidMessage;
 
 @RestController
 public class WantToBuyController {
@@ -78,7 +76,7 @@ public class WantToBuyController {
                         printError("Ignoring invalid message...");
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
                 } catch (InterruptedException ie) {
                     printError(ie.getMessage());
                 } catch (ExecutionException ee) {
