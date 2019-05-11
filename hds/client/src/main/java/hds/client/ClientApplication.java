@@ -240,7 +240,9 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
-            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
+            long wts = generateTimestamp();
+
+            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
@@ -285,15 +287,14 @@ public class ClientApplication {
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
-    private static SaleRequestMessage newSaleRequestMessage() {
+    private static SaleRequestMessage newSaleRequestMessage(long wts) {
         String to = requestSellerId();
         String goodId = requestGoodId();
         Boolean onSale = Boolean.FALSE;
-        int logicalTimestamp = readId.incrementAndGet();
 
         try {
-            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getPort(), logicalTimestamp);
-            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getPort(), logicalTimestamp);
+            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getPort(), wts);
+            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getPort(), wts);
             return new SaleRequestMessage(
                     generateTimestamp(),
                     newUUIDString(),
@@ -304,7 +305,7 @@ public class ClientApplication {
                     goodId,
                     ClientProperties.getPort(), // buyer
                     to, // seller
-                    logicalTimestamp,
+                    wts,
                     onSale,
                     bytesToBase64String(writeOnGoodsSignature),
                     bytesToBase64String(writeOnOwnershipsSignature)
