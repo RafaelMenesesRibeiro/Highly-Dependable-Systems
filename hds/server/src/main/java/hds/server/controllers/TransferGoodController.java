@@ -14,7 +14,6 @@ import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
-import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -93,7 +92,7 @@ public class TransferGoodController {
 		// TODO - Check if Write Timestamp is younger than the timestamp in the database (for this entry).
 		String writerID = transactionData.getBuyerID();
 		// TODO - Add this to custom validation. //
-		int logicTimestamp = transactionData.getLogicalTimestamp();
+		int logicTimestamp = transactionData.getWts();
 		if (!isFreshLogicTimestamp(writerID, logicTimestamp)) {
 			String reason = "Logic timestamp " + logicTimestamp + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
@@ -144,7 +143,7 @@ public class TransferGoodController {
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 
 				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
-				int writeTimestamp = transactionData.getLogicalTimestamp();
+				int writeTimestamp = transactionData.getWts();
 				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
 				if (!res) {
 					// TODO - Rollback is not needed here. //
