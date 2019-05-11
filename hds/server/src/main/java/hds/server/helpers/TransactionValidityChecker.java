@@ -64,7 +64,7 @@ public class TransactionValidityChecker {
 				transactionData.getGoodID(),
 				transactionData.getBuyerID(),
 				transactionData.getSellerID(),
-				transactionData.getLogicalTimestamp(),
+				transactionData.getWts(),
 				transactionData.getOnSale(),
 				transactionData.getWriteOnGoodsSignature(),
 				transactionData.getwriteOnOwnershipsSignature()
