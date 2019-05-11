@@ -34,6 +34,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
     private ApproveSaleRequestMessage newApproveSaleRequestMessage(long timestamp,
                                                                    String replicaId,
                                                                    SaleRequestMessage requestMessage) {
+
         return new ApproveSaleRequestMessage(
                 requestMessage.getTimestamp(),
                 requestMessage.getRequestID(),
