@@ -17,8 +17,8 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @ValidClientID
     private String sellerID;
 
-    @NotNull(message = "The write timestamp cannot be null.")
-    private int writeTimestamp;
+    @NotNull(message = "The logical timestamp cannot be null.")
+    private long wts;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private Boolean onSale;
@@ -31,20 +31,29 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
     private String writeOnOwnershipsSignature;
 
-    public SaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
-                              String signature, String goodID, String buyerID, String sellerID, int writeTimestamp,
-                              Boolean onSale, String writeOnGoodsSignature, String writeOnOwnershipsSignature) {
+
+    public SaleRequestMessage(long timestamp,
+                              String requestID,
+                              String operation,
+                              String from,
+                              String to,
+                              String signature,
+                              String goodID,
+                              String buyerID,
+                              String sellerID,
+                              long wts,
+                              Boolean onSale,
+                              String writeOnGoodsSignature,
+                              String writeOnOwnershipsSignature) {
+
 
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.buyerID = buyerID;
         this.sellerID = sellerID;
-        this.writeTimestamp = writeTimestamp;
+        this.wts = wts;
         this.onSale = onSale;
         this.writeOnGoodsSignature = writeOnGoodsSignature;
         this.writeOnOwnershipsSignature = writeOnOwnershipsSignature;
-    }
-
-    public SaleRequestMessage() {
     }
 
     public String getBuyerID() {
@@ -63,12 +72,13 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         this.sellerID = sellerID;
     }
 
-    public int getWriteTimestamp() {
-        return writeTimestamp;
+
+    public long getWts() {
+        return wts;
     }
 
-    public void setWriteTimestamp(int writeTimestamp) {
-        this.writeTimestamp = writeTimestamp;
+    public void setWts(long wts) {
+        this.wts = wts;
     }
 
     public Boolean getOnSale() {
@@ -87,11 +97,11 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         this.writeOnGoodsSignature = writeOnGoodsSignature;
     }
 
-    public String getwriteOnOwnershipsSignature() {
+    public String getWriteOnOwnershipsSignature() {
         return writeOnOwnershipsSignature;
     }
 
-    public void setwriteOnOwnershipsSignature(String writeOnOwnershipsSignature) {
+    public void setWriteOnOwnershipsSignature(String writeOnOwnershipsSignature) {
         this.writeOnOwnershipsSignature = writeOnOwnershipsSignature;
     }
 
@@ -100,7 +110,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         return "SaleRequestMessage{" +
                 "buyerID='" + buyerID + '\'' +
                 ", sellerID='" + sellerID + '\'' +
-                ", logicalTimestamp=" + writeTimestamp +
+                ", wts=" + wts +
                 ", onSale=" + onSale +
                 ", writeOnGoodsSignature='" + writeOnGoodsSignature + '\'' +
                 ", writeOnOwnershipsSignature='" + writeOnOwnershipsSignature + '\'' +
