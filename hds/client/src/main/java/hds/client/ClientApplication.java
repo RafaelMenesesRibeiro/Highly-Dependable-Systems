@@ -127,11 +127,11 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                if (futureResult == null) {
-                    // replica contacted by this callable timed out
-                    continue;
-                } else if (!futureResult.isCancelled()) {
+                if (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
@@ -179,11 +179,11 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                if (futureResult == null) {
-                    // replica contacted by this callable timed out
-                    continue;
-                } else if (!futureResult.isCancelled()) {
+                    if (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }

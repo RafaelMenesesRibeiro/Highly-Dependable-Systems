@@ -66,12 +66,12 @@ public class WantToBuyController {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                if (futureResult == null) {
-                    // replica contacted by this callable timed out
-                    continue;
-                } else if  (!futureResult.isCancelled()) {
+                if  (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
-                    messagesList.add(message);
+                    messagesList.add(message); // TODO Be careful with this one when parsing on client for JSON
+                    if (message == null) {
+                        continue;
+                    }
                     if (!isMessageFreshAndAuthentic(message)) {
                         printError("Ignoring invalid message...");
                         continue;
