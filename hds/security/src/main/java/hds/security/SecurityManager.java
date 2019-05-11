@@ -131,11 +131,11 @@ public class SecurityManager {
         }
     }
 
-    public static boolean verifyNewWriteOnGoodsDataResponseSignature(final String goodId,
-                                                                     final Boolean value,
-                                                                     final String writerId,
-                                                                     final long wts,
-                                                                     final String signature)
+    public static boolean verifyWriteOnGoodsDataResponseSignature(final String goodId,
+                                                                  final Boolean value,
+                                                                  final String writerId,
+                                                                  final long wts,
+                                                                  final String signature)
             throws JSONException, hds.security.exceptions.SignatureException {
 
         JSONObject json = newWriteOnGoodsDataResponse(goodId, value, writerId, wts);
