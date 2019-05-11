@@ -1,6 +1,5 @@
 package hds.security.msgtypes;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import hds.security.helpers.inputValidation.ValidClientID;
 
 import javax.validation.constraints.NotEmpty;
