@@ -39,6 +39,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         super(timestamp, requestID, operation, from, to, signature);
         this.ownerID = ownerID;
         this.onSale = onSale;
+        this.goodID = goodID;
+        this.writerID = writerID;
+        this.wts = wts;
+        this.rid = rid;
+        this.writeOperationSignature = writeOperationSignature;
     }
 
     public GoodStateResponse() {
