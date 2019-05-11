@@ -139,51 +139,48 @@ public class TransferGoodController {
 				return new MetaResponse(408, payload);
 			}
 
-			if (TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
-				String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
-				long wts = transactionData.getWts();
-				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, wts, writeOnOwnershipsSignature);
-				if (!res) {
-					connection.close();
-					String reason = "The Write On Ownership Operation's signature is not valid.";
-					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-					return new MetaResponse(401, payload);
-				}
-
-				String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
-				res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, wts, writeOnGoodsSignature);
-				if (!res) {
-					connection.close();
-					String reason = "The Write On Goods Operation's signature is not valid.";
-					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-					return new MetaResponse(401, payload);
-				}
-
-				TransferGood.transferGood(connection, goodID, buyerID, ""+wts, writeOnOwnershipsSignature, writeOnGoodsSignature);
-				connection.commit();
-				connection.close();
-				SaleCertificateResponse payload = new SaleCertificateResponse(
-						generateTimestamp(),
-						transactionData.getRequestID(),
-						OPERATION,
-						FROM_SERVER,
-						transactionData.getFrom(),
-						"",
-						CERTIFIED,
-						goodID,
-						sellerID,
-						buyerID,
-						transactionData.getWts());
-				return new MetaResponse(payload);
-			}
-			else {
-				// TODO - Invert if. //
-				connection.rollback();
+			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
 				connection.close();
 				String reason = "The transaction is not valid.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
+
+			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
+			long wts = transactionData.getWts();
+			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, wts, writeOnOwnershipsSignature);
+			if (!res) {
+				connection.close();
+				String reason = "The Write On Ownership Operation's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
+			}
+
+			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, wts, writeOnGoodsSignature);
+			if (!res) {
+				connection.close();
+				String reason = "The Write On Goods Operation's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
+			}
+
+			TransferGood.transferGood(connection, goodID, buyerID, ""+wts, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			connection.commit();
+			connection.close();
+			SaleCertificateResponse payload = new SaleCertificateResponse(
+					generateTimestamp(),
+					transactionData.getRequestID(),
+					OPERATION,
+					FROM_SERVER,
+					transactionData.getFrom(),
+					"",
+					CERTIFIED,
+					goodID,
+					sellerID,
+					buyerID,
+					transactionData.getWts());
+			return new MetaResponse(payload);
 		}
 		catch (Exception ex) {
 			if (connection != null) {
