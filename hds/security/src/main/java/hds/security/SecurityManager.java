@@ -14,6 +14,7 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -124,8 +125,10 @@ public class SecurityManager {
             JSONObject json = newWriteOnGoodsData(goodId, value, writerId, wts);
             PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
-        } catch (Exception exc) {
-            System.out.println(exc.getMessage());
+        }
+        catch (Exception exc) {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.warning(exc.getMessage());
             return false;
         }
     }
@@ -140,8 +143,10 @@ public class SecurityManager {
             JSONObject json = newWriteOnGoodsDataResponse(goodId, value, writerId, wts);
             PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
-        } catch (Exception exc) {
-            System.out.println(exc.getMessage());
+        }
+        catch (Exception exc) {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.warning(exc.getMessage());
             return false;
         }
     }
@@ -155,8 +160,10 @@ public class SecurityManager {
             JSONObject json = newWriteOnOwnershipData(goodID, writerId, wts);
             PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
-        } catch (Exception exc) {
-            System.out.println(exc.getMessage());
+        }
+        catch (Exception exc) {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.warning(exc.getMessage());
             return false;
         }
     }
