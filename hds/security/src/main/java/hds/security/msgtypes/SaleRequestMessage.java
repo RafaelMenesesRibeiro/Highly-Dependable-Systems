@@ -18,8 +18,8 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @ValidClientID
     private String sellerID;
 
-    @NotNull(message = "The logical timestamp cannot be null.")
-    private int logicalTimestamp;
+    @NotNull(message = "The write timestamp cannot be null.")
+    private int writeTimestamp;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private Boolean onSale;
@@ -33,13 +33,13 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     private String writeOnOwnershipsSignature;
 
     public SaleRequestMessage(long timestamp, String requestID, String operation, String from, String to,
-                              String signature, String goodID, String buyerID, String sellerID, int logicalTimestamp,
+                              String signature, String goodID, String buyerID, String sellerID, int writeTimestamp,
                               Boolean onSale, String writeOnGoodsSignature, String writeOnOwnershipsSignature) {
 
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.buyerID = buyerID;
         this.sellerID = sellerID;
-        this.logicalTimestamp = logicalTimestamp;
+        this.writeTimestamp = writeTimestamp;
         this.onSale = onSale;
         this.writeOnGoodsSignature = writeOnGoodsSignature;
         this.writeOnOwnershipsSignature = writeOnOwnershipsSignature;
@@ -64,12 +64,12 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         this.sellerID = sellerID;
     }
 
-    public int getLogicalTimestamp() {
-        return logicalTimestamp;
+    public int getWriteTimestamp() {
+        return writeTimestamp;
     }
 
-    public void setLogicalTimestamp(int logicalTimestamp) {
-        this.logicalTimestamp = logicalTimestamp;
+    public void setWriteTimestamp(int writeTimestamp) {
+        this.writeTimestamp = writeTimestamp;
     }
 
     public Boolean getOnSale() {
@@ -101,7 +101,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         return "SaleRequestMessage{" +
                 "buyerID='" + buyerID + '\'' +
                 ", sellerID='" + sellerID + '\'' +
-                ", logicalTimestamp=" + logicalTimestamp +
+                ", logicalTimestamp=" + writeTimestamp +
                 ", onSale=" + onSale +
                 ", writeOnGoodsSignature='" + writeOnGoodsSignature + '\'' +
                 ", writeOnOwnershipsSignature='" + writeOnOwnershipsSignature + '\'' +

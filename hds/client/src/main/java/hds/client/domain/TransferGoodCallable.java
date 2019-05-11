@@ -45,7 +45,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 requestMessage.getGoodID(),
                 requestMessage.getBuyerID(),
                 requestMessage.getSellerID(),
-                requestMessage.getLogicalTimestamp(),
+                requestMessage.getWriteTimestamp(),
                 requestMessage.getOnSale(),
                 requestMessage.getWriteOnGoodsSignature(),
                 requestMessage.getwriteOnOwnershipsSignature(),

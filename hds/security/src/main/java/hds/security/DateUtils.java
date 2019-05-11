@@ -25,6 +25,7 @@ public class DateUtils {
         return sentInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
     }
 
+    // TODO - Replace by isNewTimestampMoreRecent //
     /**
      * @param one long timestamp
      * @param another long timestamp
