@@ -3,6 +3,7 @@ package hds.client.helpers;
 import hds.security.DateUtils;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.GoodStateResponse;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.security.msgtypes.WriteResponse;
 
 import java.util.List;
@@ -44,6 +45,13 @@ public class ONRRMajorityVoting {
                 printError("Response contained wts different than the one that was sent on request");
                 return 0;
             }
+        } else if (message instanceof SaleCertificateResponse) {
+            /*
+            if ((SaleCertificateResponse) message).getWts() == wts) {
+
+            }
+            */
+            return 0;
         }
         printError(message.toString());
         return 0;
