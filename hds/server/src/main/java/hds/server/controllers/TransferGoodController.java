@@ -165,7 +165,18 @@ public class TransferGoodController {
 				TransferGood.transferGood(conn, goodID, buyerID, ""+wts, writeOnOwnershipsSignature, writeOnGoodsSignature);
 
 				conn.commit();
-				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
+				SaleCertificateResponse payload = new SaleCertificateResponse(
+						generateTimestamp(),
+						transactionData.getRequestID(),
+						OPERATION,
+						FROM_SERVER,
+						transactionData.getFrom(),
+						"",
+						CERTIFIED,
+						goodID,
+						sellerID,
+						buyerID,
+						transactionData.getWts());
 				return new MetaResponse(payload);
 			}
 			else {
