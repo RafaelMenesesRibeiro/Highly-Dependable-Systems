@@ -6,7 +6,6 @@ import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
-import hds.security.CryptoUtils;
 import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
