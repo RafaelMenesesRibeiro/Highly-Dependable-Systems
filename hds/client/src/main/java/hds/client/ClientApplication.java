@@ -243,21 +243,16 @@ public class ClientApplication {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
 
             if (jsonArray == null) {
-                printError("Failed to deserialize json array (null) on buy goods with sale_cert_responses");
+                printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
             }
 
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject responseEntityObject = (JSONObject) jsonArray.get(i);
-                JSONObject basicMessageObject = responseEntityObject.getJSONObject("body");
-
-                System.out.println(basicMessageObject.toString(4));
-
-                BasicMessage basicMessage = null;
                 ObjectMapper objectMapper = new ObjectMapper();
+                JSONObject basicMessageObject = (JSONObject) jsonArray.get(i);
+                BasicMessage basicMessage = null;
 
                 if (basicMessageObject.has("reason")) {
                     basicMessage = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
@@ -265,7 +260,7 @@ public class ClientApplication {
                     basicMessage = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
                 }
 
-                isFreshAndAuthentic(basicMessage);
+                ClientSecurityManager.isMessageFreshAndAuthentic(basicMessage);
             }
 
         } catch (SocketTimeoutException ste) {
