@@ -56,9 +56,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
         this.writeOnOwnershipsSignature = writeOnOwnershipsSignature;
     }
 
-    public SaleRequestMessage() {
-
-    }
+    public SaleRequestMessage() {}
 
     public String getBuyerID() {
         return buyerID;
