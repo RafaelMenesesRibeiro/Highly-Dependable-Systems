@@ -24,4 +24,16 @@ public class DateUtils {
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
         return sentInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
     }
+
+    /**
+     * @param   existingTimestamp   Long timestamp existing in the database
+     *                              (referring to the data the message wants to access)
+     * @param   sentTimestamp       Long timestamp retrieved from received message
+     * @return  boolean             Freshness of message
+     */
+    public static boolean isNewTimestampMoreRecent(long existingTimestamp, long sentTimestamp) {
+        Instant existingInstant = Instant.ofEpochSecond(existingTimestamp);
+        Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
+        return sentInstant.isAfter(existingInstant);
+    }
 }
