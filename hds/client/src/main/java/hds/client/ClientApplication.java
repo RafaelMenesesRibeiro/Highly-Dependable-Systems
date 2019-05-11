@@ -249,6 +249,7 @@ public class ClientApplication {
                 printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
             }
 
+            int ackCount = 0;
             for (int i = 0; i < jsonArray.length(); i++) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JSONObject basicMessageObject = (JSONObject) jsonArray.get(i);
@@ -277,8 +278,8 @@ public class ClientApplication {
         int logicalTimestamp = readId.incrementAndGet();
 
         try {
-            byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, getPort(), logicalTimestamp);
-            byte[] writeOnOwnershipsSignature = newWriteOnOwnershipsDataSignature(goodId, getPort(), logicalTimestamp);
+            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getPort(), logicalTimestamp);
+            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getPort(), logicalTimestamp);
             return new SaleRequestMessage(
                     generateTimestamp(),
                     newUUIDString(),
@@ -300,21 +301,6 @@ public class ClientApplication {
 
     }
 
-    private static byte[] newWriteOnGoodsDataSignature(final String goodId,
-                                                       final Boolean onSale,
-                                                       final String writer,
-                                                       final int logicalTimestamp) throws JSONException, SignatureException {
-
-        byte[] rawData = newWriteOnGoodsData(goodId, onSale, writer, logicalTimestamp).toString().getBytes();
-        return CryptoUtils.signData(getPrivateKey(), rawData);
-    }
-
-    private static byte[] newWriteOnOwnershipsDataSignature(final String goodId,final String writerID,
-                                                            final int logicalTimestamp) throws JSONException, SignatureException {
-
-        byte[] rawData = newWriteOnOwnershipData(goodId, writerID, logicalTimestamp).toString().getBytes();
-        return CryptoUtils.signData(getPrivateKey(), rawData);
-    }
     /***********************************************************
      *
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
