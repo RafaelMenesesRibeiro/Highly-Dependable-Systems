@@ -129,14 +129,14 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage result = futureResult.get();
+                BasicMessage message = futureResult.get();
 
-                if (!isFreshAndAuthentic(result)) {
+                if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                     printError("Ignoring invalid message...");
                     continue;
                 }
 
-                ackCount += isGoodStateResponseAcknowledge(rid, result, readList);
+                ackCount += isGoodStateResponseAcknowledge(rid, message, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
