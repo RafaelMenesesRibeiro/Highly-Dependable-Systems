@@ -1,6 +1,7 @@
 package hds.security.msgtypes;
 
 import hds.security.helpers.inputValidation.ValidClientID;
+import hds.security.helpers.inputValidation.ValidGoodID;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -15,11 +16,24 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The onSale cannot be null.")
     private boolean onSale;
 
-    // TODO - Add validators
+    @NotNull(message = "The GoodID cannot be null.")
+    @NotEmpty(message = "The GoodID cannot be empty.")
+    @ValidGoodID
     private String goodID;
+
+    @NotNull(message = "The writerID cannot be null.")
+    @NotEmpty(message = "The writerID cannot be empty.")
+    @ValidGoodID
     private String writerID;
+
+    @NotNull(message = "The write timestamp cannot be null.")
     private long wts;
+
+    @NotNull(message = "The readID cannot be null.")
     private int rid;
+
+    @NotNull(message = "The write operation signature cannot be null.")
+    @NotEmpty(message = "The write operation signature cannot be empty.")
     private String writeOperationSignature;
 
     public GoodStateResponse(long timestamp,
