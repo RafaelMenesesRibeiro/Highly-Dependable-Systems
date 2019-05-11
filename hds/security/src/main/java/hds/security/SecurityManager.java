@@ -129,7 +129,7 @@ public class SecurityManager {
         catch (Exception exc) {
             Logger logger = Logger.getAnonymousLogger();
             logger.warning(exc.getMessage());
-            return false;
+            return wts == 0 && signature.equals("initialSign");
         }
     }
 
@@ -147,7 +147,7 @@ public class SecurityManager {
         catch (Exception exc) {
             Logger logger = Logger.getAnonymousLogger();
             logger.warning(exc.getMessage());
-            return false;
+            return wts == 0 && signature.equals("initialSign");
         }
     }
 
@@ -164,7 +164,7 @@ public class SecurityManager {
         catch (Exception exc) {
             Logger logger = Logger.getAnonymousLogger();
             logger.warning(exc.getMessage());
-            return false;
+            return wts == 0 && signature.equals("initialSign");
         }
     }
 
