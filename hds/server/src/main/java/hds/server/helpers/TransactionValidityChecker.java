@@ -144,7 +144,18 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	// TODO - Add Javadoc. //
+	/**
+	 * Returns the information on the database's Goods table for a certain GoodID.
+	 *
+	 * @param   conn        Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	JSONObject	Contains all the columns' values for the GoodID
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 

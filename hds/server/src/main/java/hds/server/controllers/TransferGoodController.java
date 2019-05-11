@@ -121,7 +121,6 @@ public class TransferGoodController {
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
-		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());

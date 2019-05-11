@@ -113,26 +113,24 @@ public class IntentionToSellController {
 	private MetaResponse execute(OwnerDataMessage ownerData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
-		// TODO - Is this still necessary? //
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
-		Connection conn = null;
+		Connection connection = null;
 		try {
-			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false);
+			connection = DatabaseManager.getConnection();
+			connection.setAutoCommit(false);
 
 			long requestWriteTimestamp = ownerData.getWriteTimestamp();
-			long databaseWriteTimestamp = getOnGoodsTimestamp(conn, goodID);
+			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
 			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
 				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);
 			}
 
-			String ownerID = getCurrentOwner(conn, goodID);
+			String ownerID = getCurrentOwner(connection, goodID);
 			if (!ownerID.equals(sellerID)) {
-				// TODO - Rollback is not needed here. //
-				conn.rollback();
+				connection.close();
 				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
 				return new MetaResponse(403, payload);
@@ -143,8 +141,7 @@ public class IntentionToSellController {
 			boolean res = isClientWilling(sellerID, signature, ownerData);
 			ownerData.setSignature(signature);
 			if (!res) {
-				// TODO - Rollback is not needed here. //
-				conn.rollback();
+				connection.close();
 				String reason = "The Seller's signature is not valid.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
 				return new MetaResponse(401, payload);
@@ -154,36 +151,25 @@ public class IntentionToSellController {
 			String writerID = ownerData.getOwner();
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
 			if (!res) {
-				// TODO - Rollback is not needed here. //
-				conn.rollback();
+				connection.close();
 				String reason = "The Write On Goods Operation's signature is not valid.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
 				return new MetaResponse(401, payload);
 			}
 
-			MarkForSale.markForSale(conn, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);
-			conn.commit();
+			MarkForSale.markForSale(connection, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);
+			connection.commit();
+			connection.close();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);
 		}
-		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //
-		catch (SQLException | DBNoResultsException ex) {
-			if (conn != null) {
-				conn.rollback();
+		catch (Exception ex) {
+			if (connection != null) {
+				connection.rollback();
+				connection.setAutoCommit(true);
+				connection.close();
 			}
-			throw ex;
-		}
-		catch (SignatureException ex) {
-			if (conn != null) {
-				conn.rollback();
-			}
-			return GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-		}
-		finally {
-			if (conn != null) {
-				conn.setAutoCommit(true);
-				conn.close();
-			}
+			throw ex; // Handled in intentionToSell's main method, in the try catch were execute is called.
 		}
 	}
 }
