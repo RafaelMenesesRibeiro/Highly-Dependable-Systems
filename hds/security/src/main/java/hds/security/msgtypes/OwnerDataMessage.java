@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @NotNull(message = "The logical timestamp cannot be null.")
-    private int logicalTimeStamp;
+    private long wts;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private boolean onSale;
@@ -30,25 +30,25 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
                             String signature,
                             String goodID,
                             String owner,
-                            int logicalTimeStamp,
+                            long wts,
                             boolean onSale,
                             String writeOperationSignature) {
 
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.owner = owner;
-        this.logicalTimeStamp = logicalTimeStamp;
+        this.wts = wts;
         this.onSale = onSale;
         this.writeOperationSignature = writeOperationSignature;
     }
 
     public OwnerDataMessage() {}
 
-    public int getLogicalTimestamp() {
-        return logicalTimeStamp;
+    public long getWts() {
+        return wts;
     }
 
-    public void setLogicalTimestamp(int logicalTimeStamp) {
-        this.logicalTimeStamp = logicalTimeStamp;
+    public void setWts(long wts) {
+        this.wts = wts;
     }
 
     public boolean isOnSale() {
@@ -78,7 +78,7 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @Override
     public String toString() {
         return "OwnerDataMessage{" +
-                "logicalTimeStamp=" + logicalTimeStamp +
+                "wts=" + wts +
                 ", onSale=" + onSale +
                 ", owner='" + owner + '\'' +
                 ", writeOperationSignature='" + writeOperationSignature + '\'' +
