@@ -90,6 +90,7 @@ public class TransferGoodController {
 			return response;
 		}
 
+		// TODO - Check if Write Timestamp is younger than the timestamp in the database (for this entry).
 		String writerID = transactionData.getBuyerID();
 		// TODO - Add this to custom validation. //
 		int logicTimestamp = transactionData.getLogicalTimestamp();
