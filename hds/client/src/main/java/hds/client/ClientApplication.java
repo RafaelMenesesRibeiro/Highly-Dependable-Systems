@@ -108,14 +108,12 @@ public class ClientApplication {
 
         int rid = readId.incrementAndGet();
 
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
-            callableList.add(new GetStateOfGoodCallable(replicaId, goodId, rid));
+            completionService.submit(new GetStateOfGoodCallable(replicaId, goodId, rid));
         }
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
-        }
+
         processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
+        
         executorService.shutdown();
     }
 
@@ -157,22 +155,16 @@ public class ClientApplication {
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-        // Store the write operation timestamp of this operation in order to validate incoming responses
         long wts = generateTimestamp();
-        // Create a list of callable, so that servers can be called in parallel by this client
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
+
         for (String replicaId : replicasList) {
-            callableList.add(new IntentionToSellCallable(
+            completionService.submit(new IntentionToSellCallable(
                     generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
             );
         }
-        // Initiate all tasks and handle them as they complete
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
-        }
-        // Validate responses for freshness, authenticity and see if they are a response for this request
+
         processIntentionToSellResponses(wts, replicasList.size(), completionService);
-        // End operation
+
         executorService.shutdown();
     }
 
