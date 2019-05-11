@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
+import hds.client.helpers.ClientSecurityManager;
+import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.CryptoUtils;
-import hds.security.DateUtils;
 import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -143,10 +144,9 @@ public class ClientApplication {
                 printError(ie.getMessage());
             }
         }
-        if (assertOperationSuccess(ackCount, "getStateOfGood")) {
-            print(highestValue(readList).toString());
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
+            print(ONRRMajorityVoting.selectMostRecentGoodState(readList).toString());
         }
-
     }
 
     private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
@@ -174,18 +174,6 @@ public class ClientApplication {
         }
         printError(message.toString());
         return 0;
-    }
-
-    private static BasicMessage highestValue(List<GoodStateResponse> readList) {
-        GoodStateResponse highest = null;
-        for (GoodStateResponse message : readList) {
-            if (highest == null) {
-                highest = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
-                highest = message;
-            }
-        }
-        return highest;
     }
 
     /***********************************************************
@@ -223,13 +211,13 @@ public class ClientApplication {
         int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
             if (!future.isCancelled()) {
-                BasicMessage resultContent = null;
                 try {
-                    resultContent = future.get();
-                    if (!isFreshAndAuthentic(resultContent)) {
+                    BasicMessage message = future.get();
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         printError("Ignoring invalid message...");
                         continue;
                     }
+                    ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
                 } catch (InterruptedException ie) {
                     printError(ie.getMessage());
                 } catch (ExecutionException ee) {
@@ -239,25 +227,9 @@ public class ClientApplication {
                         printError("Target node did not respond within expected limits. Try again at your discretion...");
                     }
                 }
-                ackCount += isWriteResponseAcknowledge(wts, resultContent);
             }
         }
-        assertOperationSuccess(ackCount, "intentionToSell");
-    }
-
-    private static int isWriteResponseAcknowledge(long wts, BasicMessage message) {
-        if (message == null) {
-            return 0;
-        } else if (message instanceof WriteResponse) {
-            if (((WriteResponse) message).getWts() == wts) {
-                return 1;
-            } else {
-                printError("Response contained wts different than the one that was sent on request");
-                return 0;
-            }
-        }
-        printError(message.toString());
-        return 0;
+        ONRRMajorityVoting.assertOperationSuccess(ackCount, "intentionToSell");
     }
 
     /***********************************************************
@@ -353,34 +325,6 @@ public class ClientApplication {
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
      *
      ***********************************************************/
-
-    private static boolean isFreshAndAuthentic(BasicMessage responseMessage) {
-        if (responseMessage == null) {
-            return false;
-        }
-        // Verify freshness and authenticity using isValidMessage
-        String validityString = isValidMessage(responseMessage);
-        if (!"".equals(validityString)) {
-            // Non-empty string means something went wrong during validation. Message isn't fresh or isn't properly signed
-            printError(validityString);
-            return false;
-        }
-        else {
-            // Everything is has expected
-            print(responseMessage.toString());
-            return true;
-        }
-    }
-
-    private static boolean assertOperationSuccess(int ackCount, String operation) {
-        if (ackCount > ClientProperties.getMajorityThreshold()) {
-            print(operation + " operation finished with majority quorum!");
-            return true;
-        } else {
-            print(operation + " operation failed... Not enough votes.");
-            return false;
-        }
-    }
 
     private static String scanString(String requestString) {
         print(requestString);
