@@ -12,12 +12,9 @@ import static hds.security.SecurityManager.*;
 
 public class ClientSecurityManager {
 
-    public static boolean isMessageFreshAndAuthentic(BasicMessage responseMessage) {
-        if (responseMessage == null) {
-            return false;
-        }
+    public static boolean isMessageFreshAndAuthentic(BasicMessage message) {
         // Verify freshness and authenticity using isValidMessage
-        String validityString = isValidMessage(responseMessage);
+        String validityString = isValidMessage(message);
         if (!"".equals(validityString)) {
             // Non-empty string means something went wrong during validation. Message isn't fresh or isn't properly signed
             printError(validityString);
@@ -25,7 +22,7 @@ public class ClientSecurityManager {
         }
         else {
             // Everything is has expected
-            print(responseMessage.toString());
+            print(message.toString());
             return true;
         }
     }
