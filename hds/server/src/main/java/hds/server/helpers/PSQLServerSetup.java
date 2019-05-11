@@ -110,15 +110,15 @@ public class PSQLServerSetup {
 			"insert into users values ('8003');" +
 			"insert into users values ('8004');" +
 
-			"insert into goods values ('good1', false, '8001', '0', 'initial sign');" +
-			"insert into goods values ('good2', false, '8002', '0', 'initial sign');" +
-			"insert into goods values ('good3', true, '8003', '0', 'initial sign');" +
-			"insert into goods values ('good4', true, '8004', '0', 'initial sign');" +
+			"insert into goods values ('good1', false, '8001', '0', 'initialSign');" +
+			"insert into goods values ('good2', false, '8002', '0', 'initialSign');" +
+			"insert into goods values ('good3', true, '8003', '0', 'initialSign');" +
+			"insert into goods values ('good4', true, '8004', '0', 'initialSign');" +
 
-			"insert into ownership values ('good1', '8001', '0', 'initial sign');" +
-			"insert into ownership values ('good2', '8002', '0', 'initial sign');" +
-			"insert into ownership values ('good3', '8003', '0', 'initial sign');" +
-			"insert into ownership values ('good4', '8004', '0', 'initial sign');";
+			"insert into ownership values ('good1', '8001', '0', 'initialSign');" +
+			"insert into ownership values ('good2', '8002', '0', 'initialSign');" +
+			"insert into ownership values ('good3', '8003', '0', 'initialSign');" +
+			"insert into ownership values ('good4', '8004', '0', 'initialSign');";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
 		}
