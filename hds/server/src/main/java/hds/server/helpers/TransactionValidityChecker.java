@@ -25,6 +25,7 @@ import static hds.server.helpers.DatabaseInterface.queryDB;
  *
  * @author 		Rafael Ribeiro
  */
+@SuppressWarnings("Duplicates")
 public class TransactionValidityChecker {
 	private TransactionValidityChecker() {
 		// This is here so the class can't be instantiated. //
@@ -189,6 +190,31 @@ public class TransactionValidityChecker {
 		catch (IndexOutOfBoundsException | NullPointerException ex) {
 			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
 		}
+	}
+
+	// TODO - Add Javadoc. //
+	// TODO - Refactor with above method. //
+	public static long getOnOwnershipTimestamp(Connection connection, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+		String query = "SELECT ts FROM ownership WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		String returnColumn = "ts";
+		returnColumns.add(returnColumn);
+		try {
+			List<JSONObject> results = queryDB(connection, query, returnColumns, args);
+			JSONObject json = results.get(0);
+			String timestamp = json.getString(returnColumn);
+			return Long.parseLong(timestamp);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+
 	}
 
 	/**

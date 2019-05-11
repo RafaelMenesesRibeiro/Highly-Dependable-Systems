@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 
 import static hds.security.DateUtils.*;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
-import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.*;
 
 /**
@@ -129,7 +128,6 @@ public class IntentionToSellController {
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);
 			}
-			incrementClientTimestamp(sellerID);
 
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {
