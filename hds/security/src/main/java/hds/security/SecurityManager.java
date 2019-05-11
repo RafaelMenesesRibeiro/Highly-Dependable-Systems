@@ -132,8 +132,6 @@ public class SecurityManager {
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
         }
         catch (Exception exc) {
-            Logger logger = Logger.getAnonymousLogger();
-            logger.warning(exc.getMessage());
             return wts == 0 && signature.equals("initialSign");
         }
     }
@@ -150,8 +148,6 @@ public class SecurityManager {
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
         }
         catch (Exception exc) {
-            Logger logger = Logger.getAnonymousLogger();
-            logger.warning(exc.getMessage());
             return wts == 0 && signature.equals("initialSign");
         }
     }
@@ -167,8 +163,6 @@ public class SecurityManager {
             return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
         }
         catch (Exception exc) {
-            Logger logger = Logger.getAnonymousLogger();
-            logger.warning(exc.getMessage());
             return wts == 0 && signature.equals("initialSign");
         }
     }
