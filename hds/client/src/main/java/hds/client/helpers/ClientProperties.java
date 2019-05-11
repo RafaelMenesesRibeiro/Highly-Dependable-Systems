@@ -14,6 +14,7 @@ public class ClientProperties {
     public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
     public static final String HDS_BASE_HOST = "http://localhost:";
 
+    private static int maxFailures = 0;
     private static String portId;
     private static String maxPortId;
     private static ArrayList<String> notaryReplicasPorts;
@@ -75,5 +76,21 @@ public class ClientProperties {
 
     public static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+
+    public static int getMaxFailures() {
+        return maxFailures;
+    }
+
+    public static void setMaxFailures(int maxFailures) {
+        ClientProperties.maxFailures = maxFailures;
+    }
+
+    public static int getMaxReplicas() {
+        return notaryReplicasPorts.size();
+    }
+
+    public static int getMajorityThreshold() {
+        return (ClientProperties.getMaxReplicas() + ClientProperties.getMaxFailures()) / 2;
     }
 }

@@ -5,10 +5,7 @@ import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.security.CryptoUtils;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SaleCertificateResponse;
-import hds.security.msgtypes.SaleRequestMessage;
+import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,7 +123,7 @@ public class ClientApplication {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
                 BasicMessage resultContent = futureResult.get();
-                if (isValidResponse(resultContent)) break;
+                if (isFreshAndAuthentic(resultContent)) break;
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -146,16 +143,15 @@ public class ClientApplication {
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
         final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
-        final String goodId = requestGoodId();
-        final String requestId = newUUIDString();
-        final long timestamp = generateTimestamp();
-
+        // Store the logical timestamp of this operation in order to validate incoming responses
+        int writeTimeStamp = writeCounter.incrementAndGet();
+        // Create a list of callable, so that servers can be called in parallel by this client
         for (String replicaId : replicasList) {
             callableList.add(new IntentionToSellCallable(
-                    timestamp, requestId, replicaId, goodId, writeCounter.incrementAndGet(), Boolean.TRUE)
+                    generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), writeTimeStamp, Boolean.TRUE)
             );
         }
-
+        // Initiate all tasks and wait for all of them to finish TODO implement timeouts
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
         try {
             futuresList = executorService.invokeAll(callableList);
@@ -163,16 +159,18 @@ public class ClientApplication {
             printError(ie.getMessage());
         }
 
-        processIntentionToSellResponses(futuresList);
+        // Validate responses for freshness, authenticity and see if they are a response for this request
+        processIntentionToSellResponses(writeTimeStamp, futuresList);
 
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(List<Future<BasicMessage>> futuresList) {
+    private static void processIntentionToSellResponses(int wts, List<Future<BasicMessage>> futuresList) {
+        int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
+            BasicMessage resultContent = null;
             try {
-                BasicMessage resultContent = future.get();
-                isValidResponse(resultContent);
+                resultContent = future.get();
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
             } catch (ExecutionException ee) {
@@ -183,7 +181,33 @@ public class ClientApplication {
                     printError(cause.getMessage());
                 }
             }
+            if (!isFreshAndAuthentic(resultContent)) {
+                printError("Ignoring invalid message...");
+                continue;
+            }
+            ackCount += isAckResponse(wts, resultContent);
         }
+        if (ackCount > ClientProperties.getMajorityThreshold()) {
+            print("Intention to sell operation finished with majority approval!");
+        } else {
+            print("Intention to sell operation failed... Not enough votes.");
+        }
+    }
+
+    private static int isAckResponse(int wts, BasicMessage resultContent) {
+        if (resultContent instanceof WriteResponse) {
+            if (((WriteResponse) resultContent).getWriteTimestamp() == wts) {
+                return 1;
+            } else {
+                printError("Response contained wts different than the one that was sent on request");
+                return 0;
+            }
+        } else if (resultContent instanceof ErrorResponse) {
+            printError(resultContent.toString());
+            return 0;
+        }
+        printError("Unexpected response type: " + resultContent.toString() + "\n");
+        return 0;
     }
 
     /***********************************************************
@@ -219,7 +243,7 @@ public class ClientApplication {
                     basicMessage = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
                 }
 
-                isValidResponse(basicMessage);
+                isFreshAndAuthentic(basicMessage);
             }
 
         } catch (SocketTimeoutException ste) {
@@ -280,12 +304,19 @@ public class ClientApplication {
      *
      ***********************************************************/
 
-    private static boolean isValidResponse(BasicMessage responseMessage) {
-        String validationResult = isValidMessage(responseMessage);
-        if (!"".equals(validationResult)) {
-            printError(validationResult);
+    private static boolean isFreshAndAuthentic(BasicMessage responseMessage) {
+        if (responseMessage == null) {
             return false;
-        } else {
+        }
+        // Verify freshness and authenticity using isValidMessage
+        String validityString = isValidMessage(responseMessage);
+        if (!"".equals(validityString)) {
+            // Non-empty string means something went wrong during validation. Message isn't fresh or isn't properly signed
+            printError(validityString);
+            return false;
+        }
+        else {
+            // Everything is has expected
             print(responseMessage.toString());
             return true;
         }
