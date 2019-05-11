@@ -1,6 +1,7 @@
 package hds.server.controllers.controllerHelpers;
 
 import hds.security.helpers.ControllerErrorConsts;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
@@ -35,12 +36,22 @@ import static hds.security.SecurityManager.setMessageSignature;
  * @author 		Rafael Ribeiro
  * @author 		Francisco Barros
  */
-@SuppressWarnings("Duplicates")
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
 
-	// TODO - Add Javadoc. //
+	/**
+	 * Handles similar IntentionToSell and TransferGood Controllers code.
+	 * Deals with Input validation.
+	 * Deals with Exception handling.
+	 *
+	 * @param 	requestData		BasicMessage
+	 * @param 	result    		result of validators for inputs of transactionData
+	 * @param 	controller		BaseController instance, specific controller for which to call execute()
+	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
+	 * @see        ApproveSaleRequestMessage
+	 * @see 	BindingResult
+	 */
 	public static ResponseEntity<BasicMessage> generalControllerSetup(BasicMessage requestData, BindingResult result, BaseController controller) {
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);

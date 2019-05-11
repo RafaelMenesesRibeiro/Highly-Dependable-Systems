@@ -39,7 +39,6 @@ import static hds.server.helpers.TransactionValidityChecker.*;
  * @author 		Rafael Ribeiro
  * @see 		OwnerDataMessage
  */
-@SuppressWarnings("Duplicates")
 @RestController
 public class IntentionToSellController extends BaseController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
