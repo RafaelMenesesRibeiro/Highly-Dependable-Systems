@@ -2,6 +2,8 @@ package hds.client.controllers;
 
 import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
+import hds.client.helpers.ClientSecurityManager;
+import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleRequestMessage;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static hds.client.helpers.ClientProperties.printError;
+import static hds.client.helpers.ClientProperties.print;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.isValidMessage;
 
@@ -60,7 +63,7 @@ public class WantToBuyController {
             printError(ie.getMessage());
         }
 
-        List<BasicMessage> basicMessageList = getBasicMessagesFromFutures(futuresList);
+        List<BasicMessage> basicMessageList = processTransferGoodResponses(requestMessage.getWts(), futuresList);
         ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processNotaryResponses(basicMessageList);
 
         executorService.shutdown();
@@ -68,26 +71,35 @@ public class WantToBuyController {
         return httpResponse;
     }
 
-    private List<BasicMessage> getBasicMessagesFromFutures(List<Future<BasicMessage>> futuresList) {
+    private List<BasicMessage> processTransferGoodResponses(long wts, List<Future<BasicMessage>> futuresList) {
         List<BasicMessage> basicMessageList = new ArrayList<>();
+        int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
-            try {
-                BasicMessage resultContent = future.get();
-                basicMessageList.add(resultContent);
-            } catch (InterruptedException ie) {
-                printError(ie.getMessage());
-            } catch (ExecutionException ee) {
-                Throwable cause = ee.getCause();
-                if (cause instanceof SocketTimeoutException) {
-                    printError("A node did not respond within expected limits...");
-                } else if (cause instanceof SignatureException) {
-                    printError("Seller could not sign a message to be sent to at least one of the replicas...");
-                } else {
+            if (!future.isCancelled()) {
+                try {
+                    BasicMessage message = future.get();
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        printError("Ignoring invalid message...");
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+                    basicMessageList.add(message);
+                } catch (InterruptedException ie) {
+                    printError(ie.getMessage());
+                } catch (ExecutionException ee) {
+                    Throwable cause = ee.getCause();
                     printError(cause.getMessage());
+                    if (cause instanceof SocketTimeoutException) {
+                        printError("A node did not respond within expected limits...");
+                    } else if (cause instanceof SignatureException) {
+                        printError("Seller could not sign a message to be sent to at least one of the replicas...");
+                    }
                 }
             }
         }
-        return  basicMessageList;
+        ONRRMajorityVoting.assertOperationSuccess(ackCount, "transferGood");
+        print("Redirecting all messages to client...");
+        return basicMessageList;
     }
 
     private ResponseEntity<List<ResponseEntity<BasicMessage>>> processNotaryResponses(List<BasicMessage> basicMessageList) {
