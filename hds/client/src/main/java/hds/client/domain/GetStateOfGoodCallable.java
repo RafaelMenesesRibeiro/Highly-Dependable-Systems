@@ -9,7 +9,7 @@ import static hds.client.helpers.ConnectionManager.*;
 
 public class GetStateOfGoodCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "stateOfGood";
-    private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?goodID=%s?readID=%s";
+    private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?goodID=%s&readID=%s";
     private final String address;
 
     public GetStateOfGoodCallable(String replicaId, String goodId, int readId) {
