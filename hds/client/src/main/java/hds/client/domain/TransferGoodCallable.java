@@ -15,8 +15,8 @@ import static hds.security.SecurityManager.setMessageWrappingSignature;
 public class TransferGoodCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "transferGood";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
-    private final String replicaId;
     private final ApproveSaleRequestMessage message;
+    private final String replicaId;
 
     public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage) {
         this.replicaId = replicaId;
@@ -55,5 +55,13 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 replicaId,
                 ""
         );
+    }
+
+    @Override
+    public String toString() {
+        return "TransferGoodCallable{" +
+                "message=" + message.toString() +
+                ", notaryReplicaId='" + replicaId + '\'' +
+                '}';
     }
 }
