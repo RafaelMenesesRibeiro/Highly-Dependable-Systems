@@ -7,7 +7,7 @@ public class WriteResponse extends BasicMessage implements Serializable {
 	@NotNull(message = "The write timestamp cannot be null.")
 	private long wts;
 
-	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, int wts) {
+	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, long wts) {
 		super(timestamp, requestID, operation, from, to, signature);
 		this.wts = wts;
 	}
