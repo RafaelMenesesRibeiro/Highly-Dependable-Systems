@@ -243,7 +243,7 @@ public class ClientApplication {
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-            // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
+
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
 
             if (jsonArray == null) {
