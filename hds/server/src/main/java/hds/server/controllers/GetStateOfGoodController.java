@@ -107,7 +107,6 @@ public class GetStateOfGoodController {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			// TODO - Add transaction here. //
 
-
 			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID); // TODO - Return this wid, ts and sig. //
 
 			JSONObject goodsInfo = getOnGoodsInfo(conn, goodID);
