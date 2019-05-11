@@ -24,4 +24,22 @@ public class DateUtils {
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
         return sentInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
     }
+
+    /**
+     * @param one long timestamp
+     * @param another long timestamp
+     * @return boolean acknowledging if one timestamp is is after another
+     */
+    public static boolean isOneTimestampAfterAnother(long one, long another) {
+        return isOneInstantAfterAnother(Instant.ofEpochSecond(one), Instant.ofEpochSecond(another));
+    }
+
+    /**
+     * @param one Instant
+     * @param another Instant
+     * @return boolean acknowledging if one instant is after another
+     */
+    public static boolean isOneInstantAfterAnother(Instant one, Instant another) {
+        return one.isAfter(another);
+    }
 }
