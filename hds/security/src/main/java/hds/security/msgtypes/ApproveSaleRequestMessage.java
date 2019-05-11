@@ -52,6 +52,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
     }
 
     public ApproveSaleRequestMessage() {
+
     }
 
     public long getWrappingTimestamp() {
