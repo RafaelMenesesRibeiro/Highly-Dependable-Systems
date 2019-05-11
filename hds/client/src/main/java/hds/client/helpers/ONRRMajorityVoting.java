@@ -46,12 +46,11 @@ public class ONRRMajorityVoting {
                 return 0;
             }
         } else if (message instanceof SaleCertificateResponse) {
-            /*
-            if ((SaleCertificateResponse) message).getWts() == wts) {
+            if ((SaleCertificateResponse) message)() == wts) {
 
             }
-            */
-            return 0;
+
+            return 1;
         }
         printError(message.toString());
         return 0;
