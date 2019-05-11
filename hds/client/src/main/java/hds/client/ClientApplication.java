@@ -113,7 +113,7 @@ public class ClientApplication {
         }
 
         processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
-        
+
         executorService.shutdown();
     }
 
