@@ -11,9 +11,7 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
-import hds.server.exception.DBClosedConnectionException;
-import hds.server.exception.DBConnectionRefusedException;
-import hds.server.exception.DBNoResultsException;
+import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.MarkForSale;
 import org.json.JSONException;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.security.acl.NotOwnerException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
@@ -111,7 +110,8 @@ public class IntentionToSellController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(OwnerDataMessage ownerData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
+					DBNoResultsException, OldMessageException, NoPermissionException {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -123,17 +123,14 @@ public class IntentionToSellController {
 			long requestWriteTimestamp = ownerData.getWriteTimestamp();
 			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-				return new MetaResponse(408, payload);
+				connection.close();
+				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
 			}
 
 			String ownerID = getCurrentOwner(connection, goodID);
 			if (!ownerID.equals(sellerID)) {
 				connection.close();
-				String reason = "The user '" + sellerID + "' does not own the good '" + goodID + "'.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.NO_PERMISSION, reason);
-				return new MetaResponse(403, payload);
+				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
 			String signature = ownerData.getSignature();
@@ -142,9 +139,7 @@ public class IntentionToSellController {
 			ownerData.setSignature(signature);
 			if (!res) {
 				connection.close();
-				String reason = "The Seller's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-				return new MetaResponse(401, payload);
+				throw new SignatureException("The Seller's signature is not valid.");
 			}
 
 			String writeOperationSignature = ownerData.getWriteOperationSignature();
@@ -152,9 +147,7 @@ public class IntentionToSellController {
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
 			if (!res) {
 				connection.close();
-				String reason = "The Write On Goods Operation's signature is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-				return new MetaResponse(401, payload);
+				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
 			MarkForSale.markForSale(connection, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);

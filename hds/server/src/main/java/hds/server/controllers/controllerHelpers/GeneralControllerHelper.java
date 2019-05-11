@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.security.acl.NotOwnerException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -132,8 +133,12 @@ public class GeneralControllerHelper {
 			return new MetaResponse(401, payload);
 		}
 		else if (ex instanceof OldMessageException) {
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.OLD_MESSAGE, ex.getMessage());
 			return new MetaResponse(408, payload);
+		}
+		else if (ex instanceof NoPermissionException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.NO_PERMISSION, ex.getMessage());
+			return new MetaResponse(403, payload);
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);

@@ -133,7 +133,7 @@ public class TransferGoodController {
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
 				connection.close();
-				throw new SignatureException("Write Timestamp " + requestWriteTimestamp + " is too old");
+				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}
 
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
