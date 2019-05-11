@@ -31,7 +31,7 @@ import static hds.security.SecurityManager.*;
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
-    private static final AtomicInteger writeCounter = new AtomicInteger(0);
+    private static final AtomicInteger readId = new AtomicInteger(0);
 
     /***********************************************************
      *
@@ -105,25 +105,36 @@ public class ClientApplication {
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
 
+        int rid = readId.incrementAndGet();
+
         List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
-            callableList.add(new GetStateOfGoodCallable(replicaId, goodId));
+            callableList.add(new GetStateOfGoodCallable(replicaId, goodId, rid));
         }
         for (Callable<BasicMessage> callable : callableList) {
             completionService.submit(callable);
         }
-        processCompletionService(replicasList.size(), completionService);
+        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processCompletionService(int replicasCount,
-                                                 ExecutorCompletionService<BasicMessage> completionService) {
+    private static void processGetStateOfGOodResponses(final int rid,
+                                                       final int replicasCount,
+                                                       ExecutorCompletionService<BasicMessage> completionService) {
 
+        int ackCount = 0;
+        List<BasicMessage> readList = new ArrayList<>();
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage resultContent = futureResult.get();
-                if (isFreshAndAuthentic(resultContent)) break;
+                BasicMessage result = futureResult.get();
+
+                if (!isFreshAndAuthentic(result)) {
+                    printError("Ignoring invalid message...");
+                    continue;
+                }
+
+                ackCount += isGoodStateResponseAcknowledge(rid, result, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -131,7 +142,50 @@ public class ClientApplication {
                 printError(ie.getMessage());
             }
         }
+        if (assertOperationSuccess(ackCount, "getStateOfGood")) {
+            print(highestValue(readList).toString());
+        }
+
     }
+
+    private static BasicMessage highestValue(List<BasicMessage> readList) {
+        BasicMessage highest = null;
+        for (BasicMessage message : readList) {
+            if (highest == null) {
+                highest = message;
+            } else if (highest.getTimestamp() < message.getTimestamp()) {
+                highest = message;
+            }
+        }
+        return highest;
+    }
+
+    private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<BasicMessage> readList) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof GoodStateResponse) {
+            GoodStateResponse goodStateResponse = (GoodStateResponse) message;
+            if (rid != goodStateResponse.getRid()) {
+                return 0;
+            }
+
+            if (!verifyWriteOnGoodsDataResponseSignature(
+                    goodStateResponse.getGoodID(),
+                    goodStateResponse.isOnSale(),
+                    goodStateResponse.getWriterID(),
+                    goodStateResponse.getWts(),
+                    goodStateResponse.getWriteOperationSignature()
+            )) {
+
+            }
+            // TODO Verify <wts, val, sig>
+            readList.add(message);
+            return 1;
+        }
+        printError(message.toString());
+        return 0;
+    }
+
 
     /***********************************************************
      *
@@ -144,11 +198,11 @@ public class ClientApplication {
         final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         // Store the logical timestamp of this operation in order to validate incoming responses
-        int writeTimeStamp = writeCounter.incrementAndGet();
+        long wts = generateTimestamp();
         // Create a list of callable, so that servers can be called in parallel by this client
         for (String replicaId : replicasList) {
             callableList.add(new IntentionToSellCallable(
-                    generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), writeTimeStamp, Boolean.TRUE)
+                    generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
             );
         }
         // Initiate all tasks and wait for all of them to finish TODO implement timeouts
@@ -159,17 +213,21 @@ public class ClientApplication {
             printError(ie.getMessage());
         }
         // Validate responses for freshness, authenticity and see if they are a response for this request
-        processIntentionToSellResponses(writeTimeStamp, futuresList);
+        processIntentionToSellResponses(wts, futuresList);
         // End operation
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(int wts, List<Future<BasicMessage>> futuresList) {
+    private static void processIntentionToSellResponses(long wts, List<Future<BasicMessage>> futuresList) {
         int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
             BasicMessage resultContent = null;
             try {
                 resultContent = future.get();
+                if (!isFreshAndAuthentic(resultContent)) {
+                    printError("Ignoring invalid message...");
+                    continue;
+                }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
             } catch (ExecutionException ee) {
@@ -180,28 +238,24 @@ public class ClientApplication {
                     printError(cause.getMessage());
                 }
             }
-            if (!isFreshAndAuthentic(resultContent)) {
-                printError("Ignoring invalid message...");
-                continue;
-            }
-            ackCount += isAckResponse(wts, resultContent);
+
+            ackCount += isWriteResponseAcknowledge(wts, resultContent);
         }
         assertOperationSuccess(ackCount, "intentionToSell");
     }
 
-    private static int isAckResponse(int wts, BasicMessage resultContent) {
-        if (resultContent instanceof WriteResponse) {
-            if (((WriteResponse) resultContent).getWriteTimestamp() == wts) {
+    private static int isWriteResponseAcknowledge(long wts, BasicMessage message) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof WriteResponse) {
+            if (((WriteResponse) message).getWts() == wts) {
                 return 1;
             } else {
                 printError("Response contained wts different than the one that was sent on request");
                 return 0;
             }
-        } else if (resultContent instanceof ErrorResponse) {
-            printError(resultContent.toString());
-            return 0;
         }
-        printError("Unexpected response type: " + resultContent.toString() + "\n");
+        printError(message.toString());
         return 0;
     }
 
@@ -252,7 +306,7 @@ public class ClientApplication {
         String to = requestSellerId();
         String goodId = requestGoodId();
         Boolean onSale = Boolean.FALSE;
-        int logicalTimestamp = writeCounter.incrementAndGet();
+        int logicalTimestamp = readId.incrementAndGet();
 
         try {
             byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, getPort(), logicalTimestamp);
@@ -317,11 +371,13 @@ public class ClientApplication {
         }
     }
 
-    private static void assertOperationSuccess(int ackCount, String operation) {
+    private static boolean assertOperationSuccess(int ackCount, String operation) {
         if (ackCount > ClientProperties.getMajorityThreshold()) {
-            print(operation + " operation finished with majority approval!");
+            print(operation + " operation finished with majority quorum!");
+            return true;
         } else {
             print(operation + " operation failed... Not enough votes.");
+            return false;
         }
     }
 
