@@ -135,7 +135,7 @@ public class ClientApplication {
                     continue;
                 }
 
-                ackCount += isGoodStateResponseAcknowledge(rid, message, readList);
+                ackCount += ONRRMajorityVoting.isGoodStateResponseAcknowledge(rid, message, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -146,33 +146,6 @@ public class ClientApplication {
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
             print(ONRRMajorityVoting.selectMostRecentGoodState(readList).toString());
         }
-    }
-
-    private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
-        if (message == null) {
-            return 0;
-        } else if (message instanceof GoodStateResponse) {
-            GoodStateResponse goodStateResponse = (GoodStateResponse) message;
-
-            if (rid != goodStateResponse.getRid()) {
-                return 0;
-            }
-
-            if (!verifyWriteOnGoodsDataResponseSignature(
-                    goodStateResponse.getGoodID(),
-                    goodStateResponse.isOnSale(),
-                    goodStateResponse.getWriterID(),
-                    goodStateResponse.getWts(),
-                    goodStateResponse.getWriteOperationSignature()
-            )) {
-                return 0;
-            }
-
-            readList.add(goodStateResponse);
-            return 1;
-        }
-        printError(message.toString());
-        return 0;
     }
 
     /***********************************************************

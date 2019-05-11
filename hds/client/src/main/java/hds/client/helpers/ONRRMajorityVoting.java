@@ -10,6 +10,7 @@ import java.util.List;
 
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
+import static hds.security.SecurityManager.verifyWriteOnGoodsDataResponseSignature;
 
 public class ONRRMajorityVoting {
 
@@ -50,6 +51,33 @@ public class ONRRMajorityVoting {
                 return 1;
             }
             return 0;
+        }
+        printError(message.toString());
+        return 0;
+    }
+
+    public static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof GoodStateResponse) {
+            GoodStateResponse goodStateResponse = (GoodStateResponse) message;
+
+            if (rid != goodStateResponse.getRid()) {
+                return 0;
+            }
+
+            if (!verifyWriteOnGoodsDataResponseSignature(
+                    goodStateResponse.getGoodID(),
+                    goodStateResponse.isOnSale(),
+                    goodStateResponse.getWriterID(),
+                    goodStateResponse.getWts(),
+                    goodStateResponse.getWriteOperationSignature()
+            )) {
+                return 0;
+            }
+
+            readList.add(goodStateResponse);
+            return 1;
         }
         printError(message.toString());
         return 0;
