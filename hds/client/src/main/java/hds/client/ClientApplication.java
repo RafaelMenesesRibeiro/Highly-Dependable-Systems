@@ -165,7 +165,7 @@ public class ClientApplication {
                     generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
             );
         }
-        // Initiate all tasks and wait for all of them to finish TODO implement timeouts
+        // Initiate all tasks and wait for all of them to finish
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
         try {
             futuresList = executorService.invokeAll(callableList,20, TimeUnit.SECONDS);
