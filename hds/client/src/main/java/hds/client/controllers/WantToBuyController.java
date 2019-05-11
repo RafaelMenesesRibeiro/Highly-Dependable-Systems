@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 
 import static hds.client.helpers.ClientProperties.printError;
 import static hds.client.helpers.ClientProperties.print;
+import static hds.client.helpers.ClientSecurityManager.isMessageFreshAndAuthentic;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.isValidMessage;
 
@@ -30,22 +31,16 @@ public class WantToBuyController {
     private static final String OPERATION = "wantToBuy";
 
     @PostMapping(value = "/wantToBuy")
-    public ResponseEntity<List<ResponseEntity<BasicMessage>>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
-        String validationResult = isValidMessage(requestMessage);
-        if (!"".equals(validationResult)) {
-            List<ResponseEntity<BasicMessage>> responseEntityList = new ArrayList<>();
-            responseEntityList.add(
-                    new ResponseEntity<>(
-                            newErrorResponse(requestMessage, "Seller found error in incoming request:" + validationResult),
-                            HttpStatus.UNAUTHORIZED
-                    )
-            );
+    public ResponseEntity<List<BasicMessage>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
+        if (isMessageFreshAndAuthentic(requestMessage)) {
+            List<BasicMessage> responseEntityList = new ArrayList<>();
+            responseEntityList.add(newErrorResponse(requestMessage, "Seller rejects message, it's either not fresh or not properly signed"));
             return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
         }
         return tryDoTransfer(requestMessage);
     }
 
-    private ResponseEntity<List<ResponseEntity<BasicMessage>>> tryDoTransfer(SaleRequestMessage requestMessage) {
+    private ResponseEntity<List<BasicMessage>> tryDoTransfer(SaleRequestMessage requestMessage) {
 
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
         final List<Callable<BasicMessage>> callableList = new ArrayList<>();
@@ -57,18 +52,18 @@ public class WantToBuyController {
         }
 
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
+
         try {
             futuresList = executorService.invokeAll(callableList, 20, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
             printError(ie.getMessage());
         }
 
-        List<BasicMessage> basicMessageList = processTransferGoodResponses(requestMessage.getWts(), futuresList);
-        ResponseEntity<List<ResponseEntity<BasicMessage>>> httpResponse = processNotaryResponses(basicMessageList);
+        List<BasicMessage> transferGoodResponses = processTransferGoodResponses(requestMessage.getWts(), futuresList);
 
         executorService.shutdown();
 
-        return httpResponse;
+        return new ResponseEntity<>(transferGoodResponses, HttpStatus.MULTIPLE_CHOICES);
     }
 
     private List<BasicMessage> processTransferGoodResponses(long wts, List<Future<BasicMessage>> futuresList) {
@@ -79,7 +74,7 @@ public class WantToBuyController {
                 try {
                     BasicMessage message = future.get();
                     messagesList.add(message);
-                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                    if (!isMessageFreshAndAuthentic(message)) {
                         printError("Ignoring invalid message...");
                         continue;
                     }
@@ -101,7 +96,7 @@ public class WantToBuyController {
         print("Redirecting all messages to client...");
         return messagesList;
     }
-    
+
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
         return new ErrorResponse(
                 generateTimestamp(),
