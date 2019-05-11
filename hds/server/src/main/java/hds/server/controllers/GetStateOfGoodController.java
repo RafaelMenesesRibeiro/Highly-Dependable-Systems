@@ -102,7 +102,7 @@ public class GetStateOfGoodController {
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
-	private GoodStateResponse execute(String goodID, int readID)
+	public static GoodStateResponse execute(String goodID, int readID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			// TODO - Add transaction here. //

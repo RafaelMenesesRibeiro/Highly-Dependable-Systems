@@ -4,6 +4,7 @@ import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
+import hds.server.controllers.BaseController;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import org.json.JSONException;
@@ -34,9 +35,39 @@ import static hds.security.SecurityManager.setMessageSignature;
  * @author 		Rafael Ribeiro
  * @author 		Francisco Barros
  */
+@SuppressWarnings("Duplicates")
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
+
+	// TODO - Add Javadoc. //
+	public static ResponseEntity<BasicMessage> generalControllerSetup(BasicMessage requestData, BindingResult result, BaseController controller) {
+		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
+		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
+		if (cachedResponse != null) {
+			return cachedResponse;
+		}
+
+		String operation = controller.OPERATION;
+		MetaResponse metaResponse;
+
+		if(result.hasErrors()) {
+			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, requestData.getRequestID(), requestData.getFrom(), operation);
+			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, requestData.getRequestID(), requestData.getFrom(), operation);
+			GeneralControllerHelper.cacheRecentRequest(key, response);
+			return response;
+		}
+
+		try {
+			metaResponse = controller.execute(requestData);
+		}
+		catch (Exception ex) {
+			metaResponse = GeneralControllerHelper.handleException(ex, requestData.getRequestID(), requestData.getFrom(), operation);
+		}
+		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, requestData.getRequestID(), requestData.getFrom(), operation);
+		GeneralControllerHelper.cacheRecentRequest(key, response);
+		return response;
+	}
 
 	/**
 	 * Adds a newly responded message to the recent messages cached. Used in case of

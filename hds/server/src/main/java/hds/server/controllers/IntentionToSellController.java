@@ -41,9 +41,9 @@ import static hds.server.helpers.TransactionValidityChecker.*;
  */
 @SuppressWarnings("Duplicates")
 @RestController
-public class IntentionToSellController {
+public class IntentionToSellController extends BaseController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
-	private static final String OPERATION = "markForSale";
+	public static final String OPERATION = "markForSale";
 
 	/**
 	 * REST Controller responsible for marking a goodID for sale.
@@ -61,37 +61,14 @@ public class IntentionToSellController {
 		logger.info("Received Intention to Sell request.");
 		logger.info("\tRequest: " + ownerData.toString());
 
-		UserRequestIDKey key = new UserRequestIDKey(ownerData.getFrom(), ownerData.getRequestID());
-		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
-		if (cachedResponse != null) {
-			return cachedResponse;
-		}
-
-		MetaResponse metaResponse;
-
-		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-			GeneralControllerHelper.cacheRecentRequest(key, response);
-			return response;
-		}
-
-		try {
-			metaResponse = execute(ownerData);
-		}
-		catch (Exception ex) {
-			metaResponse = GeneralControllerHelper.handleException(ex, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-		}
-		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
-		GeneralControllerHelper.cacheRecentRequest(key, response);
-		return response;
+		return GeneralControllerHelper.generalControllerSetup(ownerData, result, this);
 	}
 
 	/**
 	 * Confirms authenticity and integrity of the request.
 	 * Marks a GoodID for sale in the database.
 	 *
-	 * @param 	ownerData 			GoodID and SellerID
+	 * @param 	requestData			OwnerDataMessage
 	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
@@ -100,9 +77,12 @@ public class IntentionToSellController {
 	 * @see 	OwnerDataMessage
 	 * @see 	MetaResponse
 	 */
-	private MetaResponse execute(OwnerDataMessage ownerData)
+	@Override
+	public MetaResponse execute(BasicMessage requestData)
 			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
-					DBNoResultsException, OldMessageException, NoPermissionException {
+			DBNoResultsException, OldMessageException, NoPermissionException {
+
+		OwnerDataMessage ownerData = (OwnerDataMessage) requestData;
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
@@ -114,13 +94,13 @@ public class IntentionToSellController {
 			long requestWriteTimestamp = ownerData.getWriteTimestamp();
 			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.close();
+				connection.rollback();
 				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
 			}
 
 			String ownerID = getCurrentOwner(connection, goodID);
 			if (!ownerID.equals(sellerID)) {
-				connection.close();
+				connection.rollback();
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
@@ -129,7 +109,7 @@ public class IntentionToSellController {
 			boolean res = isClientWilling(sellerID, signature, ownerData);
 			ownerData.setSignature(signature);
 			if (!res) {
-				connection.close();
+				connection.rollback();
 				throw new SignatureException("The Seller's signature is not valid.");
 			}
 
@@ -137,13 +117,12 @@ public class IntentionToSellController {
 			String writerID = ownerData.getOwner();
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
 			if (!res) {
-				connection.close();
+				connection.rollback();
 				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
 			MarkForSale.markForSale(connection, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);
 			connection.commit();
-			connection.close();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);
 		}
@@ -151,7 +130,6 @@ public class IntentionToSellController {
 			if (connection != null) {
 				connection.rollback();
 				connection.setAutoCommit(true);
-				connection.close();
 			}
 			throw ex; // Handled in intentionToSell's main method, in the try catch were execute is called.
 		}

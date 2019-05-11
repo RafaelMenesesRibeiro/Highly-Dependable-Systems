@@ -2,10 +2,7 @@ package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
 import hds.security.helpers.ControllerErrorConsts;
-import hds.security.msgtypes.ApproveSaleRequestMessage;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SaleCertificateResponse;
+import hds.security.msgtypes.*;
 import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
@@ -42,11 +39,11 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimest
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
-@SuppressWarnings("Duplicates")
+
 @RestController
-public class TransferGoodController {
+public class TransferGoodController extends BaseController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
-	private static final String OPERATION = "transferGood";
+	public static final String OPERATION = "transferGood";
 	private static final String CERTIFIED = "Certified by Notary";
 
 	/**
@@ -65,30 +62,7 @@ public class TransferGoodController {
 		logger.info("Received Transfer Good request.");
 		logger.info("\tRequest: " + transactionData.toString());
 
-		UserRequestIDKey key = new UserRequestIDKey(transactionData.getFrom(), transactionData.getRequestID());
-		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
-		if (cachedResponse != null) {
-			return cachedResponse;
-		}
-
-		MetaResponse metaResponse;
-
-		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-			GeneralControllerHelper.cacheRecentRequest(key, response);
-			return response;
-		}
-
-		try {
-			metaResponse = execute(transactionData);
-		}
-		catch (Exception ex) {
-			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		GeneralControllerHelper.cacheRecentRequest(key, response);
-		return response;
+		return GeneralControllerHelper.generalControllerSetup(transactionData, result, this);
 	}
 
 	/**
@@ -97,7 +71,7 @@ public class TransferGoodController {
 	 * Confirms the GoodID is on sale.
 	 * Transfers a GoodID from the SellerID to the BuyerID.
 	 *
-	 * @param 	transactionData 	GoodID and SellerID
+	 * @param 	requestData			ApproveSaleRequestMessage
 	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
@@ -107,8 +81,12 @@ public class TransferGoodController {
 	 * @see 	SaleCertificateResponse
 	 * @see 	MetaResponse
 	 */
-	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, OldMessageException {
+	@Override
+	public MetaResponse execute(BasicMessage requestData)
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
+			DBNoResultsException, OldMessageException, NoPermissionException {
+
+		ApproveSaleRequestMessage transactionData = (ApproveSaleRequestMessage) requestData;
 
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
@@ -123,26 +101,26 @@ public class TransferGoodController {
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.close();
+				connection.rollback();
 				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}
 
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
-				connection.close();
+				connection.rollback();
 				throw new SignatureException("The transaction is not valid.");
 			}
 
 			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
 			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
 			if (!res) {
-				connection.close();
+				connection.rollback();
 				throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
 			}
 
 			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
 			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
 			if (!res) {
-				connection.close();
+				connection.rollback();
 				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
@@ -167,7 +145,6 @@ public class TransferGoodController {
 			if (connection != null) {
 				connection.rollback();
 				connection.setAutoCommit(true);
-				connection.close();
 			}
 			throw ex; // Handled in intentionToSell's main method, in the try catch were execute is called.
 		}
