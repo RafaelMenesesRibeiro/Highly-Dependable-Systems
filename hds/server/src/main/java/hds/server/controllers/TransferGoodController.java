@@ -133,7 +133,7 @@ public class TransferGoodController {
 			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
-			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
+			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
 				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);

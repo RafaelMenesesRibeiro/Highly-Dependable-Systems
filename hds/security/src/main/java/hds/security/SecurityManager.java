@@ -60,6 +60,11 @@ public class SecurityManager {
 
         int from = Integer.parseInt(message.getFrom());
 
+        // Hammering for initial value signature validation
+        if (message.getSignature().equals("initialSign")){
+            return "";
+        }
+
         if (from >= 10000) {
             if (!isValidSignatureFromServer(message))
                 return "invalid signature";
