@@ -37,7 +37,6 @@ import static hds.security.SecurityManager.setMessageSignature;
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
-	private static final int MAX_CACHED_ENTRIES = 128;
 
 	/**
 	 * Adds a newly responded message to the recent messages cached. Used in case of
