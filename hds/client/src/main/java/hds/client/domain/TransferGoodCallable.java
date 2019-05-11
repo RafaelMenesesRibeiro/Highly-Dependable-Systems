@@ -48,7 +48,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 requestMessage.getWts(),
                 requestMessage.getOnSale(),
                 requestMessage.getWriteOnGoodsSignature(),
-                requestMessage.getwriteOnOwnershipsSignature(),
+                requestMessage.getWriteOnOwnershipsSignature(),
                 timestamp,
                 OPERATION,
                 ClientProperties.getPort(),

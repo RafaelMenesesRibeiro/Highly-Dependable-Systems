@@ -33,7 +33,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                                      String goodID,
                                      String buyerID,
                                      String sellerID,
-                                     int logicalTimestamp,
+                                     long wts,
                                      Boolean onSale,
                                      String writeOnGoodsSignature,
                                      String writeOnOwnershipsSignature,
@@ -43,7 +43,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                                      String wrappingTo,
                                      String wrappingSignature) {
 
-        super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID, logicalTimestamp, onSale, writeOnGoodsSignature, writeOnOwnershipsSignature);
+        super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID, wts, onSale, writeOnGoodsSignature, writeOnOwnershipsSignature);
         this.wrappingTimestamp = wrappingTimestamp;
         this.wrappingOperation = wrappingOperation;
         this.wrappingFrom = wrappingFrom;
