@@ -126,7 +126,7 @@ public class ClientApplication {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
                 BasicMessage resultContent = futureResult.get();
-                if (processResponse(resultContent)) break;
+                if (isValidResponse(resultContent)) break;
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -172,7 +172,7 @@ public class ClientApplication {
         for (Future<BasicMessage> future : futuresList) {
             try {
                 BasicMessage resultContent = future.get();
-                processResponse(resultContent);
+                isValidResponse(resultContent);
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
             } catch (ExecutionException ee) {
@@ -219,7 +219,7 @@ public class ClientApplication {
                     basicMessage = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
                 }
 
-                processResponse(basicMessage);
+                isValidResponse(basicMessage);
             }
 
         } catch (SocketTimeoutException ste) {
@@ -269,7 +269,7 @@ public class ClientApplication {
     }
 
     private static byte[] newWriteOnOwnershipsDataSignature(final String goodId,final String writerID,
-                                                   final int logicalTimestamp) throws JSONException, SignatureException {
+                                                            final int logicalTimestamp) throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnOwnershipData(goodId, writerID, logicalTimestamp).toString().getBytes();
         return CryptoUtils.signData(getPrivateKey(), rawData);
@@ -280,15 +280,15 @@ public class ClientApplication {
      *
      ***********************************************************/
 
-    private static boolean processResponse(BasicMessage responseMessage) {
-        // TODO Improve return value. Use something other than true/false;
+    private static boolean isValidResponse(BasicMessage responseMessage) {
         String validationResult = isValidMessage(responseMessage);
         if (!"".equals(validationResult)) {
             printError(validationResult);
             return false;
+        } else {
+            print(responseMessage.toString());
+            return true;
         }
-        print(responseMessage.toString());
-        return true;
     }
 
     private static String scanString(String requestString) {
