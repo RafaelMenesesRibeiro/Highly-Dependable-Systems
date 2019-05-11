@@ -10,7 +10,10 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
-import hds.server.exception.*;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.IncorrectSignatureException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
@@ -26,12 +29,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.DateUtils.*;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
-import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
-import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
+import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimestamp;
 
 /**
  * Responsible for handling POST requests for the endpoint /transferGood.
@@ -90,18 +91,6 @@ public class TransferGoodController {
 			return response;
 		}
 
-		// TODO - Check if Write Timestamp is younger than the timestamp in the database (for this entry).
-		String writerID = transactionData.getBuyerID();
-		// TODO - Add this to custom validation. //
-		int logicTimestamp = transactionData.getLogicalTimestamp();
-		if (!isFreshLogicTimestamp(writerID, logicTimestamp)) {
-			String reason = "Logic timestamp " + logicTimestamp + " is too old";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			metaResponse = new MetaResponse(408, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-		incrementClientTimestamp(writerID);
-
 		try {
 			metaResponse = execute(transactionData);
 		}
@@ -130,7 +119,7 @@ public class TransferGoodController {
 	 * @see 	MetaResponse
 	 */
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
 		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
@@ -141,10 +130,19 @@ public class TransferGoodController {
 		try {
 			conn = DatabaseManager.getConnection();
 			conn.setAutoCommit(false);
-			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 
+			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
+			long requestWriteTimestamp = transactionData.getWriteTimestamp();
+			long databaseWriteTimestamp = getOnOwnershipTimestamp(conn, goodID);
+			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
+				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
+				return new MetaResponse(408, payload);
+			}
+
+			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
 				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
-				int writeTimestamp = transactionData.getLogicalTimestamp();
+				int writeTimestamp = transactionData.getWriteTimestamp();
 				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
 				if (!res) {
 					// TODO - Rollback is not needed here. //
@@ -177,6 +175,7 @@ public class TransferGoodController {
 				return new MetaResponse(403, payload);
 			}
 		}
+		// TODO - This is handled in the main controller method. // Just rollback and throw any. //
 		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
