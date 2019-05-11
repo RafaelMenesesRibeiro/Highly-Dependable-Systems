@@ -33,11 +33,11 @@ public class WantToBuyController {
     @PostMapping(value = "/wantToBuy")
     public ResponseEntity<List<BasicMessage>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
         if (isMessageFreshAndAuthentic(requestMessage)) {
-            List<BasicMessage> responseEntityList = new ArrayList<>();
-            responseEntityList.add(newErrorResponse(requestMessage, "Seller rejects message, it's either not fresh or not properly signed"));
-            return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
+            return tryDoTransfer(requestMessage);
         }
-        return tryDoTransfer(requestMessage);
+        List<BasicMessage> responseEntityList = new ArrayList<>();
+        responseEntityList.add(newErrorResponse(requestMessage, "Seller rejects message, it's either not fresh or not properly signed"));
+        return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
     }
 
     private ResponseEntity<List<BasicMessage>> tryDoTransfer(SaleRequestMessage requestMessage) {
