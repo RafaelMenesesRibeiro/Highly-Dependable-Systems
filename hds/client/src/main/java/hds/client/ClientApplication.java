@@ -1,6 +1,7 @@
 package hds.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
@@ -109,7 +110,8 @@ public class ClientApplication {
         int rid = readId.incrementAndGet();
 
         for (String replicaId : replicasList) {
-            completionService.submit(new GetStateOfGoodCallable(replicaId, goodId, rid));
+            Callable<BasicMessage> job = new GetStateOfGoodCallable(replicaId, goodId, rid);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
         processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
@@ -158,9 +160,9 @@ public class ClientApplication {
         long wts = generateTimestamp();
 
         for (String replicaId : replicasList) {
-            completionService.submit(new IntentionToSellCallable(
-                    generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
-            );
+            Callable<BasicMessage> job =
+                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
         processIntentionToSellResponses(wts, replicasList.size(), completionService);

@@ -1,5 +1,6 @@
 package hds.client.controllers;
 
+import hds.client.domain.CallableManager;
 import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ONRRMajorityVoting;
@@ -47,7 +48,8 @@ public class WantToBuyController {
         final long timestamp = generateTimestamp();
 
         for (String replicaId : replicasList) {
-            completionService.submit(new TransferGoodCallable(timestamp, replicaId, requestMessage));
+            Callable<BasicMessage> job = new TransferGoodCallable(timestamp, replicaId, requestMessage);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
         List<BasicMessage> responses = processTransferGoodResponses(requestMessage.getWts(), replicasList.size(), completionService);
