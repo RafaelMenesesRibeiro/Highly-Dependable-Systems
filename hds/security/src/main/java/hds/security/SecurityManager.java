@@ -53,13 +53,17 @@ public class SecurityManager {
 
     /** Given a basic message it verifies if it's fresh, if it's been seen before and if the signature is valid */
     public static String isValidMessage(BasicMessage message) {
-        // TODO Has this been processed before? Using a UUID - Not a priority
 
         if (!isFreshTimestamp(message.getTimestamp())) {
             return "message is more than five minutes old";
         }
 
         int from = Integer.parseInt(message.getFrom());
+
+        // Hammering for initial value signature validation
+        if (message.getSignature().equals("initialSign")){
+            return "";
+        }
 
         if (from >= 10000) {
             if (!isValidSignatureFromServer(message))

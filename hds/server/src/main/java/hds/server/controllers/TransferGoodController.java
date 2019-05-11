@@ -131,7 +131,7 @@ public class TransferGoodController {
 			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
-			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
+			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
 				connection.close();
 				throw new SignatureException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}

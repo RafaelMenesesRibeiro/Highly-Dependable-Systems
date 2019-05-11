@@ -67,11 +67,6 @@ public class ONRRMajorityVoting {
                 return 0;
             }
 
-            // TODO - @FranciscoBarros - verify this please. //
-            String writeOperationSignature = goodStateResponse.getWriteOperationSignature();
-            if (writeOperationSignature.equals(INITIAL_DATABASE_ENRTY_SIGNATURE)) {
-                // Do nothing.
-            }
             else if (!verifyWriteOnGoodsDataResponseSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),

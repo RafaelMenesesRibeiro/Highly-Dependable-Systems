@@ -122,7 +122,7 @@ public class IntentionToSellController {
 
 			long requestWriteTimestamp = ownerData.getWriteTimestamp();
 			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
-			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
+			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
 				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);
