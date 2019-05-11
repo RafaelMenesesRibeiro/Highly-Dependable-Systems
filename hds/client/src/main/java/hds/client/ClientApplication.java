@@ -158,10 +158,9 @@ public class ClientApplication {
         } catch (InterruptedException ie) {
             printError(ie.getMessage());
         }
-
         // Validate responses for freshness, authenticity and see if they are a response for this request
         processIntentionToSellResponses(writeTimeStamp, futuresList);
-
+        // End operation
         executorService.shutdown();
     }
 
@@ -187,11 +186,7 @@ public class ClientApplication {
             }
             ackCount += isAckResponse(wts, resultContent);
         }
-        if (ackCount > ClientProperties.getMajorityThreshold()) {
-            print("Intention to sell operation finished with majority approval!");
-        } else {
-            print("Intention to sell operation failed... Not enough votes.");
-        }
+        assertOperationSuccess(ackCount, "intentionToSell");
     }
 
     private static int isAckResponse(int wts, BasicMessage resultContent) {
@@ -319,6 +314,14 @@ public class ClientApplication {
             // Everything is has expected
             print(responseMessage.toString());
             return true;
+        }
+    }
+
+    private static void assertOperationSuccess(int ackCount, String operation) {
+        if (ackCount > ClientProperties.getMajorityThreshold()) {
+            print(operation + " operation finished with majority approval!");
+        } else {
+            print(operation + " operation failed... Not enough votes.");
         }
     }
 
