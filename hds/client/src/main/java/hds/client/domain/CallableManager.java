@@ -18,7 +18,7 @@ public class CallableManager implements Callable<BasicMessage> {
 
     @Override
     public BasicMessage call() {
-        BasicMessage result = null;
+        BasicMessage result;
         ExecutorService exec = Executors.newSingleThreadExecutor();
         try {
             result = exec.submit(callable).get(timeout, timeUnit);
