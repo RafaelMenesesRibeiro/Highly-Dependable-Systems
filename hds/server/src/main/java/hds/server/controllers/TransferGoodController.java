@@ -176,7 +176,7 @@ public class TransferGoodController {
 				return new MetaResponse(403, payload);
 			}
 		}
-		catch (JSONException | SQLException | DBNoResultsException ex) {
+		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}

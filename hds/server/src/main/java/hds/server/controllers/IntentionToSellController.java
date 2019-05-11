@@ -173,7 +173,7 @@ public class IntentionToSellController {
 			return new MetaResponse(payload);
 		}
 		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //
-		catch (JSONException | SQLException | DBNoResultsException ex) {
+		catch (SQLException | DBNoResultsException ex) {
 			if (conn != null) {
 				conn.rollback();
 			}
