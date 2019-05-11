@@ -278,8 +278,9 @@ public class ClientApplication {
                     printError("Ignoring invalid message...");
                     continue;
                 }
-                ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
 
+                ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+                
             } catch (Exception exc) {
                 continue;
             }
