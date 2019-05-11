@@ -33,7 +33,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                                      String goodID,
                                      String buyerID,
                                      String sellerID,
-                                     int logicalTimestamp,
+                                     long logicalTimestamp,
                                      Boolean onSale,
                                      String writeOnGoodsSignature,
                                      String writeOnOwnershipsSignature,

@@ -17,6 +17,7 @@ import hds.server.exception.IncorrectSignatureException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
+import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -131,7 +132,7 @@ public class TransferGoodController {
 			conn.setAutoCommit(false);
 
 			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
-			long requestWriteTimestamp = transactionData.getWriteTimestamp();
+			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(conn, goodID);
 			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
 				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
@@ -140,8 +141,8 @@ public class TransferGoodController {
 			}
 
 			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
-				String writeOnOwnershipsSignature = transactionData.getwriteOnOwnershipsSignature();
-				int writeTimestamp = transactionData.getWts();
+				String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
+				long writeTimestamp = transactionData.getWts();
 				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, writeTimestamp, writeOnOwnershipsSignature);
 				if (!res) {
 					// TODO - Rollback is not needed here. //

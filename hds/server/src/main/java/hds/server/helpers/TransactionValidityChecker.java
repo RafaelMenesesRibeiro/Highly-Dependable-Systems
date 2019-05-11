@@ -68,7 +68,7 @@ public class TransactionValidityChecker {
 				transactionData.getWts(),
 				transactionData.getOnSale(),
 				transactionData.getWriteOnGoodsSignature(),
-				transactionData.getwriteOnOwnershipsSignature()
+				transactionData.getWriteOnOwnershipsSignature()
 		);
 
 		// TODO - Add transaction here. //
