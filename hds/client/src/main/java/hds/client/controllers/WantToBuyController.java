@@ -41,52 +41,53 @@ public class WantToBuyController {
     private ResponseEntity<List<BasicMessage>> tryDoTransfer(SaleRequestMessage requestMessage) {
 
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
-        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
         final long timestamp = generateTimestamp();
 
+        List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
             callableList.add(new TransferGoodCallable(timestamp, replicaId, requestMessage));
         }
-
-        List<Future<BasicMessage>> futuresList = new ArrayList<>();
-
-        try {
-            futuresList = executorService.invokeAll(callableList, 20, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            printError(ie.getMessage());
+        for (Callable<BasicMessage> callable : callableList) {
+            completionService.submit(callable);
         }
 
-        List<BasicMessage> transferGoodResponses = processTransferGoodResponses(requestMessage.getWts(), futuresList);
+        List<BasicMessage> responses = processTransferGoodResponses(requestMessage.getWts(), replicasList.size(), completionService);
 
         executorService.shutdown();
 
-        return new ResponseEntity<>(transferGoodResponses, HttpStatus.MULTIPLE_CHOICES);
+        return new ResponseEntity<>(responses, HttpStatus.MULTIPLE_CHOICES);
     }
 
-    private List<BasicMessage> processTransferGoodResponses(long wts, List<Future<BasicMessage>> futuresList) {
+    private List<BasicMessage> processTransferGoodResponses(long wts,
+                                                            final int replicasCount,
+                                                            ExecutorCompletionService<BasicMessage> completionService) {
+        
         List<BasicMessage> messagesList = new ArrayList<>();
         int ackCount = 0;
-        for (Future<BasicMessage> future : futuresList) {
-            if (!future.isCancelled()) {
-                try {
-                    BasicMessage message = future.get();
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
                     messagesList.add(message);
                     if (!isMessageFreshAndAuthentic(message)) {
                         printError("Ignoring invalid message...");
                         continue;
                     }
                     ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-                } catch (InterruptedException ie) {
-                    printError(ie.getMessage());
-                } catch (ExecutionException ee) {
-                    Throwable cause = ee.getCause();
-                    printError(cause.getMessage());
-                    if (cause instanceof SocketTimeoutException) {
-                        printError("A node did not respond within expected limits...");
-                    } else if (cause instanceof SignatureException) {
-                        printError("Seller could not sign a message to be sent to at least one of the replicas...");
-                    }
+                }
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+                if (cause instanceof SocketTimeoutException) {
+                    printError("A node did not respond within expected limits...");
+                } else if (cause instanceof SignatureException) {
+                    printError("Seller could not sign a message to be sent to at least one of the replicas...");
                 }
             }
         }

@@ -128,13 +128,13 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage message = futureResult.get();
-
-                if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                    continue;
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
                 }
-
-                ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -155,51 +155,53 @@ public class ClientApplication {
 
     private static void intentionToSell() {
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
-        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         // Store the write operation timestamp of this operation in order to validate incoming responses
         long wts = generateTimestamp();
         // Create a list of callable, so that servers can be called in parallel by this client
+        List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
             callableList.add(new IntentionToSellCallable(
                     generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
             );
         }
-        // Initiate all tasks and wait for all of them to finish
-        List<Future<BasicMessage>> futuresList = new ArrayList<>();
-        try {
-            futuresList = executorService.invokeAll(callableList,20, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            printError(ie.getMessage());
+        // Initiate all tasks and handle them as they complete
+        for (Callable<BasicMessage> callable : callableList) {
+            completionService.submit(callable);
         }
         // Validate responses for freshness, authenticity and see if they are a response for this request
-        processIntentionToSellResponses(wts, futuresList);
+        processIntentionToSellResponses(wts, replicasList.size(), completionService);
         // End operation
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(long wts, List<Future<BasicMessage>> futuresList) {
+    private static void processIntentionToSellResponses(long wts,
+                                                        final int replicasCount,
+                                                        ExecutorCompletionService<BasicMessage> completionService) {
+
         int ackCount = 0;
-        for (Future<BasicMessage> future : futuresList) {
-            if (!future.isCancelled()) {
-                try {
-                    BasicMessage message = future.get();
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
                     ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-                } catch (InterruptedException ie) {
-                    printError(ie.getMessage());
-                } catch (ExecutionException ee) {
-                    Throwable cause = ee.getCause();
-                    printError(cause.getMessage());
-                    if (cause instanceof SocketTimeoutException) {
-                        printError("Target node did not respond within expected limits. Try again at your discretion...");
-                    }
+                }
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+                if (cause instanceof SocketTimeoutException) {
+                    printError("Target node did not respond within expected limits. Try again at your discretion...");
                 }
             }
         }
-        ONRRMajorityVoting.assertOperationSuccess(ackCount, "intentionToSell");
+        ONRRMajorityVoting.assertOperationSuccess(ackCount,"intentionToSell");
     }
 
     /***********************************************************
@@ -249,7 +251,7 @@ public class ClientApplication {
                 }
 
                 ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-                
+
             } catch (Exception exc) {
                 continue;
             }
