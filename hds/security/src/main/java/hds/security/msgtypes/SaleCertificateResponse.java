@@ -27,6 +27,9 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
     @ValidClientID
     private String newOwner;
 
+    @NotNull(message = "The wts cannot be null.")
+    private long wts;
+
     public SaleCertificateResponse(long timestamp,
                                    String requestID,
                                    String operation,
@@ -36,7 +39,8 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
                                    String notaryServer,
                                    String goodId,
                                    String previousOwner,
-                                   String newOwner) {
+                                   String newOwner,
+                                   long wts) {
 
         super(timestamp, requestID, operation, from, to, signature);
         this.notaryServer = notaryServer;
@@ -80,6 +84,18 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
         this.newOwner = newOwner;
     }
 
+    public void setNotaryServer(String notaryServer) {
+        this.notaryServer = notaryServer;
+    }
+
+    public long getWts() {
+        return wts;
+    }
+
+    public void setWts(long wts) {
+        this.wts = wts;
+    }
+
     @Override
     public String toString() {
         return "SaleCertificateResponse{" +
@@ -87,7 +103,8 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
                 ", goodId='" + goodId + '\'' +
                 ", previousOwner='" + previousOwner + '\'' +
                 ", newOwner='" + newOwner + '\'' +
-                ", requestID=" + requestID +
+                ", wts=" + wts +
+                ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
