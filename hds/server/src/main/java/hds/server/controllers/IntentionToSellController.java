@@ -92,7 +92,7 @@ public class IntentionToSellController {
 
 		String clientID = ownerData.getOwner();
 		// TODO - Add this to custom validation. //
-		long wts = ownerData.getWts();
+		long wts = ownerData.getWriteTimestamp();
 		if (!isFreshLogicTimestamp(clientID, wts)) {
 			String reason = "write timestamp " + wts + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
@@ -157,7 +157,7 @@ public class IntentionToSellController {
 
 			String writeOperationSignature = ownerData.getWriteOperationSignature();
 			String writerID = ownerData.getOwner();
-			long wts = ownerData.getWts();
+			long wts = ownerData.getWriteTimestamp();
 			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, wts, writeOperationSignature);
 			if (!res) {
 				// TODO - Rollback is not needed here. //
@@ -169,7 +169,7 @@ public class IntentionToSellController {
 
 			MarkForSale.markForSale(conn, goodID, writerID, ""+wts, writeOperationSignature);
 			conn.commit();
-			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWts());
+			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);
 		}
 		// TODO - This is not necessary, execute is in a try catch that handles exceptions. //
