@@ -90,7 +90,22 @@ class DatabaseInterface {
 		return results;
 	}
 
-	// TODO - Add Javadoc. //
+	/**
+	 * Queries the database and returns a List of JSONObjects. Each JSONObject corresponds to one result and is
+	 * comprised of column name (as key) and respective query returned value for that column (value).
+	 *
+	 * @param 	conn         	Database connection
+	 * @param 	query        	Query to be transformed into a PreparedStatement
+	 * @param 	returnColumns 	Return columns for the query
+	 * @param 	args         	Arguments of the PreparedStatement
+	 * @return 	List		 	Represents the list of the query's results
+	 * @throws 	SQLException					The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	Connection
+	 * @see 	PreparedStatement
+	 */
 	static List<JSONObject> queryDB(Connection conn, String query, List<String> returnColumns, List<String> args)
 			throws DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, SQLException, JSONException {
 

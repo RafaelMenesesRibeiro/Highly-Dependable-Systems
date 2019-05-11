@@ -169,7 +169,18 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	// TODO - Add Javadoc. //
+	/**
+	 * Returns the write timestamp on the database's Goods table for a certain GoodID entry.
+	 *
+	 * @param   connection	Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	long		Write timestamp
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static long getOnGoodsTimestamp(Connection connection, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 		String query = "SELECT ts FROM goods WHERE goodId = ?";
@@ -192,8 +203,18 @@ public class TransactionValidityChecker {
 		}
 	}
 
-	// TODO - Add Javadoc. //
-	// TODO - Refactor with above method. //
+	/**
+	 * Returns the write timestamp on the database's Ownership table for a certain GoodID entry.
+	 *
+	 * @param   connection	Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	long		Write timestamp
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
 	public static long getOnOwnershipTimestamp(Connection connection, String goodID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 		String query = "SELECT ts FROM ownership WHERE goodId = ?";
@@ -214,7 +235,6 @@ public class TransactionValidityChecker {
 		catch (IndexOutOfBoundsException | NullPointerException ex) {
 			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
 		}
-
 	}
 
 	/**
