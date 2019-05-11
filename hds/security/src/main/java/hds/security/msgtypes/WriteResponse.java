@@ -5,27 +5,27 @@ import java.io.Serializable;
 
 public class WriteResponse extends BasicMessage implements Serializable {
 	@NotNull(message = "The write timestamp cannot be null.")
-	private int writeTimestamp;
+	private long wts;
 
-	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, int writeTimestamp) {
+	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, int wts) {
 		super(timestamp, requestID, operation, from, to, signature);
-		this.writeTimestamp = writeTimestamp;
+		this.wts = wts;
 	}
 
 	public WriteResponse() {}
 
-	public int getWriteTimestamp() {
-		return writeTimestamp;
+	public long getWts() {
+		return wts;
 	}
 
-	public void setWriteTimestamp(int writeTimestamp) {
-		this.writeTimestamp = writeTimestamp;
+	public void setWts(long wts) {
+		this.wts = wts;
 	}
 
 	@Override
 	public String toString() {
 		return "WriteResponse{" +
-				"writeTimestamp=" + writeTimestamp +
+				"wts=" + wts +
 				", requestID='" + requestID + '\'' +
 				", operation='" + operation + '\'' +
 				", from='" + from + '\'' +
