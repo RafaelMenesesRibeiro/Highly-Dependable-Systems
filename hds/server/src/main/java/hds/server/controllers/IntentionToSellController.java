@@ -94,7 +94,7 @@ public class IntentionToSellController {
 		// TODO - Add this to custom validation. //
 		long wts = ownerData.getWts();
 		if (!isFreshLogicTimestamp(clientID, wts)) {
-			String reason = "Logic timestamp " + wts + " is too old";
+			String reason = "write timestamp " + wts + " is too old";
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 			metaResponse = new MetaResponse(408, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, ownerData.getRequestID(), ownerData.getFrom(), OPERATION);
