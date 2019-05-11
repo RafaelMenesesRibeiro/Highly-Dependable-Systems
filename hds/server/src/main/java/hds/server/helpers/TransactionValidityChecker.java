@@ -5,6 +5,8 @@ import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.SaleRequestMessage;
 import hds.server.exception.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static hds.security.ResourceManager.getPublicKeyFromResource;
+import static hds.server.helpers.DatabaseInterface.queryDB;
 
 /**
  * Verifies if the transaction is valid.
@@ -66,6 +69,8 @@ public class TransactionValidityChecker {
 				transactionData.getWriteOnGoodsSignature(),
 				transactionData.getwriteOnOwnershipsSignature()
 		);
+
+		// TODO - Add transaction here. //
 
 		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
@@ -130,6 +135,30 @@ public class TransactionValidityChecker {
 		try {
 			List<String> results = DatabaseInterface.queryDB(conn, query, "onSale", args);
 			return results.get(0).equals("t");
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	// TODO - Add Javadoc. //
+	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+
+		String query = "SELECT goodID, onSale, wid, ts, sig FROM ownership WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+		List<String> returnColumns = new ArrayList<>();
+		args.add("goodID");
+		args.add("onSale");
+		args.add("wid");
+		args.add("ts");
+		args.add("sig");
+		try {
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
