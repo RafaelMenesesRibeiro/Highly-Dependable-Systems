@@ -7,8 +7,8 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class OwnerDataMessage extends GoodDataMessage implements Serializable {
-    @NotNull(message = "The logical timestamp cannot be null.")
-    private long wts;
+    @NotNull(message = "The write timestamp cannot be null.")
+    private long writeTimestamp;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private boolean onSale;
@@ -30,25 +30,25 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
                             String signature,
                             String goodID,
                             String owner,
-                            long wts,
+                            long writeTimestamp,
                             boolean onSale,
                             String writeOperationSignature) {
 
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.owner = owner;
-        this.wts = wts;
+        this.writeTimestamp = writeTimestamp;
         this.onSale = onSale;
         this.writeOperationSignature = writeOperationSignature;
     }
 
     public OwnerDataMessage() {}
 
-    public long getWts() {
-        return wts;
+    public long getWriteTimestamp() {
+        return writeTimestamp;
     }
 
-    public void setWts(long wts) {
-        this.wts = wts;
+    public void setWriteTimestamp(long writeTimestamp) {
+        this.writeTimestamp = writeTimestamp;
     }
 
     public boolean isOnSale() {
@@ -78,7 +78,7 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @Override
     public String toString() {
         return "OwnerDataMessage{" +
-                "wts=" + wts +
+                "wts=" + writeTimestamp +
                 ", onSale=" + onSale +
                 ", owner='" + owner + '\'' +
                 ", writeOperationSignature='" + writeOperationSignature + '\'' +
