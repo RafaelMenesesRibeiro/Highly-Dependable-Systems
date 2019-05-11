@@ -15,6 +15,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The onSale cannot be null.")
     private boolean onSale;
 
+    // TODO - Add validators
     private String goodID;
     private String writerID;
     private long wts;
