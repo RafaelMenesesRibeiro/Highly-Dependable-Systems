@@ -149,18 +149,6 @@ public class ClientApplication {
 
     }
 
-    private static BasicMessage highestValue(List<GoodStateResponse> readList) {
-        GoodStateResponse highest = null;
-        for (GoodStateResponse message : readList) {
-            if (highest == null) {
-                highest = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
-                highest = message;
-            }
-        }
-        return highest;
-    }
-
     private static int isGoodStateResponseAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
@@ -188,6 +176,17 @@ public class ClientApplication {
         return 0;
     }
 
+    private static BasicMessage highestValue(List<GoodStateResponse> readList) {
+        GoodStateResponse highest = null;
+        for (GoodStateResponse message : readList) {
+            if (highest == null) {
+                highest = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
+                highest = message;
+            }
+        }
+        return highest;
+    }
 
     /***********************************************************
      *
@@ -210,7 +209,7 @@ public class ClientApplication {
         // Initiate all tasks and wait for all of them to finish TODO implement timeouts
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
         try {
-            futuresList = executorService.invokeAll(callableList);
+            futuresList = executorService.invokeAll(callableList,20, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
             printError(ie.getMessage());
         }
@@ -223,24 +222,25 @@ public class ClientApplication {
     private static void processIntentionToSellResponses(long wts, List<Future<BasicMessage>> futuresList) {
         int ackCount = 0;
         for (Future<BasicMessage> future : futuresList) {
-            BasicMessage resultContent = null;
-            try {
-                resultContent = future.get();
-                if (!isFreshAndAuthentic(resultContent)) {
-                    printError("Ignoring invalid message...");
-                    continue;
-                }
-            } catch (InterruptedException ie) {
-                printError(ie.getMessage());
-            } catch (ExecutionException ee) {
-                Throwable cause = ee.getCause();
-                if (cause instanceof SocketTimeoutException) {
-                    printError("Target node did not respond within expected limits. Try again at your discretion...");
-                } else {
+            if (!future.isCancelled()) {
+                BasicMessage resultContent = null;
+                try {
+                    resultContent = future.get();
+                    if (!isFreshAndAuthentic(resultContent)) {
+                        printError("Ignoring invalid message...");
+                        continue;
+                    }
+                } catch (InterruptedException ie) {
+                    printError(ie.getMessage());
+                } catch (ExecutionException ee) {
+                    Throwable cause = ee.getCause();
                     printError(cause.getMessage());
+                    if (cause instanceof SocketTimeoutException) {
+                        printError("Target node did not respond within expected limits. Try again at your discretion...");
+                    }
                 }
+                ackCount += isWriteResponseAcknowledge(wts, resultContent);
             }
-            ackCount += isWriteResponseAcknowledge(wts, resultContent);
         }
         assertOperationSuccess(ackCount, "intentionToSell");
     }

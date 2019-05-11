@@ -55,7 +55,7 @@ public class WantToBuyController {
 
         List<Future<BasicMessage>> futuresList = new ArrayList<>();
         try {
-            futuresList = executorService.invokeAll(callableList);
+            futuresList = executorService.invokeAll(callableList, 20, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
             printError(ie.getMessage());
         }
