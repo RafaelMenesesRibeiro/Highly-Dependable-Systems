@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.*;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.incrementClientTimestamp;
-import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.isFreshLogicTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.*;
 
 /**
@@ -115,6 +114,7 @@ public class IntentionToSellController {
 	private MetaResponse execute(OwnerDataMessage ownerData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
+		// TODO - Is this still necessary? //
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 		Connection conn = null;
@@ -122,7 +122,6 @@ public class IntentionToSellController {
 			conn = DatabaseManager.getConnection();
 			conn.setAutoCommit(false);
 
-			String clientID = ownerData.getOwner();
 			long requestWriteTimestamp = ownerData.getWriteTimestamp();
 			long databaseWriteTimestamp = getOnGoodsTimestamp(conn, goodID);
 			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
@@ -130,7 +129,7 @@ public class IntentionToSellController {
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);
 			}
-			incrementClientTimestamp(clientID);
+			incrementClientTimestamp(sellerID);
 
 			String ownerID = getCurrentOwner(conn, goodID);
 			if (!ownerID.equals(sellerID)) {

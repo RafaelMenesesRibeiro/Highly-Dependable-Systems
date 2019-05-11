@@ -31,6 +31,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
     private String writeOnOwnershipsSignature;
 
+
     public SaleRequestMessage(long timestamp,
                               String requestID,
                               String operation,
@@ -44,6 +45,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
                               Boolean onSale,
                               String writeOnGoodsSignature,
                               String writeOnOwnershipsSignature) {
+
 
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.buyerID = buyerID;
@@ -69,6 +71,7 @@ public class SaleRequestMessage extends  GoodDataMessage implements Serializable
     public void setSellerID(String sellerID) {
         this.sellerID = sellerID;
     }
+
 
     public long getWts() {
         return wts;
