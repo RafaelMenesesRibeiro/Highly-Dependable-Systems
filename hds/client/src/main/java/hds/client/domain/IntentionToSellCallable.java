@@ -39,7 +39,6 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
             throw new RuntimeException(exc.getMessage());
 
         }
-
     }
 
     @Override
@@ -78,5 +77,13 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                 onSale,
                 writeOnGoodsSignature
         );
+    }
+
+    @Override
+    public String toString() {
+        return "IntentionToSellCallable{" +
+                "message=" + message.toString() +
+                ", notaryReplicaId='" + replicaId + '\'' +
+                '}';
     }
 }

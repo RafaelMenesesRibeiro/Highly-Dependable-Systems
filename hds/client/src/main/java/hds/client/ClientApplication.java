@@ -1,6 +1,7 @@
 package hds.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
@@ -108,13 +109,11 @@ public class ClientApplication {
 
         int rid = readId.incrementAndGet();
 
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
-            callableList.add(new GetStateOfGoodCallable(replicaId, goodId, rid));
+            Callable<BasicMessage> job = new GetStateOfGoodCallable(replicaId, goodId, rid);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
-        }
+
         processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
     }
@@ -128,13 +127,16 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage message = futureResult.get();
-
-                if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                    continue;
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
                 }
-
-                ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
@@ -155,51 +157,49 @@ public class ClientApplication {
 
     private static void intentionToSell() {
         final List<String> replicasList = ClientProperties.getNotaryReplicas();
-        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
-        // Store the write operation timestamp of this operation in order to validate incoming responses
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         long wts = generateTimestamp();
-        // Create a list of callable, so that servers can be called in parallel by this client
+
         for (String replicaId : replicasList) {
-            callableList.add(new IntentionToSellCallable(
-                    generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE)
-            );
+            Callable<BasicMessage> job =
+                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
-        // Initiate all tasks and wait for all of them to finish
-        List<Future<BasicMessage>> futuresList = new ArrayList<>();
-        try {
-            futuresList = executorService.invokeAll(callableList,20, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            printError(ie.getMessage());
-        }
-        // Validate responses for freshness, authenticity and see if they are a response for this request
-        processIntentionToSellResponses(wts, futuresList);
-        // End operation
+
+        processIntentionToSellResponses(wts, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(long wts, List<Future<BasicMessage>> futuresList) {
+    private static void processIntentionToSellResponses(long wts,
+                                                        final int replicasCount,
+                                                        ExecutorCompletionService<BasicMessage> completionService) {
+
         int ackCount = 0;
-        for (Future<BasicMessage> future : futuresList) {
-            if (!future.isCancelled()) {
-                try {
-                    BasicMessage message = future.get();
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                    if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
                     ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-                } catch (InterruptedException ie) {
-                    printError(ie.getMessage());
-                } catch (ExecutionException ee) {
-                    Throwable cause = ee.getCause();
-                    printError(cause.getMessage());
-                    if (cause instanceof SocketTimeoutException) {
-                        printError("Target node did not respond within expected limits. Try again at your discretion...");
-                    }
+                }
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+                if (cause instanceof SocketTimeoutException) {
+                    printError("Target node did not respond within expected limits. Try again at your discretion...");
                 }
             }
         }
-        ONRRMajorityVoting.assertOperationSuccess(ackCount, "intentionToSell");
+        ONRRMajorityVoting.assertOperationSuccess(ackCount,"intentionToSell");
     }
 
     /***********************************************************
@@ -249,7 +249,7 @@ public class ClientApplication {
                 }
 
                 ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-                
+
             } catch (Exception exc) {
                 continue;
             }
