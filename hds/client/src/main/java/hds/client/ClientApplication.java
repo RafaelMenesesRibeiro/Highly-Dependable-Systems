@@ -165,6 +165,7 @@ public class ClientApplication {
             return 0;
         } else if (message instanceof GoodStateResponse) {
             GoodStateResponse goodStateResponse = (GoodStateResponse) message;
+
             if (rid != goodStateResponse.getRid()) {
                 return 0;
             }
@@ -176,9 +177,9 @@ public class ClientApplication {
                     goodStateResponse.getWts(),
                     goodStateResponse.getWriteOperationSignature()
             )) {
-
+                return 0;
             }
-            // TODO Verify <wts, val, sig>
+
             readList.add(message);
             return 1;
         }
