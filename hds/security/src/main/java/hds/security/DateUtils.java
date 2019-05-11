@@ -41,9 +41,10 @@ public class DateUtils {
      */
     public static boolean isOneInstantAfterAnother(Instant one, Instant another) {
         return one.isAfter(another);
-        
-     * @param   existingTimestamp   Long timestamp existing in the database
-     *                              (referring to the data the message wants to access)
+    }
+
+    /**
+     * @param   existingTimestamp   Long timestamp existing in the database (referring to the data the message wants to access)
      * @param   sentTimestamp       Long timestamp retrieved from received message
      * @return  boolean             Freshness of message
      */
@@ -51,6 +52,5 @@ public class DateUtils {
         Instant existingInstant = Instant.ofEpochSecond(existingTimestamp);
         Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
         return sentInstant.isAfter(existingInstant);
-
     }
 }
