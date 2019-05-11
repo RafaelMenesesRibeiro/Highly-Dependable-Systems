@@ -4,7 +4,6 @@ import hds.security.CryptoUtils;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.OwnerDataMessage;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
 import java.security.SignatureException;
@@ -14,8 +13,8 @@ import static hds.client.helpers.ClientProperties.getPort;
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
-import static hds.security.CryptoUtils.signData;
-import static hds.security.SecurityManager.*;
+import static hds.security.SecurityManager.newWriteOnGoodsData;
+import static hds.security.SecurityManager.setMessageSignature;
 
 public class IntentionToSellCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "intentionToSell";
@@ -27,14 +26,14 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                                    String requestId,
                                    String replicaId,
                                    String goodId,
-                                   int logicalTimestamp,
+                                   long wts,
                                    Boolean onSale) {
 
         this.replicaId = replicaId;
         try {
-            byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, logicalTimestamp);
+            byte[] writeOnGoodsSignature = newWriteOnGoodsDataSignature(goodId, onSale, wts);
             this.message = newOwnerDataMessage(
-                    timestamp, requestId, replicaId, goodId, logicalTimestamp, onSale, bytesToBase64String(writeOnGoodsSignature)
+                    timestamp, requestId, replicaId, goodId, wts, onSale, bytesToBase64String(writeOnGoodsSignature)
             );
         } catch (JSONException | SignatureException exc) {
             throw new RuntimeException(exc.getMessage());
@@ -51,10 +50,10 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
         return (BasicMessage) getResponseMessage(connection, Expect.WRITE_RESPONSE);
     }
 
-    private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final int logicalTimestamp)
+    private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final long wts)
             throws JSONException, SignatureException {
 
-        byte[] rawData = newWriteOnGoodsData(goodId, onSale, getPort(), logicalTimestamp).toString().getBytes();
+        byte[] rawData = newWriteOnGoodsData(goodId, onSale, getPort(), wts).toString().getBytes();
         return CryptoUtils.signData(getPrivateKey(), rawData);
     }
 
@@ -62,7 +61,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                                                  final String requestId,
                                                  final String to,
                                                  final String goodId,
-                                                 final int logicalTimestamp,
+                                                 final long wts,
                                                  final Boolean onSale,
                                                  final String writeOnGoodsSignature) {
 
@@ -75,7 +74,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                 "",
                 goodId,
                 getPort(), // owner
-                logicalTimestamp,
+                wts,
                 onSale,
                 writeOnGoodsSignature
         );
