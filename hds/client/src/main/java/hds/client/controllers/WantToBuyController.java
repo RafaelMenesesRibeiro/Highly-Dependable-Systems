@@ -46,25 +46,19 @@ public class WantToBuyController {
 
         final long timestamp = generateTimestamp();
 
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
         for (String replicaId : replicasList) {
-            callableList.add(new TransferGoodCallable(timestamp, replicaId, requestMessage));
-        }
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
+            completionService.submit(new TransferGoodCallable(timestamp, replicaId, requestMessage));
         }
 
         List<BasicMessage> responses = processTransferGoodResponses(requestMessage.getWts(), replicasList.size(), completionService);
-
         executorService.shutdown();
-
         return new ResponseEntity<>(responses, HttpStatus.MULTIPLE_CHOICES);
     }
 
     private List<BasicMessage> processTransferGoodResponses(long wts,
                                                             final int replicasCount,
                                                             ExecutorCompletionService<BasicMessage> completionService) {
-        
+
         List<BasicMessage> messagesList = new ArrayList<>();
         int ackCount = 0;
         for (int i = 0; i < replicasCount; i++) {
