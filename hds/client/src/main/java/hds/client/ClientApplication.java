@@ -132,7 +132,6 @@ public class ClientApplication {
                 BasicMessage message = futureResult.get();
 
                 if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                    printError("Ignoring invalid message...");
                     continue;
                 }
 
@@ -214,7 +213,6 @@ public class ClientApplication {
                 try {
                     BasicMessage message = future.get();
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                        printError("Ignoring invalid message...");
                         continue;
                     }
                     ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
@@ -275,7 +273,6 @@ public class ClientApplication {
                 }
 
                 if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                    printError("Ignoring invalid message...");
                     continue;
                 }
 
