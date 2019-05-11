@@ -5,10 +5,7 @@ import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
 import hds.server.domain.MetaResponse;
-import hds.server.exception.DBClosedConnectionException;
-import hds.server.exception.DBConnectionRefusedException;
-import hds.server.exception.DBNoResultsException;
-import hds.server.exception.IncorrectSignatureException;
+import hds.server.exception.*;
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -132,7 +129,11 @@ public class GeneralControllerHelper {
 		}
 		else if (ex instanceof SignatureException || ex instanceof IncorrectSignatureException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
-			return new MetaResponse(403, payload);
+			return new MetaResponse(401, payload);
+		}
+		else if (ex instanceof OldMessageException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
+			return new MetaResponse(408, payload);
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);
@@ -166,5 +167,4 @@ public class GeneralControllerHelper {
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);
 		return new MetaResponse(400, payload);
 	}
-
 }
