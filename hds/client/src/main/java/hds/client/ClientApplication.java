@@ -249,26 +249,40 @@ public class ClientApplication {
                 printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
             }
 
-            int ackCount = 0;
-            for (int i = 0; i < jsonArray.length(); i++) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JSONObject basicMessageObject = (JSONObject) jsonArray.get(i);
-                BasicMessage basicMessage = null;
-
-                if (basicMessageObject.has("reason")) {
-                    basicMessage = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
-                } else {
-                    basicMessage = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
-                }
-
-                ClientSecurityManager.isMessageFreshAndAuthentic(basicMessage);
-            }
+            processBuyGoodResponses(wts, jsonArray);
 
         } catch (SocketTimeoutException ste) {
             printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
             printError(exc.getMessage());
         }
+    }
+
+    private static void processBuyGoodResponses(long wts, JSONArray messageList) {
+        int ackCount = 0;
+        for (int i = 0; i < messageList.length(); i++) {
+            try {
+                BasicMessage message;
+                JSONObject basicMessageObject = (JSONObject) messageList.get(i);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                if (basicMessageObject.has("reason")) {
+                    message = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
+                } else {
+                    message = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
+                }
+
+                if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                    printError("Ignoring invalid message...");
+                    continue;
+                }
+
+                ackCount += ONRRMajorityVoting.isWriteResponseAcknowledge(wts, message);
+            } catch (Exception exc) {
+                continue;
+            }
+        }
+        ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
     private static SaleRequestMessage newSaleRequestMessage() {
