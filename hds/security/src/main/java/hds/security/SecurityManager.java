@@ -27,6 +27,7 @@ import static hds.security.ResourceManager.getPublicKeyFromResource;
 
 @SuppressWarnings("Duplicates")
 public class SecurityManager {
+    public static final String INITIAL_DATABASE_ENRTY_SIGNATURE = "initialSign";
 
     /***********************************************************
      *

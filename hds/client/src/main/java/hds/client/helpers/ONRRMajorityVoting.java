@@ -10,6 +10,7 @@ import java.util.List;
 
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
+import static hds.security.SecurityManager.INITIAL_DATABASE_ENRTY_SIGNATURE;
 import static hds.security.SecurityManager.verifyWriteOnGoodsDataResponseSignature;
 
 public class ONRRMajorityVoting {
@@ -66,7 +67,12 @@ public class ONRRMajorityVoting {
                 return 0;
             }
 
-            if (!verifyWriteOnGoodsDataResponseSignature(
+            // TODO - @FranciscoBarros - verify this please. //
+            String writeOperationSignature = goodStateResponse.getWriteOperationSignature();
+            if (writeOperationSignature.equals(INITIAL_DATABASE_ENRTY_SIGNATURE)) {
+                // Do nothing.
+            }
+            else if (!verifyWriteOnGoodsDataResponseSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),
                     goodStateResponse.getWriterID(),

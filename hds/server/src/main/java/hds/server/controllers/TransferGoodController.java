@@ -121,89 +121,73 @@ public class TransferGoodController {
 	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
 
-		// TODO - Remove these. //
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
-		Connection conn = null;
+		Connection connection = null;
 		try {
-			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false);
+			connection = DatabaseManager.getConnection();
+			connection.setAutoCommit(false);
 
 			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
 			long requestWriteTimestamp = transactionData.getWts();
-			long databaseWriteTimestamp = getOnOwnershipTimestamp(conn, goodID);
+			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isNewTimestampMoreRecent(databaseWriteTimestamp, requestWriteTimestamp)) {
 				String reason = "write timestamp " + requestWriteTimestamp + " is too old";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
 				return new MetaResponse(408, payload);
 			}
 
-			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
-				String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
-				long wts = transactionData.getWts();
-				boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, wts, writeOnOwnershipsSignature);
-				if (!res) {
-					// TODO - Rollback is not needed here. //
-					conn.rollback();
-					String reason = "The Write On Ownership Operation's signature is not valid.";
-					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-					return new MetaResponse(401, payload);
-				}
-
-				String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
-				res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, wts, writeOnGoodsSignature);
-				if (!res) {
-					// TODO - Rollback is not needed here. //
-					conn.rollback();
-					String reason = "The Write On Goods Operation's signature is not valid.";
-					ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
-					return new MetaResponse(401, payload);
-				}
-
-				TransferGood.transferGood(conn, goodID, buyerID, ""+wts, writeOnOwnershipsSignature, writeOnGoodsSignature);
-
-				conn.commit();
-				SaleCertificateResponse payload = new SaleCertificateResponse(
-						generateTimestamp(),
-						transactionData.getRequestID(),
-						OPERATION,
-						FROM_SERVER,
-						transactionData.getFrom(),
-						"",
-						CERTIFIED,
-						goodID,
-						sellerID,
-						buyerID,
-						transactionData.getWts());
-				return new MetaResponse(payload);
-			}
-			else {
-				conn.rollback();
+			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
+				connection.close();
 				String reason = "The transaction is not valid.";
 				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
 				return new MetaResponse(403, payload);
 			}
-		}
-		// TODO - This is handled in the main controller method. // Just rollback and throw any. //
-		catch (SQLException | DBNoResultsException ex) {
-			if (conn != null) {
-				conn.rollback();
+
+			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
+			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
+			if (!res) {
+				connection.close();
+				String reason = "The Write On Ownership Operation's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
 			}
-			throw ex;
-		}
-		catch (IncorrectSignatureException isex){
-			if (conn != null) {
-				conn.rollback();
+
+			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
+			if (!res) {
+				connection.close();
+				String reason = "The Write On Goods Operation's signature is not valid.";
+				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_SIGNATURE, reason);
+				return new MetaResponse(401, payload);
 			}
-			return GeneralControllerHelper.handleException(isex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
+
+			TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			connection.commit();
+			connection.close();
+			SaleCertificateResponse payload = new SaleCertificateResponse(
+					generateTimestamp(),
+					transactionData.getRequestID(),
+					OPERATION,
+					FROM_SERVER,
+					transactionData.getFrom(),
+					"",
+					CERTIFIED,
+					goodID,
+					sellerID,
+					buyerID,
+					transactionData.getWts());
+			return new MetaResponse(payload);
 		}
-		finally {
-			if (conn != null) {
-				conn.setAutoCommit(true);
-				conn.close();
+		catch (Exception ex) {
+			if (connection != null) {
+				connection.rollback();
+				connection.setAutoCommit(true);
+				connection.close();
 			}
+			throw ex; // Handled in intentionToSell's main method, in the try catch were execute is called.
 		}
 	}
 }
