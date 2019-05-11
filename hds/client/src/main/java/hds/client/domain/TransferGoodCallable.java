@@ -10,7 +10,6 @@ import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.setMessageSignature;
 import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 public class TransferGoodCallable implements Callable<BasicMessage> {
