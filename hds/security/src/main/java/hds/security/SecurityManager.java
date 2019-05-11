@@ -131,6 +131,22 @@ public class SecurityManager {
         }
     }
 
+    public static boolean verifyWriteOnOwnershipSignature(final String goodID,
+                                                          final String writerId,
+                                                          final long wts,
+                                                          final String signature)
+            throws JSONException {
+
+        JSONObject json = newWriteOnOwnershipData(goodID, writerId, wts);
+        try {
+            PublicKey signersPublicKey = getPublicKeyFromResource(writerId);
+            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
+        }
+        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
+            throw new hds.security.exceptions.SignatureException(ex.getMessage());
+        }
+    }
+
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
@@ -143,28 +159,20 @@ public class SecurityManager {
         return  jsonObject;
     }
 
-    public static boolean verifyWriteOnOwnershipSignature(final String goodID,
-                                                          final String writerID,
-                                                          final long wts,
-                                                          final String signature)
-            throws JSONException {
+    public static JSONObject newWriteOnGoodsDataResponse(final String goodId,
+                                                         final Boolean value,
+                                                         final String writerId,
+                                                         final long wts) throws JSONException {
 
-        JSONObject json = newWriteOnOwnershipData(goodID, writerID, wts);
-        try {
-            PublicKey signersPublicKey = getPublicKeyFromResource(writerID);
-            return authenticateSignatureWithPubKey(signersPublicKey, signature, json.toString());
-        }
-        catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeySpecException ex) {
-            throw new hds.security.exceptions.SignatureException(ex.getMessage());
-        }
+        return newWriteOnGoodsData(goodId, value, writerId, wts);
     }
 
     public static JSONObject newWriteOnOwnershipData(final String goodId,
-                                                     final String writerID,
+                                                     final String writerId,
                                                      final long wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
-        jsonObject.put("writerId", writerID);
+        jsonObject.put("writerId", writerId);
         jsonObject.put("wts", wts);
         return  jsonObject;
     }
