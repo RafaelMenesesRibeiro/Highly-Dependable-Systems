@@ -157,8 +157,8 @@ public class IntentionToSellController {
 
 			String writeOperationSignature = ownerData.getWriteOperationSignature();
 			String writerID = ownerData.getOwner();
-			int logicalTimestamp = ownerData.getWts();
-			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, logicalTimestamp, writeOperationSignature);
+			long wts = ownerData.getWts();
+			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, wts, writeOperationSignature);
 			if (!res) {
 				// TODO - Rollback is not needed here. //
 				conn.rollback();
@@ -167,7 +167,7 @@ public class IntentionToSellController {
 				return new MetaResponse(401, payload);
 			}
 
-			MarkForSale.markForSale(conn, goodID, writerID, ""+logicalTimestamp, writeOperationSignature);
+			MarkForSale.markForSale(conn, goodID, writerID, ""+wts, writeOperationSignature);
 			conn.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWts());
 			return new MetaResponse(payload);
