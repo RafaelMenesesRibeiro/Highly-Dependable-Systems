@@ -47,6 +47,7 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
         this.goodId = goodId;
         this.previousOwner = previousOwner;
         this.newOwner = newOwner;
+        this.wts = wts;
     }
 
     public SaleCertificateResponse() {
