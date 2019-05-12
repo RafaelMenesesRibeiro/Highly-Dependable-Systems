@@ -18,6 +18,8 @@ import static hds.security.SecurityManager.setMessageSignature;
 
 /**
  * The type get intention to sell callable performs a PUT request to the end point /stateOfGood of a notary replica
+ * {@link hds.security.msgtypes.BasicMessage}
+ * {@link hds.security.msgtypes.OwnerDataMessage}
  * @author Diogo Vilela
  * @author Francisco Barros
  * @author Rafael Ribeiro
@@ -31,12 +33,12 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
     /**
      * Instantiates a new Intention to sell callable.
      *
-     * @param timestamp the timestamp
-     * @param requestId the request id
-     * @param replicaId the replica id
-     * @param goodId    the good id
-     * @param wts       the wts
-     * @param onSale    the on sale
+     * @param timestamp the timestamp used by the notary to verify freshness of the message
+     * @param requestId the request id used by the notary server to cache responses in case of lost messages over the network
+     * @param replicaId the replica id to whom the client wishes to send the request
+     * @param goodId    the good id the client wishes to sell
+     * @param wts       the write timestamp associated with this write operation in (1, N) Regular Register paradigm
+     * @param onSale    explicitly telling the notary the client wants to put this goodId on sale
      */
     public IntentionToSellCallable(long timestamp,
                                    String requestId,
@@ -88,13 +90,14 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
 
     /**
      * Helper method that instantiates a new OwnerDataMessage
-     * @param timestamp             long timestamp representing an java epoch from seconds, {@link hds.security.DateUtils#generateTimestamp()}
-     * @param requestId             String with a unique identifier used by notary replicas to return cached responses
-     * @param to                    String replica to where we want to send this request message
-     * @param goodId                String the good we want to seller
-     * @param wts                   long timestamp representing an java epoch from seconds, {@link hds.security.DateUtils#generateTimestamp()},
-     *                              unlike timestamp, wts is explicitly used to implement (1,N) regular registers behaviour
-     * @param onSale                Boolean indicates the server that the client wishes to put goodId on sale, TRUE by default
+     * @param timestamp             timestamp representing an java epoch from seconds
+     * @param requestId             a unique identifier used by notary replicas to return cached responses in case of
+     *                              loss of messages over the network
+     * @param to                    replica to where the client wishes to send this request message
+     * @param goodId                the identifier this clients wishes to sell
+     * @param wts                   timestamp representing an java epoch from seconds unlike timestamp, wts is explicitly
+     *                              used to implement (1,N) regular registers behaviour
+     * @param onSale                explicitly indicates to the server that the client wishes to put goodId on sale, TRUE by default
      * @param writeOnGoodsSignature String representing a signature over <goodId, wts, onSale> fields in base64 used for regular registers
      * @return {@link hds.security.msgtypes.OwnerDataMessage}
      */

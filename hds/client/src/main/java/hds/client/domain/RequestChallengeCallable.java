@@ -12,6 +12,9 @@ import static hds.security.SecurityManager.setMessageSignature;
 
 /**
  * The type request challenge callable performs a GET request to the end point /requestChallenge of a notary replica
+ * See also:
+ * {@link hds.security.msgtypes.BasicMessage}
+ * {@link hds.security.DateUtils#generateTimestamp()}
  * @author Diogo Vilela
  * @author Francisco Barros
  * @author Rafael Ribeiro
@@ -25,9 +28,9 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 	/**
 	 * Instantiates a new Request challenge callable.
 	 *
-	 * @param timestamp the timestamp
-	 * @param replicaId the replica id
-	 * @param requestId the request id
+	 * @param timestamp the timestamp used by the notary to verify freshness of the message
+	 * @param requestId the request id used by the notary server to cache responses in case of lost messages over the network
+	 * @param replicaId the replica id to whom the client wishes to send the request
 	 */
 	public RequestChallengeCallable(long timestamp, String replicaId, String requestId) {
 		this.replicaID = replicaId;
@@ -49,9 +52,9 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 
 	/**
 	 * Helper method that instantiates a new BasicMessage
-	 * @param timestamp    long timestamp representing an java epoch from seconds, {@link hds.security.DateUtils#generateTimestamp()}
-	 * @param replicaId    String identifier representing the port where the replica is listening on
-	 * @param requestId    String
+	 * @param timestamp    timestamp representing an java epoch from seconds
+	 * @param replicaId    the identifier representing the port where the replica is listening on
+	 * @param requestId    the request id used by the notary server to cache responses in case of lost messages over the network
 	 * @return {@link hds.security.msgtypes.BasicMessage}
 	 */
 	private BasicMessage newRequestChallengeMessage(long timestamp, String replicaId, String requestId) {
