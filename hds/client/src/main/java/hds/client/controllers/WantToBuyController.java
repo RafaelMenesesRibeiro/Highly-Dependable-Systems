@@ -47,7 +47,8 @@ public class WantToBuyController {
 
         final long timestamp = generateTimestamp();
 
-        // TODO - Request Challenge to Server.
+        // TODO - @FranciscoBarros //
+        // TODO - Request Challenge to Server with RequestChallengeCallable.
         // TODO - Solve all of them and keep them in an hashmap <replicaId, challengeResponse> //
         String challengeResponse = "TODO - TODOs";
 
