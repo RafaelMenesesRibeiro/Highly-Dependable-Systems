@@ -1,33 +1,48 @@
-package hds.security.helpers;
+package hds.security;
 
-import java.util.ArrayList;
 import java.util.Random;
 
+import static hds.security.CryptoUtils.hashMD5;
+
 // TODO - Javadoc. //
-public class StringHelper {
+public class ChallengeSolver {
 	private static final char[] ALPHABET = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
-	static void getAllKLength(char[] set, int stringLength, ArrayList<String> combnations) {
+	private static String hashedOriginalString;
+
+	private static String testAllKLength(char[] set, int stringLength) {
 		int n = set.length;
-		getAllKLengthRecursive(combnations, set, "", n, stringLength);
+		return testAllKLengthRecursive(set, "", n, stringLength);
 	}
 
-	static void getAllKLengthRecursive(ArrayList<String> combinations, char[] set, String prefix, int n, int stringLegnth) {
-		if (stringLegnth == 0) {
-			combinations.add(prefix);
-			return;
+	private static String testAllKLengthRecursive(char[] set, String prefix, int n, int stringLength) {
+		if (stringLength == 0) {
+			if (testNewString(prefix)) {
+				return prefix;
+			}
+			return "";
 		}
 
 		for (int i = 0; i < n; ++i) {
 			String newPrefix = prefix + set[i];
-			getAllKLengthRecursive(combinations, set, newPrefix, n, stringLegnth - 1);
+			String result = testAllKLengthRecursive(set, newPrefix, n, stringLength - 1);
+			if (!result.equals("")) {
+				return newPrefix;
+			}
 		}
+
+		return "";
 	}
 
-	public static ArrayList<String> getAllCombinations(char[] chars, int size) {
-		ArrayList<String> combinations = new ArrayList<>();
-		getAllKLength(chars, size, combinations);
-		return combinations;
+	private static boolean testNewString(String newString) {
+		String hashed = hashMD5(newString);
+		return hashed.equals(hashedOriginalString);
+	}
+
+	// TODO - Use this somewhere. //
+	public static String solveChallenge(String hashed, int size, char[] chars) {
+		hashedOriginalString = hashed;
+		return testAllKLength(chars, size);
 	}
 
 	public static char[] getRandomAlphabetSet(int size) {
