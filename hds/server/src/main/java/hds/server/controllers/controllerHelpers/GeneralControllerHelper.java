@@ -3,6 +3,7 @@ package hds.server.controllers.controllerHelpers;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
+import hds.server.domain.ChallengeData;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.BaseController;
@@ -19,7 +20,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.security.acl.NotOwnerException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -38,6 +38,7 @@ import static hds.security.SecurityManager.setMessageSignature;
  */
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
+	private static final LinkedHashMap<UserRequestIDKey, ChallengeData> unansweredChallenges = new CacheMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
 
 	/**
@@ -106,6 +107,35 @@ public class GeneralControllerHelper {
 	 */
 	public static ResponseEntity<BasicMessage> tryGetRecentRequest(UserRequestIDKey key) {
 		return recentMessages.get(key);
+	}
+
+	/**
+	 * Adds a newly created challenge to the unanswered challenges cache. Used every time a client wants to
+	 * interact with TransferGoodController. Once a client responds to a challenge (successfully or not), the
+	 * the respective entry is removed.
+	 *
+	 * @param   key				Key for the cached map
+	 * @param 	value			ChallengeData sent to client
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
+	 */
+	public static void cacheUnansweredChallenge(UserRequestIDKey key, ChallengeData value) {
+		unansweredChallenges.put(key, value);
+	}
+
+	/**
+	 * Gets the Challenge Data sent associated with the @param key.
+	 *
+	 * @param   key				Key for the cached map
+	 * @return  ChallengeData	Challenge sent associated with the key, or null, if the
+	 * 							the requestID was never seen by RequestChallengeController
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
+	 */
+	public static ChallengeData tryGetUnansweredChallenge(UserRequestIDKey key) {
+		return unansweredChallenges.get(key);
 	}
 
 	/**
