@@ -1,10 +1,7 @@
 package hds.client.helpers;
 
 import hds.security.DateUtils;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.GoodStateResponse;
-import hds.security.msgtypes.SaleCertificateResponse;
-import hds.security.msgtypes.WriteResponse;
+import hds.security.msgtypes.*;
 
 import java.util.List;
 
@@ -82,5 +79,14 @@ public class ONRRMajorityVoting {
         }
         printError(message.toString());
         return 0;
+    }
+
+    public static int isSimpleAcknowledge(BasicMessage message) {
+        if (message instanceof ChallengeRequestResponse) {
+            return 1;
+        } else {
+            printError(message.toString());
+            return 0;
+        }
     }
 }
