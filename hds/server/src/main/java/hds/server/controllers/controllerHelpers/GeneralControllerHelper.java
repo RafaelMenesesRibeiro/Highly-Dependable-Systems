@@ -43,6 +43,10 @@ public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ChallengeData> unansweredChallenges = new CacheMap<>();
 	private static final String FROM_SERVER = ServerApplication.getPort();
 
+	private GeneralControllerHelper() {
+		// This is here so the class can't be instantiated. //
+	}
+
 	/**
 	 * Handles similar IntentionToSell and TransferGood Controllers code.
 	 * Deals with Input validation.
