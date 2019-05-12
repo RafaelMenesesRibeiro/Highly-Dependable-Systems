@@ -58,10 +58,6 @@ public class IntentionToSellController extends BaseController {
 	@PostMapping(value = "/intentionToSell",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> intentionToSell(@RequestBody @Valid OwnerDataMessage ownerData, BindingResult result) {
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("Received Intention to Sell request.");
-		logger.info("\tRequest: " + ownerData.toString());
-
 		return GeneralControllerHelper.generalControllerSetup(ownerData, result, this);
 	}
 

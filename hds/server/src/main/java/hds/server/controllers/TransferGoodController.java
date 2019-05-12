@@ -60,10 +60,6 @@ public class TransferGoodController extends BaseController {
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> transferGood(@RequestBody @Valid ApproveSaleRequestMessage transactionData, BindingResult result) {
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("Received Transfer Good request.");
-		logger.info("\tRequest: " + transactionData.toString());
-
 		return GeneralControllerHelper.generalControllerSetup(transactionData, result, this);
 	}
 

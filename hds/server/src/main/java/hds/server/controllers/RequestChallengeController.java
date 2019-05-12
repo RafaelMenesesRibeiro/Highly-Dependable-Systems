@@ -33,8 +33,9 @@ import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGTH;
  */
 @RestController
 public class RequestChallengeController extends BaseController {
-		private static final String FROM_SERVER = ServerApplication.getPort();
-		private static final String OPERATION = "requestChallenge";
+	private RequestChallengeController() {
+		OPERATION = "requestChallenge";
+	}
 
 	/**
 	 * REST Controller responsible for returning a computationally intensive challenge.
@@ -48,10 +49,6 @@ public class RequestChallengeController extends BaseController {
 	@PostMapping(value = "/requestChallenge",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> requestChallenge(@RequestBody @Valid BasicMessage challengeRequestData, BindingResult result) {
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("Received Request Challenge request.");
-		logger.info("\tRequest: " + challengeRequestData.toString());
-
 		return GeneralControllerHelper.generalControllerSetup(challengeRequestData, result, this);
 	}
 
