@@ -56,6 +56,9 @@ public class GeneralControllerHelper {
 	 * @see 	BindingResult
 	 */
 	public static ResponseEntity<BasicMessage> generalControllerSetup(BasicMessage requestData, BindingResult result, BaseController controller) {
+		String msg = "\nReceived request for " + controller.OPERATION + "\n\tRequest: ";
+		ServerApplication.getLogManager().log(msg, requestData);
+
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
 		if (cachedResponse != null) {
@@ -79,8 +82,7 @@ public class GeneralControllerHelper {
 			metaResponse = GeneralControllerHelper.handleException(ex, requestData.getRequestID(), requestData.getFrom(), operation);
 		}
 		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, requestData.getRequestID(), requestData.getFrom(), operation);
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("\tResponse: " + response.getBody().toString());
+		ServerApplication.getLogManager().log("\n\tResponse: ", response.getBody());
 		GeneralControllerHelper.cacheRecentRequest(key, response);
 		return response;
 	}
@@ -188,7 +190,7 @@ public class GeneralControllerHelper {
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
-			if (ServerApplication.isUseCC) {
+			if (ServerApplication.isIsUseCC()) {
 				setMessageSignature(ServerProperties.getPKCS11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
 			}
 			else {

@@ -1,4 +1,4 @@
-package com.example.hdsnotaryserver;
+package hds.server;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

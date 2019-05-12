@@ -2,6 +2,7 @@ package hds.server;
 
 import hds.security.ResourceManager;
 import hds.server.exception.DBInitException;
+import hds.server.helpers.LogManager;
 import hds.server.helpers.PSQLServerSetup;
 import hds.server.helpers.ServerProperties;
 import org.springframework.boot.SpringApplication;
@@ -19,9 +20,10 @@ public class ServerApplication {
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
-	public static boolean isUseCC = false;
+	private static LogManager logManager;
 
 	private static String port;
+	private static boolean isUseCC = false;
 	private static int regularReplicasNumber;
 	private static int ccReplicasNumber;
 	private static String driver;
@@ -47,6 +49,8 @@ public class ServerApplication {
 			ServerApplication.port = port;
 			ServerApplication.regularReplicasNumber = maxSRegularReplicasNumber;
 			ServerApplication.ccReplicasNumber = maxCCReplicasNumber;
+
+			logManager = new LogManager(port);
 
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
@@ -122,5 +126,13 @@ public class ServerApplication {
 
 	public static int getCCReplicasNumber() {
 		return ccReplicasNumber;
+	}
+
+	public static boolean isIsUseCC() {
+		return isUseCC;
+	}
+
+	public static LogManager getLogManager() {
+		return logManager;
 	}
 }
