@@ -211,7 +211,7 @@ public class WantToBuyController {
             return null;
         }
     }
-    
+
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
         return new ErrorResponse(
                 generateTimestamp(),
