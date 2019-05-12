@@ -71,8 +71,6 @@ public class TransactionValidityChecker {
 				transactionData.getWriteOnOwnershipsSignature()
 		);
 
-		// TODO - Add transaction here. //
-
 		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
