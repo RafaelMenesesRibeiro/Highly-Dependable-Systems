@@ -56,7 +56,8 @@ public class ClientApplication {
         }
         ClientProperties.setMyClientPort(portId);
         ClientProperties.setMaxClientPort(maxPortId);
-        ClientProperties.initializeNotaryReplicasPortsList(maxServerPort);
+        // TODO - Change this when params start being max number instead of max port. //
+        ClientProperties.initializeRegularReplicasIDList(maxServerPort - HDS_NOTARY_REPLICAS_FIRST_PORT + 1);
         runClientServer(args);
         runClientInterface();
     }
