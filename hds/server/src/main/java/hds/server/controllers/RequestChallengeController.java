@@ -7,7 +7,7 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
-import hds.security.helpers.StringHelper;
+import hds.security.ChallengeSolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
+import static hds.security.CryptoUtils.hashMD5;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.cacheUnansweredChallenge;
 import static hds.server.domain.ChallengeData.POSSIBLE_CHAR_NUMBER;
@@ -67,6 +65,9 @@ public class RequestChallengeController extends BaseController {
 	 */
 	@Override
 	public MetaResponse execute(BasicMessage requestData) {
+
+		// TODO - Remove ChallangeDatas associated with this client from HashMap. //
+
 		ChallengeData challengeData = createChallenge(requestData.getRequestID());
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		cacheUnansweredChallenge(key, challengeData);
@@ -83,18 +84,9 @@ public class RequestChallengeController extends BaseController {
 	 * @see    	ChallengeData
 	 */
 	private ChallengeData createChallenge(String requestID) {
-		char[] randomStringAlphabet = StringHelper.getRandomAlphabetSet(POSSIBLE_CHAR_NUMBER);
-		String randomString = StringHelper.generateFromSet(randomStringAlphabet, RANDOM_STRING_LENGTH);
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] messageDigest = md.digest(randomString.getBytes());
-			 String hashed = new String(messageDigest, StandardCharsets.UTF_8);
-			return new ChallengeData(requestID, randomString, hashed, randomStringAlphabet);
-		}
-		catch (NoSuchAlgorithmException nosaex) {
-			// Should never be here. Ignored.
-			// TODO - Return something else. //
-			return null;
-		}
+		char[] randomStringAlphabet = ChallengeSolver.getRandomAlphabetSet(POSSIBLE_CHAR_NUMBER);
+		String randomString = ChallengeSolver.generateFromSet(randomStringAlphabet, RANDOM_STRING_LENGTH);
+		String hashed = hashMD5(randomString);
+		return new ChallengeData(requestID, randomString, hashed, randomStringAlphabet);
 	}
 }
