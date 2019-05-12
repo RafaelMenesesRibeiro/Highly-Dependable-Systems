@@ -16,9 +16,9 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 	private final BasicMessage message;
 	private final String replicaID;
 
-	public RequestChallengeCallable(long timestamp, String requestID, String replicaID) {
-		this.replicaID = replicaID;
-		this.message = newRequestChallengeMessage(timestamp, requestID, replicaID);
+	public RequestChallengeCallable(long timestamp, String replicaId, String requestId) {
+		this.replicaID = replicaId;
+		this.message = newRequestChallengeMessage(timestamp, replicaId, requestId);
 	}
 
 	@Override
@@ -29,8 +29,8 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 		return (BasicMessage) getResponseMessage(connection, Expect.CHALLENGE_REQUEST_RESPONSE);
 	}
 
-	private BasicMessage newRequestChallengeMessage(long timestamp, String requestID, String replicaID) {
-		return new BasicMessage(timestamp, requestID, OPERATION, getMyClientPort(), replicaID, "");
+	private BasicMessage newRequestChallengeMessage(long timestamp, String replicaId, String requestId) {
+		return new BasicMessage(timestamp, requestId, OPERATION, getMyClientPort(), replicaId, "");
 	}
 
 	@Override
