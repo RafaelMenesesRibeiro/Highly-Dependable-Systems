@@ -5,36 +5,34 @@ public class ChallengeData {
 	public static final int RANDOM_STRING_LENGTH = 5;
 
 	private final String requestID;
-	private final String randomStringToFind;
-	private final String hashedRandomString;
+	private final String originalString;
+	private final String hashedOriginalString;
 	private final char[] alphabet;
-	private final int randomStringSize;
 
-	public ChallengeData(String requestID, String randomStringToFind, String hashedRandomString, char[] alphabet) {
+	public ChallengeData(String requestID, String originalString, String hashedOriginalString, char[] alphabet) {
 		this.requestID = requestID;
-		this.randomStringToFind = randomStringToFind;
-		this.hashedRandomString = hashedRandomString;
+		this.originalString = originalString;
+		this.hashedOriginalString = hashedOriginalString;
 		this.alphabet = alphabet;
-		this.randomStringSize = randomStringToFind.length();
 	}
 
 	public String getRequestID() {
 		return requestID;
 	}
 
-	public String getRandomStringToFind() {
-		return randomStringToFind;
+	public String getOriginalString() {
+		return originalString;
 	}
 
-	public String getHashedRandomString() {
-		return hashedRandomString;
+	public String getHashedOriginalString() {
+		return hashedOriginalString;
 	}
 
 	public char[] getAlphabet() {
 		return alphabet;
 	}
 
-	public int getRandomStringSize() {
-		return randomStringSize;
+	public boolean verify(String challengeResponse) {
+		return challengeResponse.equals(originalString);
 	}
 }

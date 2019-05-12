@@ -72,7 +72,7 @@ public class RequestChallengeController extends BaseController {
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		cacheUnansweredChallenge(key, challengeData);
 		BasicMessage payload = new ChallengeRequestResponse(generateTimestamp(), requestData.getRequestID(), OPERATION, FROM_SERVER, requestData.getFrom(), "",
-									challengeData.getHashedRandomString(), challengeData.getAlphabet(), challengeData.getRandomStringSize());
+									challengeData.getHashedOriginalString(), challengeData.getAlphabet(), challengeData.getOriginalString().length());
 		return new MetaResponse(payload);
 	}
 

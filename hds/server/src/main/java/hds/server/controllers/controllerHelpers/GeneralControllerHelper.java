@@ -117,8 +117,7 @@ public class GeneralControllerHelper {
 	 * @param   key				Key for the cached map
 	 * @param 	value			ChallengeData sent to client
 	 * @see     UserRequestIDKey
-	 * @see     BasicMessage
-	 * @see     ResponseEntity
+	 * @see     ChallengeData
 	 */
 	public static void cacheUnansweredChallenge(UserRequestIDKey key, ChallengeData value) {
 		unansweredChallenges.put(key, value);
@@ -131,11 +130,23 @@ public class GeneralControllerHelper {
 	 * @return  ChallengeData	Challenge sent associated with the key, or null, if the
 	 * 							the requestID was never seen by RequestChallengeController
 	 * @see     UserRequestIDKey
-	 * @see     BasicMessage
-	 * @see     ResponseEntity
+	 * @see     ChallengeData
 	 */
 	public static ChallengeData tryGetUnansweredChallenge(UserRequestIDKey key) {
 		return unansweredChallenges.get(key);
+	}
+
+	/**
+	 * Removed the Challenge Data previously sent to the client associated with the @param key.
+	 *
+	 * @param   key				Key for the cached map
+	 * @return 	ChallengeData	The Challenge Data sent. Gets removed and returned, as it cannot be reused
+	 * @see     UserRequestIDKey
+	 * @see     ChallengeData
+	 * @see     hds.server.controllers.RequestChallengeController
+	 */
+	public static ChallengeData removeAndReturnChallenge(UserRequestIDKey key) {
+		return unansweredChallenges.remove(key);
 	}
 
 	/**
@@ -210,6 +221,10 @@ public class GeneralControllerHelper {
 		else if (ex instanceof NoPermissionException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.NO_PERMISSION, ex.getMessage());
 			return new MetaResponse(403, payload);
+		}
+		else if (ex instanceof ChallengeFailedException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_CHALLENGE_RESPONSE, ex.getMessage());
+			return new MetaResponse(402, payload);
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);
