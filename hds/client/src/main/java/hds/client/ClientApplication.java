@@ -7,6 +7,7 @@ import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
+import hds.security.ChallengeSolver;
 import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -284,6 +285,16 @@ public class ClientApplication {
             throw new RuntimeException(exc.getMessage());
         }
 
+    }
+
+    /***********************************************************
+     *
+     * REQUEST CHALLENGE RELATED METHODS
+     *
+     ***********************************************************/
+
+    private static String solveChallenge(String hashedOriginalString, char[] alphabet, int originalStringSize) {
+        return ChallengeSolver.solveChallenge(hashedOriginalString, originalStringSize, alphabet);
     }
 
     /***********************************************************
