@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
-    // TODO - Consider Servers in Ports >= 9000 that use CC. //
+    // TODO Introduce args for number of tolerated faults
+    // TODO Introduce args for replicas using CC
+    // TODO Make a function that returns a single list of server IDs... Both in the 9000 and 10000 slots
     public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+    public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
     public static final String HDS_BASE_HOST = "http://localhost:";
 
     private static int maxFailures = 0;
