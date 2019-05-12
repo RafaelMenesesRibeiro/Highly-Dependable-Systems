@@ -79,6 +79,8 @@ public class GeneralControllerHelper {
 			metaResponse = GeneralControllerHelper.handleException(ex, requestData.getRequestID(), requestData.getFrom(), operation);
 		}
 		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, requestData.getRequestID(), requestData.getFrom(), operation);
+		Logger logger = Logger.getAnonymousLogger();
+		logger.info("\tResponse: " + response.getBody().toString());
 		GeneralControllerHelper.cacheRecentRequest(key, response);
 		return response;
 	}
