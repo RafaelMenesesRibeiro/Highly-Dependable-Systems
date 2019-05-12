@@ -3,9 +3,9 @@ package hds.security.msgtypes;
 import java.util.Arrays;
 
 public class ChallengeRequestResponse extends BasicMessage {
-	private String hashedRandomString;
+	private String hashedOriginalString;
 	private char[] alphabet;
-	private int stringSize;
+	private int originalStringSize;
 
 	public ChallengeRequestResponse(long timestamp,
 									String requestID,
@@ -13,23 +13,23 @@ public class ChallengeRequestResponse extends BasicMessage {
 									String from,
 									String to,
 									String signature,
-									String hashedRandomString,
+									String hashedOriginalString,
 									char[] alphabet,
-									int stringSize) {
+									int originalStringSize) {
 		super(timestamp, requestID, operation, from, to, signature);
-		this.hashedRandomString = hashedRandomString;
+		this.hashedOriginalString = hashedOriginalString;
 		this.alphabet = alphabet;
-		this.stringSize = stringSize;
+		this.originalStringSize = originalStringSize;
 	}
 
 	public ChallengeRequestResponse() { }
 
-	public String getHashedRandomString() {
-		return hashedRandomString;
+	public String getHashedOriginalString() {
+		return hashedOriginalString;
 	}
 
-	public void setHashedRandomString(String hashedRandomString) {
-		this.hashedRandomString = hashedRandomString;
+	public void setHashedOriginalString(String hashedOriginalString) {
+		this.hashedOriginalString = hashedOriginalString;
 	}
 
 	public char[] getAlphabet() {
@@ -40,20 +40,20 @@ public class ChallengeRequestResponse extends BasicMessage {
 		this.alphabet = alphabet;
 	}
 
-	public int getStringSize() {
-		return stringSize;
+	public int getOriginalStringSize() {
+		return originalStringSize;
 	}
 
-	public void setStringSize(int stringSize) {
-		this.stringSize = stringSize;
+	public void setOriginalStringSize(int stringSize) {
+		this.originalStringSize = stringSize;
 	}
 
 	@Override
 	public String toString() {
 		return "ChallengeRequestResponse{" +
-				"hashedRandomString='" + hashedRandomString + '\'' +
+				"hashedOriginalString='" + hashedOriginalString + '\'' +
 				", alphabet=" + Arrays.toString(alphabet) +
-				", stringSize=" + stringSize +
+				", originalStringSize=" + originalStringSize +
 				", requestID='" + requestID + '\'' +
 				", operation='" + operation + '\'' +
 				", from='" + from + '\'' +
