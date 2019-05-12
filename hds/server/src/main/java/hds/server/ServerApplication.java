@@ -17,7 +17,9 @@ import java.util.logging.Logger;
 public class ServerApplication {
 	public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
+	public static boolean isUseCC = false;
 
 	private static String port;
 	private static int replicasNumber;
@@ -31,20 +33,21 @@ public class ServerApplication {
 		int serverPort = 9000;
 		try {
 			String port = args[0];
-			ServerApplication.port = port;
-			serverPort = Integer.parseInt(port);
-			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
+			int maxServerID = Integer.parseInt(args[2]);
+			serverPort = Integer.parseInt(port);
+
+			ResourceManager.setServerPort(serverPort);
 			ResourceManager.setMaxClientId(maxClientID);
 			ResourceManager.setMinClientId(HDS_NOTARY_CLIENTS_FIRST_PORT);
-			int maxServerID = Integer.parseInt(args[2]);
+
+			ServerApplication.port = port;
 			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
 
 			fetchProperties();
-			// If it's the main server, starts with the Citizen Card feature.
-			// TODO - Change this to final value. //
-			if (serverPort == 9005) {
+			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
 				ServerProperties.bootstrap();
+				isUseCC = true;
 			}
 
 			logger.info("Started server in port " + serverPort + " and max client id " + maxClientID);

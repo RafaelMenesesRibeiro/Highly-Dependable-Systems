@@ -9,6 +9,7 @@ import hds.server.ServerApplication;
 import hds.server.controllers.BaseController;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
+import hds.server.helpers.ServerProperties;
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.SecurityManager.setMessageSignature;
+import static hds.server.ServerApplication.HDS_NOTARY_REPLICAS_FIRST_CC_PORT;
 
 /**
  * Contains methods used by all Server's Controllers.
@@ -110,6 +112,26 @@ public class GeneralControllerHelper {
 	}
 
 	/**
+	 * Removes the response sent associated with the @param key. Used to not save RequestChallengeController
+	 * responses because the requestID is the same for TransferGoodController - to identify the correct sent
+	 * ChallengeData in unansweredChallenges. And as the Challenge cannot be used twice, it is removed instead of
+	 * adding a challengeMessageRequestID in the message TransferGoodController receives (to use that to identify
+	 * the Challenge).
+	 *
+	 * @param   key				Key for the cached map
+	 * @return  ResponseEntity 	Response sent associated with the key, or null, if the
+	 * 							the request associated with the key was never responded
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
+	 * @see 	ChallengeData
+	 * @see 	ApproveSaleRequestMessage
+	 */
+	public static ResponseEntity<BasicMessage> removeRecentRequest(UserRequestIDKey key) {
+		return recentMessages.remove(key);
+	}
+
+	/**
 	 * Adds a newly created challenge to the unanswered challenges cache. Used every time a client wants to
 	 * interact with TransferGoodController. Once a client responds to a challenge (successfully or not), the
 	 * the respective entry is removed.
@@ -164,8 +186,12 @@ public class GeneralControllerHelper {
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
-			PrivateKey pKey = getPrivateKeyFromResource(ServerApplication.getPort());
-			setMessageSignature(pKey, payload);
+			if (ServerApplication.isUseCC) {
+				setMessageSignature(ServerProperties.getPKCS11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
+			}
+			else {
+				setMessageSignature(getPrivateKeyFromResource(ServerApplication.getPort()), payload);
+			}
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
