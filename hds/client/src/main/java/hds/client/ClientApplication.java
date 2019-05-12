@@ -57,6 +57,7 @@ public class ClientApplication {
         ClientProperties.setMyClientPort(portId);
         ClientProperties.setMaxClientPort(maxPortId);
         ClientProperties.initializeNotaryReplicasPortsList(maxServerPort);
+
         runClientServer(args);
         runClientInterface();
     }
@@ -286,16 +287,6 @@ public class ClientApplication {
             throw new RuntimeException(exc.getMessage());
         }
 
-    }
-
-    /***********************************************************
-     *
-     * REQUEST CHALLENGE RELATED METHODS
-     *
-     ***********************************************************/
-
-    private static String solveChallenge(String hashedOriginalString, char[] alphabet, int originalStringSize) {
-        return ChallengeSolver.solveChallenge(hashedOriginalString, originalStringSize, alphabet);
     }
 
     /***********************************************************
