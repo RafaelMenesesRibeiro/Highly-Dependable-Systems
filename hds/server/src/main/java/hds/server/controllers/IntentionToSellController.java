@@ -42,7 +42,7 @@ import static hds.server.helpers.TransactionValidityChecker.*;
 @RestController
 public class IntentionToSellController extends BaseController {
 	private static final String FROM_SERVER = ServerApplication.getPort();
-	public static final String OPERATION = "markForSale";
+	public static final String OPERATION = "intentionToSell";
 
 	/**
 	 * REST Controller responsible for marking a goodID for sale.
