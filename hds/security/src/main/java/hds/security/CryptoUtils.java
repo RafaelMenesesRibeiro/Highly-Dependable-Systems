@@ -13,6 +13,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.UUID;
 
 public class CryptoUtils {
@@ -143,7 +144,7 @@ public class CryptoUtils {
 
     public static String hashMD5(String toHash) {
         byte[] digest = messageDigester.digest(toHash.getBytes());
-        return new String(digest, StandardCharsets.UTF_8);
+        return ConvertUtils.bytesToBase64String(digest);
     }
 
     /***********************************************************
