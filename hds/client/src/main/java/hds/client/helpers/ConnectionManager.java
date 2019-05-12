@@ -1,18 +1,15 @@
 package hds.client.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.security.msgtypes.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.http.ResponseEntity;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 
 public class ConnectionManager {
     public enum Expect {
@@ -20,6 +17,7 @@ public class ConnectionManager {
         GOOD_STATE_RESPONSE,
         SALE_CERT_RESPONSE,
         SALE_CERT_RESPONSES,
+        CHALLENGE_REQUEST_RESPONSE,
         WRITE_RESPONSE
     }
 
@@ -84,6 +82,8 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, GoodStateResponse.class);
                 case SALE_CERT_RESPONSE:
                     return objectMapper.readValue(jsonString, SaleCertificateResponse.class);
+                case CHALLENGE_REQUEST_RESPONSE:
+                    return objectMapper.readValue(jsonString, ChallengeRequestResponse.class);
                 case WRITE_RESPONSE:
                     return objectMapper.readValue(jsonString, WriteResponse.class);
             }
