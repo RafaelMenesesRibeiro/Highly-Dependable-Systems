@@ -103,7 +103,7 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void getStateOfGood() {
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
@@ -157,7 +157,7 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void intentionToSell() {
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         long wts = generateTimestamp();
@@ -214,7 +214,7 @@ public class ClientApplication {
         try {
             long wts = generateTimestamp();
 
-            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage(wts));
+            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);

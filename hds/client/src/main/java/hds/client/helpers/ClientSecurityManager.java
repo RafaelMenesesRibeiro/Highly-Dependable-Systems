@@ -7,7 +7,7 @@ import org.json.JSONException;
 import java.security.SignatureException;
 
 import static hds.client.helpers.ClientProperties.*;
-import static hds.client.helpers.ClientProperties.getPrivateKey;
+import static hds.client.helpers.ClientProperties.getMyPrivateKey;
 import static hds.security.SecurityManager.*;
 
 public class ClientSecurityManager {
@@ -33,7 +33,7 @@ public class ClientSecurityManager {
                                                       final long wts) throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnGoodsData(goodId, onSale, writer, wts).toString().getBytes();
-        return CryptoUtils.signData(getPrivateKey(), rawData);
+        return CryptoUtils.signData(getMyPrivateKey(), rawData);
     }
 
     public static byte[] newWriteOnOwnershipsDataSignature(final String goodId,
@@ -41,6 +41,6 @@ public class ClientSecurityManager {
                                                            final long wts) throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnOwnershipData(goodId, writerID, wts).toString().getBytes();
-        return CryptoUtils.signData(getPrivateKey(), rawData);
+        return CryptoUtils.signData(getMyPrivateKey(), rawData);
     }
 }

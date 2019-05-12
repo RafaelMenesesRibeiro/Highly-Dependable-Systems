@@ -10,8 +10,7 @@ import java.security.SignatureException;
 import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyClientPort;
-import static hds.client.helpers.ClientProperties.getMyClientPort;
-import static hds.client.helpers.ClientProperties.getPrivateKey;
+import static hds.client.helpers.ClientProperties.getMyPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.SecurityManager.newWriteOnGoodsData;
@@ -44,7 +43,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
 
     @Override
     public BasicMessage call() throws Exception {
-        setMessageSignature(getPrivateKey(), message);
+        setMessageSignature(getMyPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
         return (BasicMessage) getResponseMessage(connection, Expect.WRITE_RESPONSE);
@@ -54,7 +53,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
             throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnGoodsData(goodId, onSale, getMyClientPort(), wts).toString().getBytes();
-        return CryptoUtils.signData(getPrivateKey(), rawData);
+        return CryptoUtils.signData(getMyPrivateKey(), rawData);
     }
 
     private OwnerDataMessage newOwnerDataMessage(final long timestamp,

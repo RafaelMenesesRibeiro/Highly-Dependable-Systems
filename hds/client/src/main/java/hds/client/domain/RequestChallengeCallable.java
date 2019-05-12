@@ -6,7 +6,7 @@ import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyClientPort;
-import static hds.client.helpers.ClientProperties.getPrivateKey;
+import static hds.client.helpers.ClientProperties.getMyPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageSignature;
 
@@ -23,7 +23,7 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 
 	@Override
 	public BasicMessage call() throws Exception {
-		setMessageSignature(getPrivateKey(), message);
+		setMessageSignature(getMyPrivateKey(), message);
 		HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaID, OPERATION));
 		sendPostRequest(connection, newJSONObject(message));
 		return (BasicMessage) getResponseMessage(connection, Expect.CHALLENGE_REQUEST_RESPONSE);

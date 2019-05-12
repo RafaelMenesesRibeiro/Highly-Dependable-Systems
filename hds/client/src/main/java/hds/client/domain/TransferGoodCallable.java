@@ -8,7 +8,7 @@ import hds.security.msgtypes.SaleRequestMessage;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
-import static hds.client.helpers.ClientProperties.getPrivateKey;
+import static hds.client.helpers.ClientProperties.getMyPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageWrappingSignature;
 
@@ -25,7 +25,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
 
     @Override
     public BasicMessage call() throws Exception {
-        setMessageWrappingSignature(getPrivateKey(), message);
+        setMessageWrappingSignature(getMyPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
         return (BasicMessage) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);

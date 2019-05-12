@@ -41,7 +41,7 @@ public class WantToBuyController {
 
     private ResponseEntity<List<BasicMessage>> tryDoTransfer(SaleRequestMessage requestMessage) {
 
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
