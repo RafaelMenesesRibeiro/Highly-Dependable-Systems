@@ -18,13 +18,24 @@ public class CallableManager implements Callable<BasicMessage> {
     protected long timeout;
     protected TimeUnit timeUnit;
 
-    
+
+    /**
+     * Instantiates a new Callable manager.
+     *
+     * @param callable the callable
+     * @param timeout  the timeout
+     * @param timeUnit the time unit
+     */
     public CallableManager(Callable<BasicMessage> callable, long timeout, TimeUnit timeUnit) {
         this.timeout = timeout;
         this.timeUnit = timeUnit;
         this.callable = callable;
     }
 
+    /**
+     * Executes the CallableManager's wrapped callable.
+     * @return BasicMessage from the wrapped callable or null if the wrapped callable job times out
+     */
     @Override
     public BasicMessage call() {
         BasicMessage result;
