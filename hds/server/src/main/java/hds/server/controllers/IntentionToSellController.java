@@ -126,7 +126,7 @@ public class IntentionToSellController extends BaseController {
 				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
-			MarkForSale.markForSale(connection, goodID, writerID, ""+requestWriteTimestamp, writeOperationSignature);
+			MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+requestWriteTimestamp, writeOperationSignature);
 			connection.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);

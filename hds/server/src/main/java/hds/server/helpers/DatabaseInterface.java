@@ -15,7 +15,6 @@ import java.util.List;
  *
  * @author 		Rafael Ribeiro
  */
-@SuppressWarnings("Duplicates")
 class DatabaseInterface {
 
 	private DatabaseInterface() {

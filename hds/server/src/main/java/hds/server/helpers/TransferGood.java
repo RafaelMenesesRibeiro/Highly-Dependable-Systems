@@ -35,6 +35,7 @@ public class TransferGood {
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	MarkForSale
 	 */
 	public static void transferGood(Connection conn,
 									final String goodID, final String writerID,
@@ -42,36 +43,24 @@ public class TransferGood {
 									final String writeOnGoodsSignature)
 			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
-		// TODO - Refactor MarkForSale to not duplicate this code. //
-		String query = "UPDATE goods " +
-				"SET onSale = ?, " +
-					"wid = ?, " +
-					"ts = ?, " +
-					"sig = ? " +
-				"WHERE goods.goodID = ?";
-		List<String> args = new ArrayList<>();
-		args.add("false");
-		args.add(writerID);
-		args.add(writeTimestamp);
-		args.add(writeOnGoodsSignature);
-		args.add(goodID);
 
-		String query2 = "UPDATE ownership " +
+		MarkForSale.changeGoodSaleStatus(conn, goodID, false, writerID, writeTimestamp, writeOnGoodsSignature);
+
+		String query = "UPDATE ownership " +
 				"SET userID = ?, " +
 				"ts = ?, " +
 				"sig = ?" +
 				"WHERE goodID = ?";
-		List<String> args2 = new ArrayList<>();
-		args2.add(writerID);
-		args2.add(writeTimestamp);
-		args2.add(writeOnOwnershipSignature);
-		args2.add(goodID);
+		List<String> args = new ArrayList<>();
+		args.add(writerID);
+		args.add(writeTimestamp);
+		args.add(writeOnOwnershipSignature);
+		args.add(goodID);
 
 		List<String> returnColumns = new ArrayList<>();
 
 		try {
 			DatabaseInterface.queryDB(conn, query, returnColumns, args);
-			DatabaseInterface.queryDB(conn, query2, returnColumns, args2);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
