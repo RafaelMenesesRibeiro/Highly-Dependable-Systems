@@ -161,10 +161,11 @@ public class ClientApplication {
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         long wts = generateTimestamp();
+        final String goodId = requestGoodId();
 
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job =
-                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, requestGoodId(), wts, Boolean.TRUE);
+                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, goodId, wts, Boolean.TRUE);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
