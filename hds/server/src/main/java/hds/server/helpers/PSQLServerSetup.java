@@ -7,11 +7,20 @@ import java.sql.*;
 
 import static hds.server.ServerApplication.*;
 
+
+/**
+ * Creates and populates a Database for each created server.
+ *
+ * @author 		Rafael Ribeiro
+ */
 public class PSQLServerSetup {
 	// TODO - Add to Application.properties just like datasource.url //
 	private static final String URL = "jdbc:postgresql://localhost:5432/";
 
 
+	/**
+	 * Initializes the databases for every server.
+	 */
 	public static void initDatabased() {
 		if (Integer.parseInt(getPort()) == HDS_NOTARY_REPLICAS_FIRST_PORT) {
 			int regularReplicasNumber = getRegularReplicasNumber();
@@ -26,6 +35,12 @@ public class PSQLServerSetup {
 		}
 	}
 
+	/**
+	 * Initializes a Database with a given name.
+	 *
+	 * @param 	dbName			Name of the database to be created
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void initiSingleDB(String dbName) throws DBInitException {
 		Connection connection = null;
 		Connection connection2 = null;
@@ -55,6 +70,13 @@ public class PSQLServerSetup {
 		}
 	}
 
+	/**
+	 * Creates the database
+	 *
+	 * @param 	connection 		Connection to the database's server
+	 * @param 	dbName			Name of the database to be created
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void createDatabase(Connection connection, String dbName) throws DBInitException {
 		String query = "DROP DATABASE IF EXISTS " + dbName + ";\n" + "CREATE DATABASE " + dbName + ";";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -65,7 +87,12 @@ public class PSQLServerSetup {
 		}
 	}
 
-	// TODO - Read this from file. //
+	/**
+	 * Creates the tables
+	 *
+	 * @param 	connection 		Connection to the database
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void createTables(Connection connection) throws DBInitException {
 		String query =
 			"drop table if exists ownership cascade;" +
@@ -102,8 +129,13 @@ public class PSQLServerSetup {
 		}
 	}
 
+	/**
+	 * Populates the tables
+	 *
+	 * @param 	connection 		Connection to the database
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	// TODO - The number of users needs to match the actual number of users. //
-	// TODO - Read this from file. //
 	private static void populateTables(Connection connection) throws DBInitException {
 		String query =
 			"delete from ownership;" +
