@@ -1,12 +1,13 @@
 package hds.server.controllers;
 
 import hds.security.msgtypes.BasicMessage;
-import hds.server.domain.ChallengeData;
 import hds.security.msgtypes.ChallengeRequestResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
+import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
+import hds.server.helpers.StringHelper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,10 +15,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.cacheUnansweredChallenge;
+import static hds.server.domain.ChallengeData.POSSIBLE_CHAR_NUMBER;
+import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGHT;
 
 /**
  * Responsible for handling POST requests for the endpoint /requestChallenge.
@@ -50,7 +56,6 @@ public class RequestChallengeController extends BaseController {
 		return GeneralControllerHelper.generalControllerSetup(challengeRequestData, result, this);
 	}
 
-
 	/**
 	 * Creates a challenge for the client, and stores it until it responds with a solution encapsulated
 	 * in TransferGoodController's received data.
@@ -65,7 +70,8 @@ public class RequestChallengeController extends BaseController {
 		ChallengeData challengeData = createChallenge(requestData.getRequestID());
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		cacheUnansweredChallenge(key, challengeData);
-		BasicMessage payload = new ChallengeRequestResponse(generateTimestamp(), requestData.getRequestID(), OPERATION, FROM_SERVER, requestData.getFrom(), "", challengeData.getChangeWhenDecided());
+		BasicMessage payload = new ChallengeRequestResponse(generateTimestamp(), requestData.getRequestID(), OPERATION, FROM_SERVER, requestData.getFrom(), "",
+									challengeData.getHashedRandomString(), challengeData.getAlphabet(), challengeData.getRandomStringSize());
 		return new MetaResponse(payload);
 	}
 
@@ -77,6 +83,18 @@ public class RequestChallengeController extends BaseController {
 	 * @see    	ChallengeData
 	 */
 	private ChallengeData createChallenge(String requestID) {
-		return new ChallengeData(requestID, -3);
+		char[] randomStringAlphabet = StringHelper.getRandomAlphabetSet(POSSIBLE_CHAR_NUMBER);
+		String randomString = StringHelper.generateFromSet(randomStringAlphabet, RANDOM_STRING_LENGHT);
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] messageDigest = md.digest(randomString.getBytes());
+			 String hashed = new String(messageDigest, StandardCharsets.UTF_8);
+			return new ChallengeData(requestID, randomString, hashed, randomStringAlphabet);
+		}
+		catch (NoSuchAlgorithmException nosaex) {
+			// Should never be here. Ignored.
+			// TODO - Return something else. //
+			return null;
+		}
 	}
 }

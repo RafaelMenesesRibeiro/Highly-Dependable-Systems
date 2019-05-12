@@ -1,8 +1,11 @@
 package hds.security.msgtypes;
 
+import java.util.Arrays;
+
 public class ChallengeRequestResponse extends BasicMessage {
-	// TODO - Add validation annotations
-	private int changeWhenDecided;
+	private String hashedRandomString;
+	private char[] alphabet;
+	private int stringSize;
 
 	public ChallengeRequestResponse(long timestamp,
 									String requestID,
@@ -10,25 +13,47 @@ public class ChallengeRequestResponse extends BasicMessage {
 									String from,
 									String to,
 									String signature,
-									int changeWhenDecided) {
+									String hashedRandomString,
+									char[] alphabet,
+									int stringSize) {
 		super(timestamp, requestID, operation, from, to, signature);
-		this.changeWhenDecided = changeWhenDecided;
+		this.hashedRandomString = hashedRandomString;
+		this.alphabet = alphabet;
+		this.stringSize = stringSize;
 	}
 
 	public ChallengeRequestResponse() { }
 
-	public int getChangeWhenDecided() {
-		return changeWhenDecided;
+	public String getHashedRandomString() {
+		return hashedRandomString;
 	}
 
-	public void setChangeWhenDecided(int changeWhenDecided) {
-		this.changeWhenDecided = changeWhenDecided;
+	public void setHashedRandomString(String hashedRandomString) {
+		this.hashedRandomString = hashedRandomString;
+	}
+
+	public char[] getAlphabet() {
+		return alphabet;
+	}
+
+	public void setAlphabet(char[] alphabet) {
+		this.alphabet = alphabet;
+	}
+
+	public int getStringSize() {
+		return stringSize;
+	}
+
+	public void setStringSize(int stringSize) {
+		this.stringSize = stringSize;
 	}
 
 	@Override
 	public String toString() {
 		return "ChallengeRequestResponse{" +
-				"changeWhenDecided=" + changeWhenDecided +
+				"hashedRandomString='" + hashedRandomString + '\'' +
+				", alphabet=" + Arrays.toString(alphabet) +
+				", stringSize=" + stringSize +
 				", requestID='" + requestID + '\'' +
 				", operation='" + operation + '\'' +
 				", from='" + from + '\'' +

@@ -13,6 +13,7 @@ import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.StringHelper;
 import hds.server.helpers.TransactionValidityChecker;
 import org.json.JSONException;
 import org.json.JSONObject;
