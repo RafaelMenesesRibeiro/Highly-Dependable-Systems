@@ -7,6 +7,7 @@ import sun.security.pkcs11.wrapper.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -16,6 +17,16 @@ import java.util.UUID;
 
 public class CryptoUtils {
     private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
+    private static MessageDigest messageDigester;
+
+    static {
+        try {
+            messageDigester = MessageDigest.getInstance("MD5");
+        }
+        catch (NoSuchAlgorithmException e) {
+            // Should never be here. Ignored.
+        }
+    }
 
     /***********************************************************
      *
@@ -122,6 +133,17 @@ public class CryptoUtils {
         pkcs11.C_FindObjectsInit(ccSessionID, attributes);
         long[] keyHandles = pkcs11.C_FindObjects(ccSessionID, 5);
         return keyHandles[0];
+    }
+
+    /***********************************************************
+     *
+     * PUBLIC METHODS RELATED WITH HASHING
+     *
+     ***********************************************************/
+
+    public static String hashMD5(String toHash) {
+        byte[] digest = messageDigester.digest(toHash.getBytes());
+        return new String(digest, StandardCharsets.UTF_8);
     }
 
     /***********************************************************
