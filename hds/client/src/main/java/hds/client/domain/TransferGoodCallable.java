@@ -14,6 +14,11 @@ import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 /**
  * The type transfer good callable performs a PUT request to the end point /transferGood of a notary replica
+ * See also:
+ * {@link hds.security.msgtypes.SaleRequestMessage}
+ * {@link hds.security.msgtypes.ApproveSaleRequestMessage}
+ * {@link hds.security.ChallengeSolver}
+ * {@link hds.security.DateUtils#generateTimestamp()}
  * @author Diogo Vilela
  * @author Francisco Barros
  * @author Rafael Ribeiro
@@ -28,10 +33,10 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
     /**
      * Instantiates a new Transfer good callable.
      *
-     * @param timestamp         the timestamp
-     * @param replicaId         the replica id
-     * @param requestMessage    the request message
-     * @param challengeResponse the challenge response
+     * @param timestamp         the timestamp used by the notary to verify freshness of the message
+     * @param replicaId         the replica id to whom the client wishes to send the request
+     * @param requestMessage    the request message sent by another client representing his will to buy a good from this client
+     * @param challengeResponse the solution to the challenge presented by the replica to whom this client is sending this message
      */
     public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage, String challengeResponse) {
         this.replicaId = replicaId;
@@ -53,10 +58,10 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
 
     /**
      * Helper method that instantiates a new ApproveSaleRequestMessage
-     * @param timestamp         long timestamp representing an java epoch from seconds, {@link hds.security.DateUtils#generateTimestamp()}
-     * @param replicaId         String identifier representing the port where the replica is listening on
-     * @param requestMessage    {@link hds.security.msgtypes.SaleRequestMessage}
-     * @param challengeResponse String with what is believed to be the solution for the computational challenge provided by the server
+     * @param timestamp         timestamp representing an java epoch from seconds
+     * @param replicaId         the identifier representing the port where the replica is listening on
+     * @param requestMessage    the request message sent by another client representing his will to buy a good from this client
+     * @param challengeResponse the solution to the challenge presented by the replica to whom this client is sending this message
      * @return {@link hds.security.msgtypes.ApproveSaleRequestMessage}
      */
     private ApproveSaleRequestMessage newApproveSaleRequestMessage(long timestamp,
