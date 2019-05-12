@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import static hds.security.CryptoUtils.hashMD5;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.cacheUnansweredChallenge;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.removeRecentRequest;
 import static hds.server.domain.ChallengeData.POSSIBLE_CHAR_NUMBER;
 import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGTH;
 
@@ -65,11 +66,12 @@ public class RequestChallengeController extends BaseController {
 	 */
 	@Override
 	public MetaResponse execute(BasicMessage requestData) {
+		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
+		removeRecentRequest(key);
 
-		// TODO - Remove ChallangeDatas associated with this client from HashMap. //
+		// TODO - Remove ChallangeDatas associated with this client from unansweredChallenges HashMap. //
 
 		ChallengeData challengeData = createChallenge(requestData.getRequestID());
-		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		cacheUnansweredChallenge(key, challengeData);
 		BasicMessage payload = new ChallengeRequestResponse(generateTimestamp(), requestData.getRequestID(), OPERATION, FROM_SERVER, requestData.getFrom(), "",
 									challengeData.getHashedOriginalString(), challengeData.getAlphabet(), challengeData.getOriginalString().length());

@@ -110,6 +110,26 @@ public class GeneralControllerHelper {
 	}
 
 	/**
+	 * Removes the response sent associated with the @param key. Used to not save RequestChallengeController
+	 * responses because the requestID is the same for TransferGoodController - to identify the correct sent
+	 * ChallengeData in unansweredChallenges. And as the Challenge cannot be used twice, it is removed instead of
+	 * adding a challengeMessageRequestID in the message TransferGoodController receives (to use that to identify
+	 * the Challenge).
+	 *
+	 * @param   key				Key for the cached map
+	 * @return  ResponseEntity 	Response sent associated with the key, or null, if the
+	 * 							the request associated with the key was never responded
+	 * @see     UserRequestIDKey
+	 * @see     BasicMessage
+	 * @see     ResponseEntity
+	 * @see 	ChallengeData
+	 * @see 	ApproveSaleRequestMessage
+	 */
+	public static ResponseEntity<BasicMessage> removeRecentRequest(UserRequestIDKey key) {
+		return recentMessages.remove(key);
+	}
+
+	/**
 	 * Adds a newly created challenge to the unanswered challenges cache. Used every time a client wants to
 	 * interact with TransferGoodController. Once a client responds to a challenge (successfully or not), the
 	 * the respective entry is removed.
