@@ -3,7 +3,7 @@ package hds.server.controllers.controllerHelpers;
 import java.util.Objects;
 
 /**
- * TODO - @FranciscoBarros
+ * Represents a unique identifier for each request, base on the sender and the requestID.
  *
  * @author 		Francisco Barros
  */
