@@ -41,13 +41,15 @@ import static hds.server.helpers.TransactionValidityChecker.*;
  */
 @RestController
 public class IntentionToSellController extends BaseController {
-	private static final String FROM_SERVER = ServerApplication.getPort();
-	public static final String OPERATION = "intentionToSell";
+
+	private IntentionToSellController() {
+		OPERATION = "intentionToSell";
+	}
 
 	/**
 	 * REST Controller responsible for marking a goodID for sale.
 	 *
-	 * @param 	ownerData 		GoodID and SellerID
+	 * @param 	ownerData 		OwnerDataMessage
 	 * @param 	result    		result of validators for inputs of ownerData
 	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
 	 * @see		OwnerDataMessage
@@ -69,6 +71,7 @@ public class IntentionToSellController extends BaseController {
 	 *
 	 * @param 	requestData			OwnerDataMessage
 	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB

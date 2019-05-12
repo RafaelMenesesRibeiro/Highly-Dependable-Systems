@@ -42,9 +42,11 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimest
 
 @RestController
 public class TransferGoodController extends BaseController {
-	private static final String FROM_SERVER = ServerApplication.getPort();
-	public static final String OPERATION = "transferGood";
 	private static final String CERTIFIED = "Certified by Notary";
+
+	public TransferGoodController() {
+		OPERATION = "transferGood";
+	}
 
 	/**
 	 * REST Controller responsible for transferring a GoodID.
@@ -73,6 +75,7 @@ public class TransferGoodController extends BaseController {
 	 *
 	 * @param 	requestData			ApproveSaleRequestMessage
 	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
