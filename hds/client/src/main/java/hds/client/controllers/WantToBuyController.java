@@ -1,10 +1,13 @@
 package hds.client.controllers;
 
 import hds.client.domain.CallableManager;
+import hds.client.domain.RequestChallengeCallable;
 import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ONRRMajorityVoting;
+import hds.security.ChallengeSolver;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.ChallengeRequestResponse;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleRequestMessage;
 import org.springframework.http.HttpStatus;
@@ -16,7 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.SocketTimeoutException;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static hds.client.helpers.ClientProperties.printError;
@@ -32,34 +37,131 @@ public class WantToBuyController {
     @PostMapping(value = "/wantToBuy")
     public ResponseEntity<List<BasicMessage>>wantToBuy(@RequestBody SaleRequestMessage requestMessage) {
         if (isMessageFreshAndAuthentic(requestMessage)) {
-            return tryDoTransfer(requestMessage);
+            return initiateTwoPhaseProtocol(requestMessage);
         }
         List<BasicMessage> responseEntityList = new ArrayList<>();
         responseEntityList.add(newErrorResponse(requestMessage, "Seller rejects message, it's either not fresh or not properly signed"));
         return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
     }
 
-    private ResponseEntity<List<BasicMessage>> tryDoTransfer(SaleRequestMessage requestMessage) {
-
+    private ResponseEntity<List<BasicMessage>> initiateTwoPhaseProtocol(SaleRequestMessage requestMessage) {
+        // Obtain replicas known to this server
         final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        // For each of them, get a challenge that will allow transfer good to be effectuated;
+        final Map<String, ChallengeRequestResponse>challengesList = getChallenges(replicasList, requestMessage.getRequestID());
+        // If majority of replicas replied with a challenge, solve all challenges and proceed
+        if (challengesList == null) {
+            List<BasicMessage> responseEntityList = new ArrayList<>();
+            responseEntityList.add(newErrorResponse(requestMessage, "Not enough challenges were gathered"));
+            return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
+        } else {
+            List<BasicMessage> transferResponses = tryEffectuateTransfer(requestMessage, challengesList);
+            return new ResponseEntity<>(transferResponses, HttpStatus.MULTIPLE_CHOICES);
+        }
+    }
+
+    /***********************************************************
+     * FIRST PHASE OF TRANSFER GOOD
+     ***********************************************************/
+
+    private Map<String, ChallengeRequestResponse> getChallenges(final List<String> replicasList, final String requestId) {
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
         final long timestamp = generateTimestamp();
 
-        // TODO - @FranciscoBarros //
-        // TODO - Request Challenge to Server with RequestChallengeCallable.
-        // TODO - Solve all of them and keep them in an hashmap <replicaId, challengeResponse> //
-        String challengeResponse = "TODO - TODOs";
-
         for (String replicaId : replicasList) {
-            Callable<BasicMessage> job = new TransferGoodCallable(timestamp, replicaId, requestMessage, challengeResponse);
+            Callable<BasicMessage> job = new RequestChallengeCallable(timestamp, replicaId, requestId);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        List<BasicMessage> responses = processTransferGoodResponses(requestMessage.getWts(), replicasList.size(), completionService);
+        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap =
+                processChallengeRequestResponses(replicasList.size(), completionService);
+
         executorService.shutdown();
-        return new ResponseEntity<>(responses, HttpStatus.MULTIPLE_CHOICES);
+        return replicaIdUnsolvedChallengeMap;
+    }
+
+    private Map<String, ChallengeRequestResponse> processChallengeRequestResponses(final int replicasCount,
+                                                                                   ExecutorCompletionService<BasicMessage> completionService) {
+
+        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap = new HashMap<>();
+        int ackCount = 0;
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if  (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!isMessageFreshAndAuthentic(message)) {
+                        printError("Ignoring invalid message...");
+                        continue;
+                    }
+                    if (message instanceof ChallengeRequestResponse) {
+                        replicaIdUnsolvedChallengeMap.put(message.getFrom(), (ChallengeRequestResponse) message);
+                        ackCount++;
+                    }
+                }
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+                if (cause instanceof SocketTimeoutException) {
+                    printError("A node did not respond within expected limits...");
+                } else if (cause instanceof SignatureException) {
+                    printError("Seller could not sign a message to be sent to at least one of the replicas...");
+                }
+            }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getChallenges")) {
+            return replicaIdUnsolvedChallengeMap;
+        } else {
+            return null;
+        }
+    }
+
+    /***********************************************************
+     * SECOND PHASE OF TRANSFER GOOD
+     ***********************************************************/
+
+    private List<BasicMessage> tryEffectuateTransfer(final SaleRequestMessage requestMessage,
+                                                     final Map<String, ChallengeRequestResponse> challengesMap) {
+
+        Map<String, String> replicaIdChallengeSolutionsMap = solveChallenges(challengesMap);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicaIdChallengeSolutionsMap.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+        final long timestamp = generateTimestamp();
+
+        for (Map.Entry<String, String> entry : replicaIdChallengeSolutionsMap.entrySet()) {
+            Callable<BasicMessage> job = new TransferGoodCallable(timestamp, entry.getKey(), requestMessage, entry.getValue());
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        List<BasicMessage> responses =
+                processTransferGoodResponses(requestMessage.getWts(), replicaIdChallengeSolutionsMap.size(), completionService);
+
+        executorService.shutdown();
+        return responses;
+    }
+
+    private Map<String, String> solveChallenges(final Map<String, ChallengeRequestResponse> challengesMap) {
+        Map<String, String> replicaIdChallengeSolutionsMap = new HashMap<>();
+        for (Map.Entry<String, ChallengeRequestResponse> entry : challengesMap.entrySet()) {
+            System.out.println("Solving challenge for replica: " + entry.getKey());
+            ChallengeRequestResponse challenge = entry.getValue();
+            String solution = ChallengeSolver.solveChallenge(
+                    challenge.getHashedOriginalString(),
+                    challenge.getOriginalStringSize(),
+                    challenge.getAlphabet()
+            );
+            System.out.println("Found possible solution: " + solution + ", for challenge of replica: " + entry.getKey());
+            replicaIdChallengeSolutionsMap.put(entry.getKey(), solution);
+        }
+        return replicaIdChallengeSolutionsMap;
     }
 
     private List<BasicMessage> processTransferGoodResponses(long wts,
@@ -99,6 +201,10 @@ public class WantToBuyController {
         print("Redirecting all messages to client...");
         return messagesList;
     }
+
+    /***********************************************************
+     * HELPERS
+     ***********************************************************/
 
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
         return new ErrorResponse(
