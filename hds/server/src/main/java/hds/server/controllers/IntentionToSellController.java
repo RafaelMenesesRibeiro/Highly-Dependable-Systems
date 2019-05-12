@@ -88,6 +88,9 @@ public class IntentionToSellController extends BaseController {
 
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
+
+		// TODO - Remove ChallangeDatas associated with this client from HashMap. //
+
 		Connection connection = null;
 		try {
 			connection = DatabaseManager.getConnection();

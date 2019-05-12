@@ -95,6 +95,9 @@ public class TransferGoodController extends BaseController {
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
+		// TODO - Verify Challenge Solution. //
+		// TODO - Remove ChallangeData from HashMap. //
+
 		Connection connection = null;
 		try {
 			connection = DatabaseManager.getConnection();
