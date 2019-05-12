@@ -66,14 +66,17 @@ public class SecurityManager {
         }
 
         if (from >= 10000) {
+            // These servers use Citizen's Card for signing operations
             if (!isValidSignatureFromServer(message))
                 return "invalid signature";
         }
         else if (from >= 9000 && from < 10000) {
+            // These servers use regular public key and private keys for signing operations
             if (!isValidSignatureFromNode(message))
                 return "invalid signature";
         }
         else if (from >= 8000 && from < 9000){
+            // These behave like regular servers, we put them on a different conditional just for explicitly
             if (!isValidSignatureFromNode(message))
                 return "invalid signature";
         }
