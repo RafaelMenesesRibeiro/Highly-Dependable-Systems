@@ -36,6 +36,7 @@ public class ONRRMajorityVoting {
 
     public static int iwWriteAcknowledge(long wts, BasicMessage message) {
         if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
             return 0;
         } else if (message instanceof WriteResponse) {
             if (((WriteResponse) message).getWts() == wts) {
@@ -49,9 +50,10 @@ public class ONRRMajorityVoting {
             }
             printError("Response contained wts different than the one that was sent on request");
             return 0;
+        } else {
+            printError(message.toString());
+            return 0;
         }
-        printError(message.toString());
-        return 0;
     }
 
     public static int isGoodStateReadAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
