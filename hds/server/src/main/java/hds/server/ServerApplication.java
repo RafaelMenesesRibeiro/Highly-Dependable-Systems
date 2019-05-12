@@ -22,7 +22,8 @@ public class ServerApplication {
 	public static boolean isUseCC = false;
 
 	private static String port;
-	private static int replicasNumber;
+	private static int regularReplicasNumber;
+	private static int ccReplicasNumber;
 	private static String driver;
 	private static String url;
 	private static String user;
@@ -34,7 +35,8 @@ public class ServerApplication {
 		try {
 			String port = args[0];
 			int maxClientID = Integer.parseInt(args[1]);
-			int maxServerID = Integer.parseInt(args[2]);
+			int maxSRegularReplicasNumber = Integer.parseInt(args[2]);
+			int maxCCReplicasNumber = Integer.parseInt(args[3]);
 			serverPort = Integer.parseInt(port);
 
 			ResourceManager.setServerPort(serverPort);
@@ -42,7 +44,8 @@ public class ServerApplication {
 			ResourceManager.setMinClientId(HDS_NOTARY_CLIENTS_FIRST_PORT);
 
 			ServerApplication.port = port;
-			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
+			ServerApplication.regularReplicasNumber = maxSRegularReplicasNumber;
+			ServerApplication.ccReplicasNumber = ccReplicasNumber;
 
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
@@ -107,7 +110,11 @@ public class ServerApplication {
 		return password;
 	}
 
-	public static int getReplicasNumber() {
-		return replicasNumber;
+	public static int getRegularReplicasNumber() {
+		return regularReplicasNumber;
+	}
+
+	public static int getCCReplicasNumber() {
+		return ccReplicasNumber;
 	}
 }

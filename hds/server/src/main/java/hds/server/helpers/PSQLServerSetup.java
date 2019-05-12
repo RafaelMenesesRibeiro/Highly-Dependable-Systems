@@ -14,9 +14,14 @@ public class PSQLServerSetup {
 
 	public static void initDatabased() {
 		if (Integer.parseInt(getPort()) == HDS_NOTARY_REPLICAS_FIRST_PORT) {
-			int replicasNumber = getReplicasNumber();
-			for (int i = 0; i < replicasNumber; i++) {
+			int regularReplicasNumber = getRegularReplicasNumber();
+			for (int i = 0; i < regularReplicasNumber; i++) {
 				initiSingleDB(DB_NAME_PREFIX + (HDS_NOTARY_REPLICAS_FIRST_PORT + i));
+			}
+
+			int ccReplicasNumber = getCCReplicasNumber();
+			for (int i = 0; i < ccReplicasNumber; i++) {
+				initiSingleDB(DB_NAME_PREFIX + (HDS_NOTARY_REPLICAS_FIRST_CC_PORT + i));
 			}
 		}
 	}
