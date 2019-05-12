@@ -48,7 +48,7 @@ public class TransactionValidityChecker {
 	 * @throws	IncorrectSignatureException		The payload's signature does not match its contents
 	 */
 	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException,
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException,
 					SignatureException, IncorrectSignatureException {
 
 		String buyerID = transactionData.getBuyerID();
@@ -94,20 +94,25 @@ public class TransactionValidityChecker {
 	 * @param   conn        Database connection
 	 * @param 	goodID		GoodID
 	 * @return 	String		ID of the GoodID's owner
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static String getCurrentOwner(Connection conn, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "select userID from ownership where goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
+		String columnName = "userID";
+		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
+
 		try {
-			List<String> results = DatabaseInterface.queryDB(conn, query, "userID", args);
-			return results.get(0);
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0).getString(columnName);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
@@ -122,20 +127,24 @@ public class TransactionValidityChecker {
 	 * @param   conn        Database connection
 	 * @param 	goodID		GoodID
 	 * @return 	Boolean		Represents if the GoodID is on sale
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static Boolean getIsOnSale(Connection conn, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "select onSale from goods where goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
+		String columnName = "onSale";
+		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
 		try {
-			List<String> results = DatabaseInterface.queryDB(conn, query, "onSale", args);
-			return results.get(0).equals("t");
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0).getString(columnName).equals("t");
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
