@@ -44,10 +44,13 @@ public class ClientApplication {
 
     public static void main(String[] args) {
         String portId = args[0];
-        String maxPortId = args[1];
-        int maxServerPort = 9000;
+        int regularReplicasNumber = 1;
+        int ccReplicasNumber = 0;
+        int maxFailures = 0;
         try {
-            maxServerPort = Integer.parseInt(args[2]);
+            regularReplicasNumber = Integer.parseInt(args[1]);
+            ccReplicasNumber = Integer.parseInt(args[2]);
+            maxFailures = Integer.parseInt(args[3]);
         }
         catch (Exception ex) {
             Logger logger = Logger.getAnonymousLogger();
@@ -55,9 +58,9 @@ public class ClientApplication {
             System.exit(-1);
         }
         ClientProperties.setMyClientPort(portId);
-        ClientProperties.setMaxClientPort(maxPortId);
-        // TODO - Change this when params start being max number instead of max port. //
-        ClientProperties.initializeRegularReplicasIDList(maxServerPort - HDS_NOTARY_REPLICAS_FIRST_PORT + 1);
+        ClientProperties.setMaxFailures(maxFailures);
+        ClientProperties.initializeRegularReplicasIDList(regularReplicasNumber);
+        ClientProperties.initializeCCReplicasIDList(ccReplicasNumber);
         runClientServer(args);
         runClientInterface();
     }

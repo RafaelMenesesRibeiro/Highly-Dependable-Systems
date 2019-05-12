@@ -14,13 +14,13 @@ public class ClientProperties {
     // TODO Introduce args for number of tolerated faults
     // TODO Introduce args for replicas using CC
     // TODO Make a function that returns a single list of server IDs... Both in the 9000 and 10000 slots
+    public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
     public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
     public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
     public static final String HDS_BASE_HOST = "http://localhost:";
 
     private static int maxFailures = 0;
     private static String myClientPort;
-    private static String maxClientPort;
     private static ArrayList<String> regularReplicaIdList = new ArrayList<>();
     private static ArrayList<String> citizenReplicaIdList = new ArrayList<>();
 
@@ -68,14 +68,6 @@ public class ClientProperties {
             logger.log(Level.SEVERE, "Error loading privateKey from resources");
             System.exit(-1);
         }
-    }
-
-    public static String getMaxClientPort() {
-        return maxClientPort;
-    }
-
-    public static void setMaxClientPort(String maxClientPort) {
-        ClientProperties.maxClientPort = maxClientPort;
     }
 
     public static ArrayList<String> getRegularReplicaIdList() {
