@@ -22,7 +22,7 @@ public class ClientSecurityManager {
         }
         else {
             // Everything is has expected
-            print(message.toString());
+            print("Message below is verified to be fresh and authentic...");
             return true;
         }
     }
