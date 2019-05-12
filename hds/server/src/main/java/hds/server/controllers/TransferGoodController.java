@@ -1,12 +1,11 @@
 package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.*;
-import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
+import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
@@ -27,6 +26,8 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.*;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.removeAndReturnChallenge;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.tryGetUnansweredChallenge;
 import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimestamp;
 
 /**
@@ -95,8 +96,12 @@ public class TransferGoodController extends BaseController {
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
-		// TODO - Verify Challenge Solution. //
-		// TODO - Remove ChallangeData from HashMap. //
+		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
+		ChallengeData challengeData = removeAndReturnChallenge(key);
+		String challengeResponse = transactionData.getChallengeResponse();
+		if (challengeData == null || !challengeData.verify(challengeResponse)) {
+			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong.");
+		}
 
 		Connection connection = null;
 		try {
