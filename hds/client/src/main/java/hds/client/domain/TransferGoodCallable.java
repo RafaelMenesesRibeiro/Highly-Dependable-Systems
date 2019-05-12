@@ -52,7 +52,7 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 requestMessage.getWriteOnOwnershipsSignature(),
                 timestamp,
                 OPERATION,
-                ClientProperties.getPort(),
+                ClientProperties.getMyClientPort(),
                 replicaId,
                 "",
                 challengeResponse

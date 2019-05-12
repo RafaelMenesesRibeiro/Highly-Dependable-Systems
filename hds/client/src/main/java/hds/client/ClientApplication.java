@@ -54,8 +54,8 @@ public class ClientApplication {
             logger.warning("Exiting:\n" + ex.getMessage());
             System.exit(-1);
         }
-        ClientProperties.setPort(portId);
-        ClientProperties.setMaxPortId(maxPortId);
+        ClientProperties.setMyClientPort(portId);
+        ClientProperties.setMaxClientPort(maxPortId);
         ClientProperties.initializeNotaryReplicasPortsList(maxServerPort);
         runClientServer(args);
         runClientInterface();
@@ -63,7 +63,7 @@ public class ClientApplication {
 
     private static void runClientServer(String[] args) {
         SpringApplication app = new SpringApplication(ClientApplication.class);
-        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getPort()));
+        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getMyClientPort()));
         app.run(args);
     }
 
@@ -265,17 +265,17 @@ public class ClientApplication {
         Boolean onSale = Boolean.FALSE;
 
         try {
-            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getPort(), wts);
-            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getPort(), wts);
+            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getMyClientPort(), wts);
+            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getMyClientPort(), wts);
             return new SaleRequestMessage(
                     generateTimestamp(),
                     newUUIDString(),
                     "buyGood",
-                    ClientProperties.getPort(), // from
+                    ClientProperties.getMyClientPort(), // from
                     to,
                     "",
                     goodId,
-                    ClientProperties.getPort(), // buyer
+                    ClientProperties.getMyClientPort(), // buyer
                     to, // seller
                     wts,
                     onSale,

@@ -1,7 +1,6 @@
 package hds.client.helpers;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
@@ -18,20 +17,20 @@ public class ClientProperties {
     public static final String HDS_BASE_HOST = "http://localhost:";
 
     private static int maxFailures = 0;
-    private static String portId;
-    private static String maxPortId;
+    private static String myClientPort;
+    private static String maxClientPort;
     private static ArrayList<String> notaryReplicasPorts;
     private static PrivateKey privateKey;
 
     private ClientProperties() {}
 
-    public static String getPort() {
-        return portId;
+    public static String getMyClientPort() {
+        return myClientPort;
     }
 
-    public static void setPort(String portId) {
-        if (ClientProperties.portId != null) { throw new RuntimeException("port is 'final'"); }
-        ClientProperties.portId = portId;
+    public static void setMyClientPort(String portId) {
+        if (ClientProperties.myClientPort != null) { throw new RuntimeException("port is 'final'"); }
+        ClientProperties.myClientPort = portId;
         try {
             ClientProperties.privateKey = getPrivateKeyFromResource(portId);
         } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
@@ -40,13 +39,13 @@ public class ClientProperties {
         }
     }
 
-    public static String getMaxPortId() {
-        return maxPortId;
+    public static String getMaxClientPort() {
+        return maxClientPort;
     }
 
-    public static void setMaxPortId(String maxPortId) {
-        if (ClientProperties.maxPortId != null) { throw new RuntimeException("maxPortId is 'final'"); }
-        ClientProperties.maxPortId = maxPortId;
+    public static void setMaxClientPort(String maxClientPort) {
+        if (ClientProperties.maxClientPort != null) { throw new RuntimeException("maxClientPort is 'final'"); }
+        ClientProperties.maxClientPort = maxClientPort;
     }
 
     public static PrivateKey getPrivateKey() {

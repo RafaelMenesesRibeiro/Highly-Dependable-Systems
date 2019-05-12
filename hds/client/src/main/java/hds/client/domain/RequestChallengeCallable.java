@@ -5,7 +5,7 @@ import hds.security.msgtypes.BasicMessage;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
-import static hds.client.helpers.ClientProperties.getPort;
+import static hds.client.helpers.ClientProperties.getMyClientPort;
 import static hds.client.helpers.ClientProperties.getPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageSignature;
@@ -30,7 +30,7 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 	}
 
 	private BasicMessage newRequestChallengeMessage(long timestamp, String requestID, String replicaID) {
-		return new BasicMessage(timestamp, requestID, OPERATION, getPort(), replicaID, "");
+		return new BasicMessage(timestamp, requestID, OPERATION, getMyClientPort(), replicaID, "");
 	}
 
 	@Override

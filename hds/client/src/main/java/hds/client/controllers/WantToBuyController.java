@@ -105,7 +105,7 @@ public class WantToBuyController {
                 generateTimestamp(),
                 receivedRequest.getRequestID(), // callee requestId
                 OPERATION,
-                ClientProperties.getPort(), // from me
+                ClientProperties.getMyClientPort(), // from me
                 receivedRequest.getFrom(),  // to callee
                 "",
                 "bad request.",
