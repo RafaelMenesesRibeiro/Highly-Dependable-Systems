@@ -219,15 +219,10 @@ public class ClientApplication {
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
-
             if (jsonArray == null) {
                 printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
             }
-
             processBuyGoodResponses(wts, jsonArray);
-
-        } catch (SocketTimeoutException ste) {
-            printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
             printError(exc.getMessage());
         }
