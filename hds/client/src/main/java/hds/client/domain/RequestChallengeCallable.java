@@ -11,7 +11,7 @@ import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageSignature;
 
 public class RequestChallengeCallable implements Callable<BasicMessage> {
-	private static final String OPERATION = "requestData";
+	private static final String OPERATION = "requestChallenge";
 	private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
 	private final BasicMessage message;
 	private final String replicaID;
