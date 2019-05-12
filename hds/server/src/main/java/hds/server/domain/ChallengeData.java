@@ -1,8 +1,9 @@
 package hds.server.domain;
 
 public class ChallengeData {
+	// TODO - Change after testing. //
 	public static final int POSSIBLE_CHAR_NUMBER = 16;
-	public static final int RANDOM_STRING_LENGTH = 5;
+	public static final int RANDOM_STRING_LENGTH = 2;
 
 	private final String requestID;
 	private final String originalString;
