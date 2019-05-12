@@ -40,12 +40,12 @@ public class ServerApplication {
 			serverPort = Integer.parseInt(port);
 
 			ResourceManager.setServerPort(serverPort);
-			ResourceManager.setMaxClientId(maxClientID);
 			ResourceManager.setMinClientId(HDS_NOTARY_CLIENTS_FIRST_PORT);
+			ResourceManager.setMaxClientId(HDS_NOTARY_REPLICAS_FIRST_CC_PORT + maxClientID - 1);
 
 			ServerApplication.port = port;
 			ServerApplication.regularReplicasNumber = maxSRegularReplicasNumber;
-			ServerApplication.ccReplicasNumber = ccReplicasNumber;
+			ServerApplication.ccReplicasNumber = maxCCReplicasNumber;
 
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
