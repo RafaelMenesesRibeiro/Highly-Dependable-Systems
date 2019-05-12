@@ -3,6 +3,7 @@ package hds.server.helpers;
 import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
+import org.json.JSONException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,7 +37,7 @@ public class MarkForSale {
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static void markForSale(Connection conn, String goodID, String writerID, String writeTimestamp, String writeOperationSignature)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "UPDATE goods " +
 				"SET onSale = ?, " +
@@ -50,8 +51,11 @@ public class MarkForSale {
 		args.add(writeTimestamp);
 		args.add(writeOperationSignature);
 		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+
 		try {
-			DatabaseInterface.queryDB(conn, query, "", args);
+			DatabaseInterface.queryDB(conn, query, returnColumns, args);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
