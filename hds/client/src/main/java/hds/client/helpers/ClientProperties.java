@@ -1,12 +1,7 @@
 package hds.client.helpers;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-
-import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
     // TODO Introduce args for number of tolerated faults
