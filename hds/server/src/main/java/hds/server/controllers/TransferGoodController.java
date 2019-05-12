@@ -100,7 +100,7 @@ public class TransferGoodController extends BaseController {
 		ChallengeData challengeData = removeAndReturnChallenge(key);
 		String challengeResponse = transactionData.getChallengeResponse();
 		if (challengeData == null || !challengeData.verify(challengeResponse)) {
-			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong.");
+			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong. Correct was " + challengeData.getOriginalString());
 		}
 
 		Connection connection = null;
