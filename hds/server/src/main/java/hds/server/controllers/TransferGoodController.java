@@ -40,7 +40,6 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimest
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
-
 @RestController
 public class TransferGoodController extends BaseController {
 	private static final String CERTIFIED = "Certified by Notary";
