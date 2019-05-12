@@ -13,7 +13,6 @@ import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
 import hds.server.helpers.DatabaseManager;
-import hds.server.helpers.StringHelper;
 import hds.server.helpers.TransactionValidityChecker;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,6 +63,8 @@ public class GetStateOfGoodController {
 		logger.info("\tGoodID - " + goodID);
 		logger.info("\tReadID - " + readID);
 
+		goodID = InputValidation.cleanString(goodID);
+
 		MetaResponse metaResponse;
 		if (!isValidGoodID(goodID)) {
 			String reason = "The GoodID " + goodID + " is not valid.";
@@ -83,7 +84,6 @@ public class GetStateOfGoodController {
 		}
 
 		try {
-			goodID = InputValidation.cleanString(goodID);
 			metaResponse = new MetaResponse(execute(goodID, rid));
 		}
 		catch (Exception ex) {

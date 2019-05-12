@@ -1,9 +1,7 @@
-package hds.server.helpers;
+package hds.security.helpers;
 
 import java.util.ArrayList;
 import java.util.Random;
-
-import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGHT;
 
 // TODO - Javadoc. //
 public class StringHelper {
@@ -26,9 +24,9 @@ public class StringHelper {
 		}
 	}
 
-	public static ArrayList<String> getAllCombinations(char[] chars) {
+	public static ArrayList<String> getAllCombinations(char[] chars, int size) {
 		ArrayList<String> combinations = new ArrayList<>();
-		getAllKLength(chars, RANDOM_STRING_LENGHT, combinations);
+		getAllKLength(chars, size, combinations);
 		return combinations;
 	}
 

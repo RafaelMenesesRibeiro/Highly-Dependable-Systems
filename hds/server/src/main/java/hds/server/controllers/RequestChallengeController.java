@@ -7,7 +7,7 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
-import hds.server.helpers.StringHelper;
+import hds.security.helpers.StringHelper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.cacheUnansweredChallenge;
 import static hds.server.domain.ChallengeData.POSSIBLE_CHAR_NUMBER;
-import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGHT;
+import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGTH;
 
 /**
  * Responsible for handling POST requests for the endpoint /requestChallenge.
@@ -84,7 +84,7 @@ public class RequestChallengeController extends BaseController {
 	 */
 	private ChallengeData createChallenge(String requestID) {
 		char[] randomStringAlphabet = StringHelper.getRandomAlphabetSet(POSSIBLE_CHAR_NUMBER);
-		String randomString = StringHelper.generateFromSet(randomStringAlphabet, RANDOM_STRING_LENGHT);
+		String randomString = StringHelper.generateFromSet(randomStringAlphabet, RANDOM_STRING_LENGTH);
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] messageDigest = md.digest(randomString.getBytes());

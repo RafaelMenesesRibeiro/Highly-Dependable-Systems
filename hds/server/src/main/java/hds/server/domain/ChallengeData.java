@@ -2,7 +2,7 @@ package hds.server.domain;
 
 public class ChallengeData {
 	public static final int POSSIBLE_CHAR_NUMBER = 16;
-	public static final int RANDOM_STRING_LENGHT = 5;
+	public static final int RANDOM_STRING_LENGTH = 5;
 
 	private final String requestID;
 	private final String randomStringToFind;
