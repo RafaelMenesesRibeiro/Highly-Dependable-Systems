@@ -47,8 +47,12 @@ public class WantToBuyController {
 
         final long timestamp = generateTimestamp();
 
+        // TODO - Request Challenge to Server.
+        // TODO - Solve all of them and keep them in an hashmap <replicaId, challengeResponse> //
+        String challengeResponse = "TODO - TODOs";
+
         for (String replicaId : replicasList) {
-            Callable<BasicMessage> job = new TransferGoodCallable(timestamp, replicaId, requestMessage);
+            Callable<BasicMessage> job = new TransferGoodCallable(timestamp, replicaId, requestMessage, challengeResponse);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 

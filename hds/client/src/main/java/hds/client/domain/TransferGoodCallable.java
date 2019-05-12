@@ -18,9 +18,9 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
     private final ApproveSaleRequestMessage message;
     private final String replicaId;
 
-    public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage) {
+    public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage, String challengeResponse) {
         this.replicaId = replicaId;
-        this.message = newApproveSaleRequestMessage(timestamp, replicaId, requestMessage);
+        this.message = newApproveSaleRequestMessage(timestamp, replicaId, requestMessage, challengeResponse);
     }
 
     @Override
@@ -33,7 +33,8 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
 
     private ApproveSaleRequestMessage newApproveSaleRequestMessage(long timestamp,
                                                                    String replicaId,
-                                                                   SaleRequestMessage requestMessage) {
+                                                                   SaleRequestMessage requestMessage,
+                                                                   String challengeResponse) {
 
         return new ApproveSaleRequestMessage(
                 requestMessage.getTimestamp(),
@@ -53,7 +54,8 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 OPERATION,
                 ClientProperties.getPort(),
                 replicaId,
-                ""
+                "",
+                challengeResponse
         );
     }
 

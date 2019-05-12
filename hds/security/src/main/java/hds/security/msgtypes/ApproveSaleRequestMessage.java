@@ -27,6 +27,10 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
     @NotEmpty(message = "The wrappingSignature cannot be empty.")
     private String wrappingSignature;
 
+    @NotNull(message = "The challengeResponse cannot be null.")
+    @NotEmpty(message = "The challengeResponse cannot be empty.")
+    private String challengeResponse;
+
     public ApproveSaleRequestMessage(long timestamp,
                                      String requestID,
                                      String operation,
@@ -44,7 +48,8 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                                      String wrappingOperation,
                                      String wrappingFrom,
                                      String wrappingTo,
-                                     String wrappingSignature) {
+                                     String wrappingSignature,
+                                     String challengeResponse) {
 
         super(timestamp, requestID, operation, from, to, signature, goodID, buyerID, sellerID, wts, onSale, writeOnGoodsSignature, writeOnOwnershipsSignature);
         this.wrappingTimestamp = wrappingTimestamp;
@@ -52,6 +57,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
         this.wrappingFrom = wrappingFrom;
         this.wrappingTo = wrappingTo;
         this.wrappingSignature = wrappingSignature;
+        this.challengeResponse = challengeResponse;
     }
 
     public ApproveSaleRequestMessage() {
@@ -98,6 +104,14 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
         this.wrappingSignature = wrappingSignature;
     }
 
+    public String getChallengeResponse() {
+        return challengeResponse;
+    }
+
+    public void setChallengeResponse(String challengeResponse) {
+        this.challengeResponse = challengeResponse;
+    }
+
     @Override
     public String toString() {
         return "ApproveSaleRequestMessage{" +
@@ -106,6 +120,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                 ", wrappingFrom='" + wrappingFrom + '\'' +
                 ", wrappingTo='" + wrappingTo + '\'' +
                 ", wrappingSignature='" + wrappingSignature + '\'' +
+                ", challengeResponse='" + challengeResponse + '\'' +
                 ", goodID='" + goodID + '\'' +
                 ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
