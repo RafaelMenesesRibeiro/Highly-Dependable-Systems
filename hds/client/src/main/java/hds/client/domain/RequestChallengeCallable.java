@@ -36,8 +36,8 @@ public class RequestChallengeCallable implements Callable<BasicMessage> {
 	@Override
 	public String toString() {
 		return "RequestChallengeCallable{" +
-				"message=" + message +
-				", replicaID='" + replicaID + '\'' +
+				"message=" + message.toString() +
+				", notaryReplicaId='" + replicaID + '\'' +
 				'}';
 	}
 }
