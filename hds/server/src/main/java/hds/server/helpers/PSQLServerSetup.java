@@ -131,7 +131,6 @@ public class PSQLServerSetup {
 	 * @param 	connection 		Connection to the database
 	 * @throws 	DBInitException	The creation / population of the database was not successful
 	 */
-	// TODO - The number of users needs to match the actual number of users. //
 	private static void populateTables(Connection connection) throws DBInitException {
 		String query =
 			"delete from ownership;" +
