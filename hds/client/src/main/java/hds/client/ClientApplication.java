@@ -239,9 +239,12 @@ public class ClientApplication {
             try {
                 BasicMessage message;
                 JSONObject basicMessageObject = (JSONObject) messageList.get(i);
-
                 ObjectMapper objectMapper = new ObjectMapper();
-                if (basicMessageObject.has("reason")) {
+
+                if (basicMessageObject == null) {
+                    print("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
+                    continue;
+                } else if (basicMessageObject.has("reason")) {
                     message = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
                 } else {
                     message = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
