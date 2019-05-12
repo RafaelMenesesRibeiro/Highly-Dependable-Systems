@@ -14,10 +14,6 @@ import static hds.server.ServerApplication.*;
  * @author 		Rafael Ribeiro
  */
 public class PSQLServerSetup {
-	// TODO - Add to Application.properties just like datasource.url //
-	private static final String URL = "jdbc:postgresql://localhost:5432/";
-
-
 	/**
 	 * Initializes the databases for every server.
 	 */
@@ -46,9 +42,9 @@ public class PSQLServerSetup {
 		Connection connection2 = null;
 		try {
 			Class.forName(ServerApplication.getDriver());
-			connection = DriverManager.getConnection(URL, getUser(), getPassword());
+			connection = DriverManager.getConnection(getDatabaseServerUrl(), getUser(), getPassword());
 			createDatabase(connection, dbName);
-			String dbURL = URL + dbName;
+			String dbURL = getDatabaseServerUrl() + dbName;
 			connection2 = DriverManager.getConnection(dbURL, getUser(), getPassword());
 			createTables(connection2);
 			populateTables(connection2);
