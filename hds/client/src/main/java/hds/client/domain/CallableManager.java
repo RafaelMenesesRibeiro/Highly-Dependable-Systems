@@ -18,7 +18,7 @@ public class CallableManager implements Callable<BasicMessage> {
     protected long timeout;
     protected TimeUnit timeUnit;
 
-    
+
     public CallableManager(Callable<BasicMessage> callable, long timeout, TimeUnit timeUnit) {
         this.timeout = timeout;
         this.timeUnit = timeUnit;
