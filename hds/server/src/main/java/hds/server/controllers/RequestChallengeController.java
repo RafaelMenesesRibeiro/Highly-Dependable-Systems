@@ -69,8 +69,6 @@ public class RequestChallengeController extends BaseController {
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
 		removeRecentRequest(key);
 
-		// TODO - Remove ChallangeDatas associated with this client from unansweredChallenges HashMap. //
-
 		ChallengeData challengeData = createChallenge(requestData.getRequestID());
 		cacheUnansweredChallenge(key, challengeData);
 		BasicMessage payload = new ChallengeRequestResponse(generateTimestamp(), requestData.getRequestID(), OPERATION, FROM_SERVER, requestData.getFrom(), "",

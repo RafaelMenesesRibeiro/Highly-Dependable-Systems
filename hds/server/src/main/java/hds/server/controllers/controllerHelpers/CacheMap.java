@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * TODO - @FranciscoBarros
+ * Hash Map that removed old entries.
  *
  * @author 		Francisco Barros
  */

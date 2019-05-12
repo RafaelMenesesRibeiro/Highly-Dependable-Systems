@@ -25,6 +25,7 @@ public class ServerApplication {
 	private static int regularReplicasNumber;
 	private static int ccReplicasNumber;
 	private static String driver;
+	private static String databaseServerUrl;
 	private static String url;
 	private static String user;
 	private static String password;
@@ -82,7 +83,8 @@ public class ServerApplication {
 			}
 			properties.load(input);
 			driver = properties.getProperty("spring.datasource.driverClassName");
-			url = properties.getProperty("spring.datasource.url") + DB_NAME_PREFIX + getPort();
+			databaseServerUrl = properties.getProperty("spring.datasource.url");
+			url = databaseServerUrl + DB_NAME_PREFIX + getPort();
 			user = properties.getProperty("spring.datasource.username");
 			password = properties.getProperty("spring.datasource.password");
 		}
@@ -94,6 +96,10 @@ public class ServerApplication {
 
 	public static String getDriver() {
 		return driver;
+	}
+
+	public static String getDatabaseServerUrl() {
+		return databaseServerUrl;
 	}
 
 	public static String getUrl() {

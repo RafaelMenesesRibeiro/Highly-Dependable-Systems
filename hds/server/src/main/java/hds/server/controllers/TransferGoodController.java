@@ -107,7 +107,6 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			// TODO - ?? Verify Write Timestamp agains Goods Table ?? //
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
@@ -156,7 +155,7 @@ public class TransferGoodController extends BaseController {
 				connection.rollback();
 				connection.setAutoCommit(true);
 			}
-			throw ex; // Handled in intentionToSell's main method, in the try catch were execute is called.
+			throw ex; // Handled in transferGood's main method, in the try catch were execute is called.
 		}
 	}
 }

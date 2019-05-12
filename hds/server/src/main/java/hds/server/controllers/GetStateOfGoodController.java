@@ -105,12 +105,15 @@ public class GetStateOfGoodController {
 	 */
 	public static GoodStateResponse execute(String goodID, int readID)
 			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
-		try (Connection conn = DatabaseManager.getConnection()) {
-			// TODO - Add transaction here. //
 
-			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID); // TODO - Return this wid, ts and sig. //
+		Connection connection = null;
+		try {
+			connection = DatabaseManager.getConnection();
+			connection.setAutoCommit(false);
 
-			JSONObject goodsInfo = getOnGoodsInfo(conn, goodID);
+			String ownerID = TransactionValidityChecker.getCurrentOwner(connection, goodID); // TODO - Return this wid, ts and sig. //
+
+			JSONObject goodsInfo = getOnGoodsInfo(connection, goodID);
 			boolean state = goodsInfo.getString("onSale").equals("t");
 			String writerID = goodsInfo.getString("wid");
 			long writerTimestamp = Long.parseLong(goodsInfo.getString("ts"));
@@ -118,6 +121,13 @@ public class GetStateOfGoodController {
 
 			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "",
 											ownerID, state, goodID, writerID, writerTimestamp, readID, writeSignature);
+		}
+		catch (Exception ex) {
+			if (connection != null) {
+				connection.rollback();
+				connection.setAutoCommit(true);
+			}
+			throw ex; // Handled in getStateOfGood's main method, in the try catch were execute is called.
 		}
 	}
 
