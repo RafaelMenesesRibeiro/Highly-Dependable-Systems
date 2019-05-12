@@ -9,6 +9,7 @@ import hds.server.ServerApplication;
 import hds.server.controllers.BaseController;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
+import hds.server.helpers.ServerProperties;
 import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.SecurityManager.setMessageSignature;
+import static hds.server.ServerApplication.HDS_NOTARY_REPLICAS_FIRST_CC_PORT;
 
 /**
  * Contains methods used by all Server's Controllers.
@@ -184,8 +186,12 @@ public class GeneralControllerHelper {
 	public static ResponseEntity<BasicMessage> getResponseEntity(MetaResponse metaResponse, String requestID, String to, String operation) {
 		BasicMessage payload = metaResponse.getPayload();
 		try {
-			PrivateKey pKey = getPrivateKeyFromResource(ServerApplication.getPort());
-			setMessageSignature(pKey, payload);
+			if (ServerApplication.isUseCC) {
+				setMessageSignature(ServerProperties.getPKCS11(), ServerProperties.getCCSessionID(), ServerProperties.getCCSignatureKey(), payload);
+			}
+			else {
+				setMessageSignature(getPrivateKeyFromResource(ServerApplication.getPort()), payload);
+			}
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
 		catch (SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
