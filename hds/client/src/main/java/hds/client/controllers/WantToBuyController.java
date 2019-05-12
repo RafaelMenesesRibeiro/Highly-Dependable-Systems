@@ -171,7 +171,7 @@ public class WantToBuyController {
                 Future<BasicMessage> futureResult = completionService.take();
                 if  (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
-                    messagesList.add(message); // TODO Be careful with this one when parsing on client for JSON
+                    messagesList.add(message);
                     if (message == null) {
                         continue;
                     }
