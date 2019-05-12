@@ -27,7 +27,7 @@ public class ChallengeSolver {
 			String newPrefix = prefix + set[i];
 			String result = testAllKLengthRecursive(set, newPrefix, n, stringLength - 1);
 			if (!result.equals("")) {
-				return newPrefix;
+				return result;
 			}
 		}
 
