@@ -22,7 +22,6 @@ public class ClientSecurityManager {
         }
         else {
             // Everything is has expected
-            print(message.toString());
             return true;
         }
     }

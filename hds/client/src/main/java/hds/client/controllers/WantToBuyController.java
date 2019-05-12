@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-import static hds.client.helpers.ClientProperties.printError;
-import static hds.client.helpers.ClientProperties.print;
+import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ClientSecurityManager.isMessageFreshAndAuthentic;
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.SecurityManager.setMessageSignature;
 
 @RestController
 public class WantToBuyController {
@@ -39,9 +39,7 @@ public class WantToBuyController {
         if (isMessageFreshAndAuthentic(requestMessage)) {
             return initiateTwoPhaseProtocol(requestMessage);
         }
-        List<BasicMessage> responseEntityList = new ArrayList<>();
-        responseEntityList.add(newErrorResponse(requestMessage, "Seller rejects message, it's either not fresh or not properly signed"));
-        return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
+        return newSignedError(requestMessage, "Seller rejects message, it's either not fresh or not properly signed");
     }
 
     private ResponseEntity<List<BasicMessage>> initiateTwoPhaseProtocol(SaleRequestMessage requestMessage) {
@@ -51,9 +49,7 @@ public class WantToBuyController {
         final Map<String, ChallengeRequestResponse>challengesList = getChallenges(replicasList, requestMessage.getRequestID());
         // If majority of replicas replied with a challenge, solve all challenges and proceed
         if (challengesList == null) {
-            List<BasicMessage> responseEntityList = new ArrayList<>();
-            responseEntityList.add(newErrorResponse(requestMessage, "Not enough challenges were gathered"));
-            return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
+            return newSignedError(requestMessage, "Not enough challenges were gathered");
         } else {
             List<BasicMessage> transferResponses = tryEffectuateTransfer(requestMessage, challengesList);
             return new ResponseEntity<>(transferResponses, HttpStatus.MULTIPLE_CHOICES);
@@ -205,6 +201,16 @@ public class WantToBuyController {
     /***********************************************************
      * HELPERS
      ***********************************************************/
+
+    private ResponseEntity<List<BasicMessage>> newSignedError(SaleRequestMessage requestMessage, String reason) {
+        List<BasicMessage> responseEntityList = new ArrayList<>();
+        try {
+            responseEntityList.add(setMessageSignature(getMyPrivateKey(), newErrorResponse(requestMessage, reason)));
+            return new ResponseEntity<>(responseEntityList, HttpStatus.MULTIPLE_CHOICES);
+        } catch (SignatureException se) {
+            return null;
+        }
+    }
 
     private BasicMessage newErrorResponse(BasicMessage receivedRequest, String reason) {
         return new ErrorResponse(
