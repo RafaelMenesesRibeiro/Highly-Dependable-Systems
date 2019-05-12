@@ -96,7 +96,7 @@ public class TransferGoodController extends BaseController {
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
-		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
+		UserRequestIDKey key = new UserRequestIDKey(transactionData.getWrappingFrom(), transactionData.getRequestID());
 		ChallengeData challengeData = removeAndReturnChallenge(key);
 		String challengeResponse = transactionData.getChallengeResponse();
 		if (challengeData == null || !challengeData.verify(challengeResponse)) {
