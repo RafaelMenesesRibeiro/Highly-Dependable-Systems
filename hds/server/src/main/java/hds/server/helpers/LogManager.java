@@ -30,6 +30,11 @@ public class LogManager {
 		logToFile(msg, basicMessage);
 	}
 
+	public void log(String msg) {
+		logToLogger(msg);
+		logToFile(msg);
+	}
+
 	private void logToFile(String msg, BasicMessage basicMessage) {
 		try {
 			outputStream.write((msg + basicMessage.toString() + "\n").getBytes(StandardCharsets.UTF_8));
@@ -37,7 +42,18 @@ public class LogManager {
 		catch (IOException ioex) { /* Do nothing */ }
 	}
 
+	private void logToFile(String msg) {
+		try {
+			outputStream.write((msg + "\n").getBytes(StandardCharsets.UTF_8));
+		}
+		catch (IOException ioex) { /* Do nothing */ }
+	}
+
 	private void logToLogger(String msg, BasicMessage basicMessage) {
 		logger.info(msg + basicMessage.toString());
+	}
+
+	private void logToLogger(String msg) {
+		logger.info(msg);
 	}
 }
