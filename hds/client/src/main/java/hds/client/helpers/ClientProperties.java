@@ -80,7 +80,7 @@ public class ClientProperties {
         ClientProperties.myClientPort = myClientPort;
     }
 
-    private static void setMajorityThreshold() {
+    public static void setMajorityThreshold() {
         ClientProperties.majorityThreshold = (numberOfReplicas + maxFailures) / 2;
     }
 
