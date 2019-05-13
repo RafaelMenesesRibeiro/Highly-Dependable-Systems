@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
+import hds.client.domain.WriteBackCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
@@ -167,6 +168,21 @@ public class ClientApplication {
     private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {
         print("Initiating write back phase to all known replicas...");
 
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
+
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job =
+                    new WriteBackCallable(timestamp, requestId, replicaId, rid, highestGoodState, highestOwnershipState);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
+        executorService.shutdown();
     }
 
     /***********************************************************
@@ -182,9 +198,12 @@ public class ClientApplication {
         long wts = generateTimestamp();
         final String goodId = requestGoodId();
 
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
+
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job =
-                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, goodId, wts, Boolean.TRUE);
+                    new IntentionToSellCallable(timestamp, requestId, replicaId, goodId, wts, Boolean.TRUE);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
