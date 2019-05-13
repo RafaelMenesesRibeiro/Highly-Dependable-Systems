@@ -60,7 +60,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                              String goodID,
                              String ownerID,  // value associated with write
                              boolean onSale,   // goodId
-                             String onGoodswriterID,
+                             String onGoodsWriterID,
                              long onGoodsWts,
                              String writeOnGoodsOperationSignature,
                              long onOwnershipWts,
@@ -72,7 +72,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.goodID = goodID;
         this.ownerID = ownerID;
         this.onSale = onSale;
-        this.onGoodsWriterID = onGoodswriterID;
+        this.onGoodsWriterID = onGoodsWriterID;
         this.onGoodsWts = onGoodsWts;
         this.writeOnGoodsOperationSignature = writeOnGoodsOperationSignature;
         this.onOwnershipWriterID = ownerID;
