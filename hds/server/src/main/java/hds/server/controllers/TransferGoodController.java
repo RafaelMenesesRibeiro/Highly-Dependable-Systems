@@ -107,6 +107,8 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
+			// TODO - Verify timestamp for onGoods. //
+
 			long requestWriteTimestamp = transactionData.getWts();
 			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
