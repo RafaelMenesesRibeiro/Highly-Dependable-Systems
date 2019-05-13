@@ -22,8 +22,7 @@ import java.sql.SQLException;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isOneTimestampAfterAnother;
-import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
-import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
+import static hds.security.SecurityManager.*;
 import static hds.server.helpers.MarkForSale.changeGoodSaleStatus;
 import static hds.server.helpers.TransactionValidityChecker.*;
 import static hds.server.helpers.TransferGood.changeGoodOwner;
@@ -33,7 +32,6 @@ import static hds.server.helpers.TransferGood.changeGoodOwner;
  *
  * @author 		Rafael Ribeiro
  */
-@SuppressWarnings("Duplicates")
 @RestController
 public class WriteBackController extends BaseController {
 	private WriteBackController() {
@@ -65,7 +63,7 @@ public class WriteBackController extends BaseController {
 	 * @see 	ApproveSaleRequestMessage
 	 */
 	@Override
-	public MetaResponse execute(BasicMessage requestData) throws SQLException, JSONException {
+	public MetaResponse execute(BasicMessage requestData) throws SQLException, JSONException, SignatureException {
 		WriteBackMessage writeBackMessage = (WriteBackMessage) requestData;
 		String clientID = InputValidation.cleanString(requestData.getFrom());
 
@@ -76,13 +74,15 @@ public class WriteBackController extends BaseController {
 			throw new SignatureException("The Client's signature is not valid.");
 		}
 
-		// TODO - Check Server's signature for GoodStateResponse. //
-
 		GoodStateResponse onGoodsRelevantResponse = writeBackMessage.getHighestGoodState();
+		checkValidMessageFromServer(onGoodsRelevantResponse);
+
 		String onGoodsGoodID  = InputValidation.cleanString(onGoodsRelevantResponse.getGoodID());
 		String onGoodsOwnerID = InputValidation.cleanString(onGoodsRelevantResponse.getOwnerID());
 
 		GoodStateResponse onOwnershipRelevantResponse = writeBackMessage.getHighestOwnershipState();
+		checkValidMessageFromServer(onOwnershipRelevantResponse);
+
 		String onOwnershipGoodID = InputValidation.cleanString(onGoodsRelevantResponse.getGoodID());
 		String onOwnershipOwnerID = InputValidation.cleanString(onOwnershipRelevantResponse.getOwnerID());
 
@@ -131,6 +131,12 @@ public class WriteBackController extends BaseController {
 				connection.setAutoCommit(true);
 			}
 			throw ex; // Handled in writeBack's main method, in the try catch were execute is called.
+		}
+	}
+
+	private static void checkValidMessageFromServer(BasicMessage basicMessage) throws SignatureException {
+		if (!isValidMessageFromServer(basicMessage)) {
+			throw new SignatureException("The Replica's signature is not valid.");
 		}
 	}
 }
