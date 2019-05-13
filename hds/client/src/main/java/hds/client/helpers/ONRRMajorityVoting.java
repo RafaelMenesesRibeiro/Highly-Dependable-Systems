@@ -2,6 +2,7 @@ package hds.client.helpers;
 
 import hds.security.DateUtils;
 import hds.security.msgtypes.*;
+import org.javatuples.Quartet;
 
 import java.util.List;
 
@@ -21,16 +22,29 @@ public class ONRRMajorityVoting {
         }
     }
 
-    public static BasicMessage selectMostRecentGoodState(List<GoodStateResponse> readList) {
-        GoodStateResponse highest = null;
+    public static Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> selectMostRecentGoodState(List<GoodStateResponse> readList) {
+        GoodStateResponse highestOnSale = null;
+        GoodStateResponse highestOwner = null;
+
         for (GoodStateResponse message : readList) {
-            if (highest == null) {
-                highest = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
-                highest = message;
+            if (highestOnSale == null) {
+                highestOnSale = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnGoodsWts(), highestOnSale.getOnGoodsWts())) {
+                highestOnSale = message;
+            }
+
+            if (highestOwner == null) {
+                highestOwner = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnOwnershipWts(), highestOwner.getOnOwnershipWts())) {
+                highestOwner = message;
             }
         }
-        return highest;
+
+        if (highestOnSale == null || highestOwner == null) {
+            return null;
+        }
+
+        return new Quartet<>(highestOnSale, highestOnSale.isOnSale(), highestOwner, highestOwner.getOwnerID());
     }
 
     public static int iwWriteAcknowledge(long wts, BasicMessage message) {
