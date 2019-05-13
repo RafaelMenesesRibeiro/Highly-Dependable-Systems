@@ -65,23 +65,24 @@ public class ONRRMajorityVoting {
                 return 0;
             }
 
-            // TODO UPDATE GET FIELDS WITH NEW DATA TYPE DONE BY RAFAEL
             if (!verifyWriteOnGoodsDataResponseSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),
-                    goodStateResponse.getWriterID(),
-                    goodStateResponse.getWts(),
-                    goodStateResponse.getWriteOperationSignature()
+                    goodStateResponse.getOnGoodsWriterID(),
+                    goodStateResponse.getOnGoodsWts(),
+                    goodStateResponse.getWriteOnGoodsOperationSignature()
             )) {
                 return 0;
             }
 
             if (!verifyWriteOnOwnershipSignature(
                     goodStateResponse.getGoodID(),
-                    goodStateResponse.getWriterID(),
-                    goodStateResponse.getWts(),
-                    goodStateResponse.getWriteOperationSignature()
-            ))
+                    goodStateResponse.getOnOwnershipWriterID(),
+                    goodStateResponse.getOnOwnershipWts(),
+                    goodStateResponse.getWriteOnOwnershipOperationSignature()
+            )) {
+                return 0;
+            }
 
             readList.add(goodStateResponse);
             return 1;
