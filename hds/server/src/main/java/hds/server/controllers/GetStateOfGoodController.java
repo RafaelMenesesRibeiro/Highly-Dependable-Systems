@@ -141,7 +141,7 @@ public class GetStateOfGoodController {
 					writeOnOwnershipSignature,
 					readID);
 		}
-		
+
 		catch (Exception ex) {
 			if (connection != null) {
 				connection.rollback();
