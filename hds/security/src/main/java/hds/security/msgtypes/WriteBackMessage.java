@@ -12,7 +12,6 @@ import static hds.security.helpers.managers.ConnectionManager.getJSONStringFromH
 
 public class WriteBackMessage extends BasicMessage implements Serializable {
 
-    private String readOperation;
     private BasicMessage readResponse;
 
     public WriteBackMessage(long timestamp,
@@ -21,23 +20,13 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
                             String from,
                             String to,
                             String signature,
-                            String readOperation,
                             BasicMessage readResponse) {
         super(timestamp, requestID, operation, from, to, signature);
-        this.readOperation = readOperation;
         this.readResponse = readResponse;
     }
 
     public WriteBackMessage() {
 
-    }
-
-    public String getReadOperation() {
-        return readOperation;
-    }
-
-    public void setReadOperation(String readOperation) {
-        this.readOperation = readOperation;
     }
 
     public BasicMessage getReadResponse() {
@@ -46,19 +35,6 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
 
     public void setReadResponse(BasicMessage readResponse) {
         this.readResponse = readResponse;
-    }
-
-    @Override
-    public String toString() {
-        return "WriteBackMessage{" +
-                "readOperation='" + readOperation + '\'' +
-                ", readResponse=" + readResponse +
-                ", requestID='" + requestID + '\'' +
-                ", operation='" + operation + '\'' +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                ", signature='" + signature + '\'' +
-                '}';
     }
 
     public static BasicMessage getCastedReadResponse(String readOperation, String readResponseString) {
@@ -89,5 +65,17 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
             String readResponse = jsonObject.getJSONObject("readResponse").toString();
             return getCastedReadResponse(readOperation, readResponse);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "WriteBackMessage{" +
+                "readResponse=" + readResponse +
+                ", requestID='" + requestID + '\'' +
+                ", operation='" + operation + '\'' +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", signature='" + signature + '\'' +
+                '}';
     }
 }
