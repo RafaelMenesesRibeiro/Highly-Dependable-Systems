@@ -7,8 +7,7 @@ import java.util.List;
 
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
-import static hds.security.SecurityManager.INITIAL_DATABASE_ENRTY_SIGNATURE;
-import static hds.security.SecurityManager.verifyWriteOnGoodsDataResponseSignature;
+import static hds.security.SecurityManager.*;
 
 public class ONRRMajorityVoting {
 
@@ -66,7 +65,8 @@ public class ONRRMajorityVoting {
                 return 0;
             }
 
-            else if (!verifyWriteOnGoodsDataResponseSignature(
+            // TODO UPDATE GET FIELDS WITH NEW DATA TYPE DONE BY RAFAEL
+            if (!verifyWriteOnGoodsDataResponseSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),
                     goodStateResponse.getWriterID(),
@@ -75,6 +75,13 @@ public class ONRRMajorityVoting {
             )) {
                 return 0;
             }
+
+            if (!verifyWriteOnOwnershipSignature(
+                    goodStateResponse.getGoodID(),
+                    goodStateResponse.getWriterID(),
+                    goodStateResponse.getWts(),
+                    goodStateResponse.getWriteOperationSignature()
+            ))
 
             readList.add(goodStateResponse);
             return 1;
