@@ -122,11 +122,11 @@ public class ClientApplication {
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
+        processGetStateOfGoodResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processGetStateOfGOodResponses(final int rid,
+    private static void processGetStateOfGoodResponses(final int rid,
                                                        final int replicasCount,
                                                        ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -143,7 +143,7 @@ public class ClientApplication {
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
+                    ackCount += ONRRMajorityVoting.isGetGoodStateAcknowledge(rid, message, readList);
                 }
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
@@ -157,11 +157,13 @@ public class ClientApplication {
                     ONRRMajorityVoting.selectMostRecentGoodState(readList);
 
             if (highestQuartet == null) {
-                printError("No good state response was found...");
+                printError("No good state responses were found...");
             } else {
                 print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
                 getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
             }
+        } else {
+            printError("");
         }
     }
 
@@ -180,8 +182,38 @@ public class ClientApplication {
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
+        processGetStateOfGOodWriteBackResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
+    }
+
+    private static void processGetStateOfGOodWriteBackResponses(final int rid,
+                                                                final int replicasCount,
+                                                                ExecutorCompletionService<BasicMessage> completionService) {
+        int ackCount = 0;
+
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isGetGoodStateWriteBackAcknowledge(rid, message);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGoodWriteBack")) {
+            print("Get state of good operation with rid: " + rid + "had a successful right back phase...");
+        }
     }
 
     /***********************************************************
@@ -225,7 +257,7 @@ public class ClientApplication {
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isIntentionToSellAcknowledge(wts, message);
                 }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
@@ -269,7 +301,6 @@ public class ClientApplication {
         for (int i = 0; i < messageList.length(); i++) {
             try {
                 if (messageList.isNull(i)) {
-                    printError("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
                     printError("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
                 } else {
                     BasicMessage message;
@@ -286,7 +317,7 @@ public class ClientApplication {
                         continue;
                     }
 
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isBuyGoodAcknowledge(wts, message);
                 }
 
             } catch (JSONException | JsonParseException | JsonMappingException exc) {
