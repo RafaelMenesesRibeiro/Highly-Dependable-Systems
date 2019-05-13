@@ -1,13 +1,19 @@
 package hds.security.msgtypes;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 
 public class ChallengeRequestResponse extends BasicMessage {
-
-	// TODO - Validator
-
+	@NotNull(message = "The hashed original string cannot be null.")
+	@NotEmpty(message = "The hashed original string cannot be empty.")
 	private String hashedOriginalString;
+
+	@NotNull(message = "The alphabet subset cannot be null.")
+	@NotEmpty(message = "The alphabet subset cannot be empty.")
 	private char[] alphabet;
+
+	@NotNull(message = "The original string size cannot be null.")
 	private int originalStringSize;
 
 	public ChallengeRequestResponse(long timestamp,
