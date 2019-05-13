@@ -18,7 +18,8 @@ public class ConnectionManager {
         SALE_CERT_RESPONSE,
         SALE_CERT_RESPONSES,
         CHALLENGE_REQUEST_RESPONSE,
-        WRITE_RESPONSE
+        WRITE_RESPONSE,
+        WRITE_BACK_RESPONSE
     }
 
     public static final int MAX_WAIT_BEFORE_TIMEOUT = 5000;
@@ -86,6 +87,8 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, ChallengeRequestResponse.class);
                 case WRITE_RESPONSE:
                     return objectMapper.readValue(jsonString, WriteResponse.class);
+                case WRITE_BACK_RESPONSE:
+                    return objectMapper.readValue(jsonString, WriteBackResponse.class);
             }
         } else if (conn.getResponseCode() == HttpURLConnection.HTTP_MULT_CHOICE) {
             try {
