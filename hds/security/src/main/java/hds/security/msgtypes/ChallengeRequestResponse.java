@@ -3,6 +3,9 @@ package hds.security.msgtypes;
 import java.util.Arrays;
 
 public class ChallengeRequestResponse extends BasicMessage {
+
+	// TODO - Validator
+
 	private String hashedOriginalString;
 	private char[] alphabet;
 	private int originalStringSize;

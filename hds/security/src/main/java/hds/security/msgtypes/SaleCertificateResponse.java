@@ -1,5 +1,6 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.ValidClientID;
 import hds.security.helpers.inputValidation.ValidGoodID;
 
@@ -28,6 +29,7 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
     private String newOwner;
 
     @NotNull(message = "The wts cannot be null.")
+    @NotFutureTimestamp
     private long wts;
 
     public SaleCertificateResponse(long timestamp,

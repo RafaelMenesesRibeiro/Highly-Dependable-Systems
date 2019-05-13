@@ -1,10 +1,13 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.NotFutureTimestamp;
+
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class WriteResponse extends BasicMessage implements Serializable {
 	@NotNull(message = "The write timestamp cannot be null.")
+	@NotFutureTimestamp
 	private long wts;
 
 	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, long wts) {

@@ -1,5 +1,6 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.ValidClientID;
 
 import javax.validation.constraints.NotEmpty;
@@ -17,7 +18,8 @@ public class SaleRequestMessage extends GoodDataMessage implements Serializable 
     @ValidClientID
     private String sellerID;
 
-    @NotNull(message = "The logical timestamp cannot be null.")
+    @NotNull(message = "The write timestamp cannot be null.")
+    @NotFutureTimestamp
     private long wts;
 
     @NotNull(message = "The on sale boolean cannot be null.")

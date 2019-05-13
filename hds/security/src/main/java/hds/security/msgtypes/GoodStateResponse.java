@@ -1,5 +1,6 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.ValidClientID;
 import hds.security.helpers.inputValidation.ValidGoodID;
 
@@ -27,6 +28,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     private String writerID;
 
     @NotNull(message = "The write timestamp cannot be null.")
+    @NotFutureTimestamp
     private long wts;
 
     @NotNull(message = "The readID cannot be null.")
