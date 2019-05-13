@@ -157,16 +157,16 @@ public class ClientApplication {
 
             if (highestQuartet == null) {
                 printError("No good state response was found...");
+            } else {
+                print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+                getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
             }
-
-            print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
-            getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
         }
     }
 
     private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {
         print("Initiating write back phase to all known replicas...");
-        
+
     }
 
     /***********************************************************
