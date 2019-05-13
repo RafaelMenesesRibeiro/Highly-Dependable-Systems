@@ -238,8 +238,8 @@ public class ClientApplication {
         for (int i = 0; i < messageList.length(); i++) {
             try {
                 if (messageList.isNull(i)) {
-                    print("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
-                    print("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
+                    printError("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
+                    printError("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
                 } else {
                     BasicMessage message;
                     ObjectMapper objectMapper = new ObjectMapper();
