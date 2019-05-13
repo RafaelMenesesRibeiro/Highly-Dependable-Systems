@@ -68,4 +68,46 @@ public class TransferGood {
 			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
 		}
 	}
+
+	/**
+	 * Changes the GoodID's owner.
+	 *
+	 * @param 	connection			Database connection
+	 * @param 	goodID				GoodID to be transferred
+	 * @param   newOwner        	ID of the GoodID's new owner
+	 * @param 	writeTimestamp  	Writer's own write Logic timestamp. Identifies if this writing is relevant
+	 * @param	writeOnOwnershipSignature 	Signature for the write on ownership operation
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 * @see 	MarkForSale
+	 */
+	public  static void changeGoodOwner(Connection connection, final String goodID, final String newOwner,
+										final String writeTimestamp, final String writeOnOwnershipSignature)
+			throws SQLException, JSONException {
+
+		String query = "UPDATE ownership " +
+				"SET userID = ?, " +
+				"ts = ?, " +
+				"sig = ?" +
+				"WHERE goodID = ?";
+		List<String> args = new ArrayList<>();
+		args.add(newOwner);
+		args.add(writeTimestamp);
+		args.add(writeOnOwnershipSignature);
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+
+		try {
+			DatabaseInterface.queryDB(connection, query, returnColumns, args);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
 }
