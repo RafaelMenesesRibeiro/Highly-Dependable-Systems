@@ -27,6 +27,11 @@ public class ONRRMajorityVoting {
         GoodStateResponse highestOwner = null;
 
         for (GoodStateResponse message : readList) {
+            
+            System.out.println("-----");
+            System.out.println(message.toString());
+            System.out.println("-----");
+
             if (highestOnSale == null) {
                 highestOnSale = message;
             } else if (DateUtils.isOneTimestampAfterAnother(message.getOnGoodsWriteTimestamp(), highestOnSale.getOnGoodsWriteTimestamp())) {
