@@ -21,22 +21,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
-import static hds.security.ResourceManager.getPrivateKeyFromResource;
-import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.*;
+import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.helpers.managers.ConnectionManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
@@ -64,20 +60,9 @@ public class ClientApplication {
             logger.warning("Exiting:\n" + ex.getMessage());
             System.exit(-1);
         }
-        
-        ClientProperties.setMyClientPort(portId);
 
-        try {
-            ClientProperties.setMyPrivateKey(getPrivateKeyFromResource(portId));
-        } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException exc) {
-            System.exit(1);
-        }
+        ClientProperties.init(portId, maxFailures, regularReplicasNumber, ccReplicasNumber);
 
-        ClientProperties.setMaxFailures(maxFailures);
-        ClientProperties.initRegularReplicasIdList(regularReplicasNumber);
-        ClientProperties.initCitizenReplicaIdList(ccReplicasNumber);
-        ClientProperties.setReplicasList();
-        ClientProperties.setMajorityThreshold();
         runClientServer(args);
         runClientInterface();
     }
