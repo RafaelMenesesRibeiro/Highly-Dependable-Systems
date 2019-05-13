@@ -8,6 +8,7 @@ import hds.server.domain.MetaResponse;
 import hds.server.exception.FailedWriteBackException;
 import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.MarkForSale;
 import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -23,7 +24,9 @@ import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isOneTimestampAfterAnother;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
+import static hds.server.helpers.MarkForSale.changeGoodSaleStatus;
 import static hds.server.helpers.TransactionValidityChecker.*;
+import static hds.server.helpers.TransferGood.changeGoodOwner;
 
 /**
  * Responsible for handling POST requests for write back operation needed in (1, N) Byzantine Atomic Registers.
@@ -88,8 +91,9 @@ public class WriteBackController extends BaseController {
 		}
 
 		long onGoodsWts = onGoodsRelevantResponse.getOnGoodsWts();
+		boolean onSale = onGoodsRelevantResponse.isOnSale();
 		String writeOnGoodsSignature = onGoodsRelevantResponse.getWriteOnGoodsOperationSignature();
-		res = verifyWriteOnGoodsOperationSignature(onGoodsGoodID, onGoodsRelevantResponse.isOnSale(), onGoodsOwnerID, onGoodsWts, writeOnGoodsSignature);
+		res = verifyWriteOnGoodsOperationSignature(onGoodsGoodID, onSale, onGoodsOwnerID, onGoodsWts, writeOnGoodsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
@@ -108,12 +112,12 @@ public class WriteBackController extends BaseController {
 
 			long databaseOnOwnershipWriteTimestamp = getOnOwnershipTimestamp(connection, onOwnershipGoodID);
 			if (isOneTimestampAfterAnother(onOwnershipWts, databaseOnOwnershipWriteTimestamp)) {
-				// TODO - Write on Ownership table. //
+				changeGoodOwner(connection, onOwnershipGoodID, onOwnershipOwnerID, ""+onOwnershipWts, writeOnOwnershipsSignature);
 			}
 
 			long databaseOnGoodsWriteTimestamp = getOnGoodsTimestamp(connection, onGoodsGoodID);
 			if (isOneTimestampAfterAnother(onGoodsWts, databaseOnGoodsWriteTimestamp)) {
-				// TODO - Write on Goods table. //
+				changeGoodSaleStatus(connection, onGoodsGoodID, onSale, onGoodsOwnerID, ""+onGoodsWts, writeOnGoodsSignature);
 			}
 
 			connection.commit();
