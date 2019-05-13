@@ -14,6 +14,7 @@ import static hds.server.ServerApplication.*;
  * @author 		Rafael Ribeiro
  */
 public class PSQLServerSetup {
+
 	/**
 	 * Initializes the databases for every server.
 	 */
