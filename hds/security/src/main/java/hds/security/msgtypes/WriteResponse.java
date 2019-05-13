@@ -10,6 +10,7 @@ public class WriteResponse extends BasicMessage implements Serializable {
 	@NotFutureTimestamp
 	private long wts;
 
+	// TODO - Should it be wts that's being sent to verify? //
 	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, long wts) {
 		super(timestamp, requestID, operation, from, to, signature);
 		this.wts = wts;
