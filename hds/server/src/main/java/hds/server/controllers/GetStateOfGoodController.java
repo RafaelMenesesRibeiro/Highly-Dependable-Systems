@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.getOnGoodsInfo;
+import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipInfo;
 
 /**
  * Responsible for handling GET requests for the endpoint /stateOfGood.
@@ -111,7 +112,11 @@ public class GetStateOfGoodController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			String ownerID = TransactionValidityChecker.getCurrentOwner(connection, goodID); // TODO - Return this wid, ts and sig. //
+			JSONObject ownershipInfo = getOnOwnershipInfo(connection, goodID);
+			String ownerID = ownershipInfo.getString("userID");
+			long onOwnershipWriteTimestamp = Long.parseLong(ownershipInfo.getString("ts"));
+			String writeOnOwnershipSignature = ownershipInfo.getString("sig");
+
 
 			JSONObject goodsInfo = getOnGoodsInfo(connection, goodID);
 			boolean state = goodsInfo.getString("onSale").equals("t");
@@ -120,7 +125,8 @@ public class GetStateOfGoodController {
 			String writeSignature = goodsInfo.getString("sig");
 
 			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "",
-											ownerID, state, goodID, writerID, writerTimestamp, readID, writeSignature);
+											goodID, ownerID, state, writerID, writerTimestamp, writeSignature,
+											onOwnershipWriteTimestamp, writeOnOwnershipSignature, readID);
 		}
 		catch (Exception ex) {
 			if (connection != null) {

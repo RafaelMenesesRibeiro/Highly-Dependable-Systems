@@ -9,6 +9,11 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class GoodStateResponse extends BasicMessage implements Serializable {
+    @NotNull(message = "The GoodID cannot be null.")
+    @NotEmpty(message = "The GoodID cannot be empty.")
+    @ValidGoodID
+    private String goodID;
+
     @NotNull(message = "The OwnerID cannot be null.")
     @NotEmpty(message = "The OwnerID cannot be empty.")
     @ValidClientID
@@ -17,26 +22,34 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The onSale cannot be null.")
     private boolean onSale;
 
-    @NotNull(message = "The GoodID cannot be null.")
-    @NotEmpty(message = "The GoodID cannot be empty.")
+    @NotNull(message = "The on goods WriterID cannot be null.")
+    @NotEmpty(message = "The on goods WriterID cannot be empty.")
     @ValidGoodID
-    private String goodID;
+    private String onGoodsWriterID;
 
-    @NotNull(message = "The writerID cannot be null.")
-    @NotEmpty(message = "The writerID cannot be empty.")
-    @ValidGoodID
-    private String writerID;
-
-    @NotNull(message = "The write timestamp cannot be null.")
+    @NotNull(message = "The on goods WriteTimestamp cannot be null.")
     @NotFutureTimestamp
-    private long wts;
+    private long onGoodsWts;
+
+    @NotNull(message = "The write on goods operation signature cannot be null.")
+    @NotEmpty(message = "The write on goods operation signature cannot be empty.")
+    private String writeOnGoodsOperationSignature;
+
+    @NotNull(message = "The on ownership WriterID cannot be null.")
+    @NotEmpty(message = "The on ownership WriterID cannot be empty.")
+    @ValidGoodID
+    private String onOwnershipWriterID;
+
+    @NotNull(message = "The on ownership WriteTimestamp cannot be null.")
+    @NotFutureTimestamp
+    private long onOwnershipWts;
+
+    @NotNull(message = "The write on ownership operation signature cannot be null.")
+    @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
+    private String writeOnOwnershipOperationSignature;
 
     @NotNull(message = "The readID cannot be null.")
     private int rid;
-
-    @NotNull(message = "The write operation signature cannot be null.")
-    @NotEmpty(message = "The write operation signature cannot be empty.")
-    private String writeOperationSignature;
 
     public GoodStateResponse(long timestamp,
                              String requestID,
@@ -44,22 +57,25 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                              String from,
                              String to,
                              String signature,
-                             String ownerID,
-                             boolean onSale,  // value associated with write
-                             String goodID,   // goodId
-                             String writerID, // entity that wrote the value goodId, onSale on the database
-                             long wts,        // write time stamp
-                             int rid,         // request identifier which has logical value only on the client side
-                             String writeOperationSignature) // signature over onSale, goodId, writerId, wts)
+                             String goodID,
+                             String ownerID,  // value associated with write
+                             boolean onSale,   // goodId
+                             String onGoodswriterID, long onGoodsWts, String writeOnGoodsOperationSignature,
+                             long onOwnershipWts, String writeOnOwnershipOperationSignature,
+                             int rid
+                             )
     {
         super(timestamp, requestID, operation, from, to, signature);
+        this.goodID = goodID;
         this.ownerID = ownerID;
         this.onSale = onSale;
-        this.goodID = goodID;
-        this.writerID = writerID;
-        this.wts = wts;
+        this.onGoodsWriterID = onGoodswriterID;
+        this.onGoodsWts = onGoodsWts;
+        this.writeOnGoodsOperationSignature = writeOnGoodsOperationSignature;
+        this.onOwnershipWriterID = ownerID;
+        this.onOwnershipWts = onOwnershipWts;
+        this.writeOnOwnershipOperationSignature = writeOnOwnershipOperationSignature;
         this.rid = rid;
-        this.writeOperationSignature = writeOperationSignature;
     }
 
     public GoodStateResponse() {
@@ -89,20 +105,52 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.goodID = goodID;
     }
 
-    public String getWriterID() {
-        return writerID;
+    public String getOnGoodsWriterID() {
+        return onGoodsWriterID;
     }
 
-    public void setWriterID(String writerID) {
-        this.writerID = writerID;
+    public void setOnGoodsWriterID(String onGoodsWriterID) {
+        this.onGoodsWriterID = onGoodsWriterID;
     }
 
-    public long getWts() {
-        return wts;
+    public long getOnGoodsWts() {
+        return onGoodsWts;
     }
 
-    public void setWts(long wts) {
-        this.wts = wts;
+    public void setOnGoodsWts(long onGoodsWts) {
+        this.onGoodsWts = onGoodsWts;
+    }
+
+    public String getWriteOnGoodsOperationSignature() {
+        return writeOnGoodsOperationSignature;
+    }
+
+    public void setWriteOnGoodsOperationSignature(String writeOnGoodsOperationSignature) {
+        this.writeOnGoodsOperationSignature = writeOnGoodsOperationSignature;
+    }
+
+    public String getOnOwnershipWriterID() {
+        return onOwnershipWriterID;
+    }
+
+    public void setOnOwnershipWriterID(String onOwnershipWriterID) {
+        this.onOwnershipWriterID = onOwnershipWriterID;
+    }
+
+    public long getOnOwnershipWts() {
+        return onOwnershipWts;
+    }
+
+    public void setOnOwnershipWts(long onOwnershipWts) {
+        this.onOwnershipWts = onOwnershipWts;
+    }
+
+    public String getWriteOnOwnershipOperationSignature() {
+        return writeOnOwnershipOperationSignature;
+    }
+
+    public void setWriteOnOwnershipOperationSignature(String writeOnOwnershipOperationSignature) {
+        this.writeOnOwnershipOperationSignature = writeOnOwnershipOperationSignature;
     }
 
     public int getRid() {
@@ -113,24 +161,19 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.rid = rid;
     }
 
-    public String getWriteOperationSignature() {
-        return writeOperationSignature;
-    }
-
-    public void setWriteOperationSignature(String writeOperationSignature) {
-        this.writeOperationSignature = writeOperationSignature;
-    }
-
     @Override
     public String toString() {
         return "GoodStateResponse{" +
-                "ownerID='" + ownerID + '\'' +
+                "goodID='" + goodID + '\'' +
+                ", ownerID='" + ownerID + '\'' +
                 ", onSale=" + onSale +
-                ", goodID='" + goodID + '\'' +
-                ", writerID='" + writerID + '\'' +
-                ", wts=" + wts +
+                ", onGoodsWriterID='" + onGoodsWriterID + '\'' +
+                ", onGoodsWts=" + onGoodsWts +
+                ", writeOnGoodsOperationSignature='" + writeOnGoodsOperationSignature + '\'' +
+                ", onOwnershipWriterID='" + onOwnershipWriterID + '\'' +
+                ", onOwnershipWts=" + onOwnershipWts +
+                ", writeOnOwnershipOperationSignature='" + writeOnOwnershipOperationSignature + '\'' +
                 ", rid=" + rid +
-                ", writeOperationSignature='" + writeOperationSignature + '\'' +
                 ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
