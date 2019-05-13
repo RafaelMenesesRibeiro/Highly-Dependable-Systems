@@ -85,12 +85,27 @@ public class IntentionToSellController extends BaseController {
 		String sellerID = InputValidation.cleanString(ownerData.getOwner());
 		String goodID = InputValidation.cleanString(ownerData.getGoodID());
 
+		String signature = ownerData.getSignature();
+		ownerData.setSignature("");
+		boolean res = isClientWilling(sellerID, signature, ownerData);
+		ownerData.setSignature(signature);
+		if (!res) {
+			throw new SignatureException("The Seller's signature is not valid.");
+		}
+
+		long requestWriteTimestamp = ownerData.getWriteTimestamp();
+		String writeOperationSignature = ownerData.getWriteOperationSignature();
+		String writerID = ownerData.getOwner();
+		res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
+		}
+
 		Connection connection = null;
 		try {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			long requestWriteTimestamp = ownerData.getWriteTimestamp();
 			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
 			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
 				connection.rollback();
@@ -101,24 +116,6 @@ public class IntentionToSellController extends BaseController {
 			if (!ownerID.equals(sellerID)) {
 				connection.rollback();
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
-			}
-
-			// TODO - Move to top. //
-			String signature = ownerData.getSignature();
-			ownerData.setSignature("");
-			boolean res = isClientWilling(sellerID, signature, ownerData);
-			ownerData.setSignature(signature);
-			if (!res) {
-				connection.rollback();
-				throw new SignatureException("The Seller's signature is not valid.");
-			}
-
-			String writeOperationSignature = ownerData.getWriteOperationSignature();
-			String writerID = ownerData.getOwner();
-			res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
-			if (!res) {
-				connection.rollback();
-				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 			}
 
 			MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+requestWriteTimestamp, writeOperationSignature);
