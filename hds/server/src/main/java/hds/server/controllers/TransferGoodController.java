@@ -134,6 +134,19 @@ public class TransferGoodController extends BaseController {
 				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}
 
+			/*
+				The timestamp is not verified against the one in Goods table, is it will be replaced regardless.
+				The only problem is it might break the property of the safety (more specifically ordering).
+				That would be the case when a client marks a good for sale (with ts=t1) immediately after a client
+				requests that same seller with buyGood. When it requests, it generates an entry for the Goods table
+				with "onSale"=false and, in this case, ts=t2.
+				If a client then reads the state of good it will receive "onSale"=true and ts=t2.
+				After the sale, the Goods table is updated with the entry sent by the buyer ("onSale"=false, ts=t2)
+				If a client calls GetStateOfGood, it will read "onSale"=false, ts=2.
+				The problem becomes apparent because t2<t1. Therefore, a read v, that came after read w, returned
+				a value that was written before the one read by w.
+			 */
+
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
 				connection.rollback();
 				throw new BadTransactionException("The transaction is not valid.");
