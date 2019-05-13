@@ -98,6 +98,10 @@ public class TransferGoodController extends BaseController {
 			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong.");
 		}
 
+		if (buyerID.equals(sellerID)) {
+			throw new BadTransactionException("BuyerID cannot be equal to SellerID " + buyerID);
+		}
+
 		Connection connection = null;
 		try {
 			connection = DatabaseManager.getConnection();
