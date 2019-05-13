@@ -10,6 +10,7 @@ import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.*;
+import org.javatuples.Quartet;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -151,7 +152,14 @@ public class ClientApplication {
             }
         }
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
-            print(ONRRMajorityVoting.selectMostRecentGoodState(readList).toString());
+            Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> highestQuartet =
+                    ONRRMajorityVoting.selectMostRecentGoodState(readList);
+
+            if (highestQuartet == null) {
+                printError("No good state response was found...");
+            }
+
+            print(String.format("Highest good state: %s\nHighest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
         }
     }
 
