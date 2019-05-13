@@ -68,6 +68,9 @@ class DatabaseInterface {
 			}
 			rs.close();
 		}
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
 		catch (SQLTimeoutException sqltex) {
 			throw new DBNoResultsException(sqltex.getMessage());
 		}

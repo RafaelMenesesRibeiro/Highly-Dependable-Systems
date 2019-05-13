@@ -52,16 +52,8 @@ public class MarkForSale {
 		args.add(writeTimestamp);
 		args.add(writeOperationSignature);
 		args.add(goodID);
-
 		List<String> returnColumns = new ArrayList<>();
 
-		try {
-			DatabaseInterface.queryDB(conn, query, returnColumns, args);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+		DatabaseInterface.queryDB(conn, query, returnColumns, args);
 	}
 }

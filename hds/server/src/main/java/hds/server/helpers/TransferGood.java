@@ -66,7 +66,7 @@ public class TransferGood {
 	 */
 	public  static void changeGoodOwner(Connection connection, final String goodID, final String newOwner,
 										final String writeTimestamp, final String writeOnOwnershipSignature)
-			throws SQLException, JSONException {
+			throws JSONException, SQLException {
 
 		String query = "UPDATE ownership " +
 				"SET userID = ?, " +
@@ -78,16 +78,9 @@ public class TransferGood {
 		args.add(writeTimestamp);
 		args.add(writeOnOwnershipSignature);
 		args.add(goodID);
-
 		List<String> returnColumns = new ArrayList<>();
 
-		try {
-			DatabaseInterface.queryDB(connection, query, returnColumns, args);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+		DatabaseInterface.queryDB(connection, query, returnColumns, args);
+
 	}
 }
