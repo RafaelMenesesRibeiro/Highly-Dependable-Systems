@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class WriteBackMessage extends BasicMessage implements Serializable {
     public static final String GET_STATE_OF_GOOD_OPERATION = "getStateOfGood";
 
+    private int rid;
     private GoodStateResponse highestGoodState;
     private GoodStateResponse highestOwnershipState;
 
@@ -14,16 +15,26 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
                             String from,
                             String to,
                             String signature,
+                            int rid,
                             GoodStateResponse highestGoodState,
                             GoodStateResponse highestOwnershipState) {
 
         super(timestamp, requestID, operation, from, to, signature);
+        this.rid = rid;
         this.highestGoodState = highestGoodState;
         this.highestOwnershipState = highestOwnershipState;
     }
 
     public WriteBackMessage() {
 
+    }
+
+    public int getRid() {
+        return rid;
+    }
+
+    public void setRid(int rid) {
+        this.rid = rid;
     }
 
     public GoodStateResponse getHighestGoodState() {
@@ -45,7 +56,8 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
     @Override
     public String toString() {
         return "WriteBackMessage{" +
-                "highestGoodState=" + highestGoodState.toString() +
+                "rid=" + rid +
+                ", highestGoodState=" + highestGoodState.toString() +
                 ", highestOwnershipState=" + highestOwnershipState.toString() +
                 ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
