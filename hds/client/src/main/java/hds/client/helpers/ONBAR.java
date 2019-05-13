@@ -39,10 +39,10 @@ public class ONBAR {
         this.wts = new AtomicInteger(0);
         this.acks = new AtomicInteger(0);
         this.rid = new AtomicInteger(0);
-        this.readList = Arrays.asList(new BasicMessage[ClientProperties.getAllReplicaIdLists().size()]);
+        this.readList = Arrays.asList(new BasicMessage[ClientProperties.getReplicasList().size()]);
         this.readVal = null;
         this.reading = new AtomicBoolean(Boolean.FALSE);
-        this.beb = BEB.init(this, ClientProperties.getAllReplicaIdLists());
+        this.beb = BEB.init(this, ClientProperties.getReplicasList());
     }
 
     /**
@@ -61,7 +61,7 @@ public class ONBAR {
     public void read(JSONObject readRequest) {
         rid.incrementAndGet();
         acks.set(0);
-        readList = Arrays.asList(new BasicMessage[ClientProperties.getAllReplicaIdLists().size()]);
+        readList = Arrays.asList(new BasicMessage[ClientProperties.getReplicasList().size()]);
         reading.set(Boolean.TRUE);
         beb.broadcast(readRequest, rid.get());
     }
