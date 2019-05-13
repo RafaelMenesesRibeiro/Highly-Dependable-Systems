@@ -60,8 +60,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                              String goodID,
                              String ownerID,  // value associated with write
                              boolean onSale,   // goodId
-                             String onGoodswriterID, long onGoodsWts, String writeOnGoodsOperationSignature,
-                             long onOwnershipWts, String writeOnOwnershipOperationSignature,
+                             String onGoodswriterID,
+                             long onGoodsWts,
+                             String writeOnGoodsOperationSignature,
+                             long onOwnershipWts,
+                             String writeOnOwnershipOperationSignature,
                              int rid
                              )
     {
