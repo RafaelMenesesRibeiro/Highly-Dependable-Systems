@@ -174,7 +174,6 @@ public class ClientApplication {
 
         long timestamp = generateTimestamp();
         String requestId = newUUIDString();
-
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job =
                     new WriteBackCallable(timestamp, requestId, replicaId, rid, highestGoodState, highestOwnershipState);
@@ -200,7 +199,6 @@ public class ClientApplication {
 
         long timestamp = generateTimestamp();
         String requestId = newUUIDString();
-
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job =
                     new IntentionToSellCallable(timestamp, requestId, replicaId, goodId, wts, Boolean.TRUE);
