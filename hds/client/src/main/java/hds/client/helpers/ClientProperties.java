@@ -129,13 +129,11 @@ public class ClientProperties {
 
     public static void init(String portId, int maxFailures, int regularReplicasNumber, int ccReplicasNumber) {
         ClientProperties.setMyClientPort(portId);
-
         try {
             ClientProperties.setMyPrivateKey(getPrivateKeyFromResource(portId));
         } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException exc) {
             System.exit(1);
         }
-
         ClientProperties.setMaxFailures(maxFailures);
         ClientProperties.initRegularReplicasIdList(regularReplicasNumber);
         ClientProperties.initCitizenReplicaIdList(ccReplicasNumber);
