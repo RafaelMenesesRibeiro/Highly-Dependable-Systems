@@ -112,7 +112,7 @@ public class TransferGoodController extends BaseController {
 
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
 				connection.rollback();
-				throw new SignatureException("The transaction is not valid.");
+				throw new BadTransactionException("The transaction is not valid.");
 			}
 
 			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();

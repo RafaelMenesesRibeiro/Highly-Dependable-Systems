@@ -244,7 +244,7 @@ public class GeneralControllerHelper {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_SQL, ex.getMessage());
 			return new MetaResponse(500, payload);
 		}
-		else if (ex instanceof SignatureException || ex instanceof IncorrectSignatureException) {
+		else if (ex instanceof SignatureException || ex instanceof IncorrectSignatureException || ex instanceof BadTransactionException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_TRANSACTION, ex.getMessage());
 			return new MetaResponse(401, payload);
 		}
