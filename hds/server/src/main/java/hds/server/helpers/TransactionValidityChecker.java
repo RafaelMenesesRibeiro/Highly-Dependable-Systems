@@ -75,13 +75,6 @@ public class TransactionValidityChecker {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
 
-		String wrappingSignature = transactionData.getWrappingSignature();
-		transactionData.setWrappingSignature("");
-		if (!isClientWilling(sellerID, wrappingSignature, transactionData)) {
-			throw new IncorrectSignatureException("The Seller's signature is not valid.");
-		}
-		transactionData.setWrappingSignature(wrappingSignature);
-
 		String currentOwner = getCurrentOwner(conn, goodID);
 		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
 	}
