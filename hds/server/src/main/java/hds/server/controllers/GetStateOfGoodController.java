@@ -1,9 +1,7 @@
 package hds.server.controllers;
 
-import hds.security.helpers.ControllerErrorConsts;
 import hds.security.helpers.inputValidation.inputValidation;
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.GoodStateResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
@@ -13,7 +11,6 @@ import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
 import hds.server.helpers.DatabaseManager;
-import hds.server.helpers.TransactionValidityChecker;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +22,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,7 +35,6 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipInfo;
  *
  * @author 		Rafael Ribeiro
  */
-@SuppressWarnings("Duplicates")
 @RestController
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
