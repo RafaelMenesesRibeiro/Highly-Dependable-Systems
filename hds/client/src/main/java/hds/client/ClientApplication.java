@@ -159,7 +159,7 @@ public class ClientApplication {
                 printError("No good state response was found...");
             }
 
-            print(String.format("Highest good state: %s\nHighest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+            print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
         }
     }
 
