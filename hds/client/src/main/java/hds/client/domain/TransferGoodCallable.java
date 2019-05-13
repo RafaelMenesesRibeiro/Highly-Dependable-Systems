@@ -9,7 +9,7 @@ import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
-import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 /**

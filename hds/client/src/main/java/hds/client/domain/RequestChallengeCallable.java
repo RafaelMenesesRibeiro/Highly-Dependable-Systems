@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyClientPort;
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
-import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageSignature;
 
 /**
