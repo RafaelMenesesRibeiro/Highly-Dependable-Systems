@@ -17,7 +17,7 @@ public class ONRRMajorityVoting {
             print(operation + " operation finished with majority quorum!");
             return true;
         } else {
-            print(operation + " operation failed... Not enough votes.");
+            print(operation + " operation failed... insufficient quorum!.");
             return false;
         }
     }
@@ -47,29 +47,7 @@ public class ONRRMajorityVoting {
         return new Quartet<>(highestOnSale, highestOnSale.isOnSale(), highestOwner, highestOwner.getOwnerID());
     }
 
-    public static int iwWriteAcknowledge(long wts, BasicMessage message) {
-        if (message == null) {
-            printError("A replica timed out. No information regarding the replicaId...");
-            return 0;
-        } else if (message instanceof WriteResponse) {
-            if (((WriteResponse) message).getWts() == wts) {
-                return 1;
-            }
-            printError("Response contained wts different than the one that was sent on request");
-            return 0;
-        } else if (message instanceof SaleCertificateResponse) {
-            if (((SaleCertificateResponse) message).getWts() == wts) {
-                return 1;
-            }
-            printError("Response contained wts different than the one that was sent on request");
-            return 0;
-        } else {
-            printError(message.toString());
-            return 0;
-        }
-    }
-
-    public static int isGoodStateReadAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
+    public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
         } else if (message instanceof GoodStateResponse) {
@@ -105,12 +83,54 @@ public class ONRRMajorityVoting {
         return 0;
     }
 
-    public static int isSimpleAcknowledge(BasicMessage message) {
-        if (message instanceof ChallengeRequestResponse) {
-            return 1;
+    public static int isGetGoodStateWriteBackAcknowledge(int rid, BasicMessage message) {
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteBackResponse) {
+            if (((WriteBackResponse) message).getRid() == rid) {
+                return 1;
+            }
+            printError("Response contained rid different than the one that was sent on write back message...");
+            return 0;
         } else {
-            printError(message.toString());
+            printError("isGetGoodStateWriteBackAcknowledge: \n" + message.toString());
             return 0;
         }
     }
+
+    public static int isIntentionToSellAcknowledge(long wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    public static int isBuyGoodAcknowledge(long wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    public static int isTransferGoodAcknowledge(long wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    private static int iwWriteAcknowledge(long wts, BasicMessage message) {
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteResponse) {
+            if (((WriteResponse) message).getWts() == wts) {
+                return 1;
+            }
+            printError("Response contained wts different than the one that was sent on the write request");
+            return 0;
+        } else if (message instanceof SaleCertificateResponse) {
+            if (((SaleCertificateResponse) message).getWts() == wts) {
+                return 1;
+            }
+            printError("Response contained wts different than the one that was sent on the write request");
+            return 0;
+        } else {
+            printError("iwWriteAcknowledge: \n" + message.toString());
+            return 0;
+        }
+    }
+
 }
