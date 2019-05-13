@@ -42,7 +42,7 @@ public class ONBAR {
         this.readList = Arrays.asList(new BasicMessage[ClientProperties.getAllReplicaIdLists().size()]);
         this.readVal = null;
         this.reading = new AtomicBoolean(Boolean.FALSE);
-        this.beb = BEB.init(ClientProperties.getAllReplicaIdLists());
+        this.beb = BEB.init(this, ClientProperties.getAllReplicaIdLists());
     }
 
     /**

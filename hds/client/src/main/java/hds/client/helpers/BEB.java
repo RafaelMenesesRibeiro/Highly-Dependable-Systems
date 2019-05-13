@@ -7,17 +7,21 @@ import java.util.List;
 public class BEB {
     private static BEB INSTANCE;
 
-    final List<String> replicas;
-    final Integer numberOfReplicas;
+    private final ONBAR onbar;
 
-    private BEB(List<String> replicas) {
+    private final List<String> replicas;
+    private final Integer numberOfReplicas;
+
+
+    private BEB(ONBAR onbar, List<String> replicas) {
+        this.onbar = onbar;
         this.replicas = replicas;
         this.numberOfReplicas = replicas.size();
     }
 
-    public static BEB init(List<String> replicas) {
+    public static BEB init(ONBAR onbar, List<String> replicas) {
         if (INSTANCE == null) {
-            INSTANCE = new BEB(replicas);
+            INSTANCE = new BEB(onbar, replicas);
         }
         return INSTANCE;
     }
