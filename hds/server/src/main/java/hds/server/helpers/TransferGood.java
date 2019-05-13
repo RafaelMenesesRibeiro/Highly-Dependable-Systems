@@ -46,29 +46,7 @@ public class TransferGood {
 
 
 		MarkForSale.changeGoodSaleStatus(conn, goodID, false, writerID, writeTimestamp, writeOnGoodsSignature);
-
-		// TODO - Replace with below method. //
-		String query = "UPDATE ownership " +
-				"SET userID = ?, " +
-				"ts = ?, " +
-				"sig = ?" +
-				"WHERE goodID = ?";
-		List<String> args = new ArrayList<>();
-		args.add(writerID);
-		args.add(writeTimestamp);
-		args.add(writeOnOwnershipSignature);
-		args.add(goodID);
-
-		List<String> returnColumns = new ArrayList<>();
-
-		try {
-			DatabaseInterface.queryDB(conn, query, returnColumns, args);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+		TransferGood.changeGoodOwner(conn, goodID, writerID, writeTimestamp, writeOnOwnershipSignature);
 	}
 
 	/**
