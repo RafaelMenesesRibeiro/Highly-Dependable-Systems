@@ -31,6 +31,7 @@ public class TransferGood {
 	 * @param 	writeTimestamp  	Writer's own write Logic timestamp. Identifies if this writing is relevant
 	 * @param	writeOnGoodsSignature 		Signature for the write on goods operation
 	 * @param	writeOnOwnershipSignature 	Signature for the write on ownership operation
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
@@ -46,6 +47,7 @@ public class TransferGood {
 
 		MarkForSale.changeGoodSaleStatus(conn, goodID, false, writerID, writeTimestamp, writeOnGoodsSignature);
 
+		// TODO - Replace with below method. //
 		String query = "UPDATE ownership " +
 				"SET userID = ?, " +
 				"ts = ?, " +
