@@ -1,5 +1,7 @@
 package hds.client;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
@@ -223,8 +225,9 @@ public class ClientApplication {
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
             if (jsonArray == null) {
                 printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
+            } else {
+                processBuyGoodResponses(wts, jsonArray);
             }
-            processBuyGoodResponses(wts, jsonArray);
         } catch (SignatureException | JSONException | IOException exc) {
             printError(exc.getMessage());
         }
@@ -234,27 +237,31 @@ public class ClientApplication {
         int ackCount = 0;
         for (int i = 0; i < messageList.length(); i++) {
             try {
-                BasicMessage message;
-                JSONObject basicMessageObject = (JSONObject) messageList.get(i);
-                ObjectMapper objectMapper = new ObjectMapper();
-
-                if (basicMessageObject == null) {
+                if (messageList.isNull(i)) {
+                    print("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
                     print("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
-                    continue;
-                } else if (basicMessageObject.has("reason")) {
-                    message = objectMapper.readValue(basicMessageObject.toString(), ErrorResponse.class);
                 } else {
-                    message = objectMapper.readValue(basicMessageObject.toString(), SaleCertificateResponse.class);
+                    BasicMessage message;
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JSONObject messageObject = (JSONObject) messageList.get(i);
+
+                    if (messageObject.has("reason")) {
+                        message = objectMapper.readValue(messageObject.toString(), ErrorResponse.class);
+                    } else {
+                        message = objectMapper.readValue(messageObject.toString(), SaleCertificateResponse.class);
+                    }
+
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+
+                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
                 }
 
-                if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                    continue;
-                }
-
-                ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
-
-            } catch (Exception exc) {
-                continue;
+            } catch (JSONException | JsonParseException | JsonMappingException exc) {
+                // swallow
+            } catch (IOException ioe) {
+                // swallow
             }
         }
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
