@@ -59,32 +59,17 @@ public class GetStateOfGoodController {
 	public ResponseEntity<BasicMessage> getStateOfGood(
 														@RequestParam("goodID") @NotNull @NotEmpty String goodID,
 														@RequestParam("readID") @NotNull @NotEmpty String readID) {
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("Received Get State of Good request.");
-		logger.info("\tGoodID - " + goodID);
-		logger.info("\tReadID - " + readID);
+
+		String msg = "\nReceived request for " + OPERATION + "\n\tRequest: " + "\n\tGoodID - " + goodID + "\n\tReadID - " + readID;
+		ServerApplication.getLogManager().log(msg);
 
 		goodID = InputValidation.cleanString(goodID);
-
 		MetaResponse metaResponse;
-		if (!isValidGoodID(goodID)) {
-			String reason = "The GoodID " + goodID + " is not valid.";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ControllerErrorConsts.BAD_PARAMS, reason);
-			metaResponse = new MetaResponse(400, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
-		}
-		int rid = 0;
 		try {
-			rid = Integer.parseInt(readID);
-		}
-		catch (NumberFormatException nfex) {
-			String reason = "The ReadID " + readID + " is not valid.";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ControllerErrorConsts.BAD_PARAMS, reason);
-			metaResponse = new MetaResponse(400, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
-		}
-
-		try {
+			if (!isValidGoodID(goodID)) {
+				throw new IllegalArgumentException("The GoodID " + goodID + " is not valid.");
+			}
+			int rid = Integer.parseInt(readID);
 			metaResponse = new MetaResponse(execute(goodID, rid));
 		}
 		catch (Exception ex) {
@@ -99,13 +84,14 @@ public class GetStateOfGoodController {
 	 *
 	 * @param 	goodID 				The GoodID which is going to be looked up (for ownerID and if it is on sale)
 	 * @return 	GoodStateResponse 	Contains the state of the goodID
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static GoodStateResponse execute(String goodID, int readID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		Connection connection = null;
 		try {
@@ -117,12 +103,11 @@ public class GetStateOfGoodController {
 			long onOwnershipWriteTimestamp = Long.parseLong(ownershipInfo.getString("ts"));
 			String writeOnOwnershipSignature = ownershipInfo.getString("sig");
 
-
 			JSONObject goodsInfo = getOnGoodsInfo(connection, goodID);
 			boolean state = goodsInfo.getString("onSale").equals("t");
-			String writerID = goodsInfo.getString("wid");
-			long writerTimestamp = Long.parseLong(goodsInfo.getString("ts"));
-			String writeSignature = goodsInfo.getString("sig");
+			String onGoodsWriterID = goodsInfo.getString("wid");
+			long onGoodsWriteTimestamp = Long.parseLong(goodsInfo.getString("ts"));
+			String writeOnGoodsOperationSignature = goodsInfo.getString("sig");
 
 			return new GoodStateResponse(
 					generateTimestamp(),
@@ -134,9 +119,9 @@ public class GetStateOfGoodController {
 					goodID,
 					ownerID,
 					state,
-					writerID,
-					writerTimestamp,
-					writeSignature,
+					onGoodsWriterID,
+					onGoodsWriteTimestamp,
+					writeOnGoodsOperationSignature,
 					onOwnershipWriteTimestamp,
 					writeOnOwnershipSignature,
 					readID);
