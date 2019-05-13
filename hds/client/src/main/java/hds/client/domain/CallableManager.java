@@ -14,9 +14,9 @@ import java.util.concurrent.*;
  * @author Rafael Ribeiro
  */
 public class CallableManager implements Callable<BasicMessage> {
-    protected Callable<BasicMessage> callable;
-    protected long timeout;
-    protected TimeUnit timeUnit;
+    private Callable<BasicMessage> callable;
+    private long timeout;
+    private TimeUnit timeUnit;
 
 
     /**
