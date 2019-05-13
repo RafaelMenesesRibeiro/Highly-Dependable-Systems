@@ -267,6 +267,10 @@ public class GeneralControllerHelper {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_WRITE_BACK, ex.getMessage());
 			return new MetaResponse(406, payload);
 		}
+		else if (ex instanceof IllegalArgumentException || ex instanceof NumberFormatException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
+			return new MetaResponse(400, payload);
+		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);
 	}
