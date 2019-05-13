@@ -3,7 +3,7 @@ package hds.security.msgtypes;
 import java.io.Serializable;
 
 public class WriteBackMessage extends BasicMessage implements Serializable {
-    public static final String GET_STATE_OF_GOOD_OPERATION = "getStateOfGood";
+    public static final String OPERATION = "writeBack";
 
     private int rid;
     private GoodStateResponse highestGoodState;
