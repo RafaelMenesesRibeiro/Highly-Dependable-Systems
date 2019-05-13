@@ -1,7 +1,10 @@
 package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.GoodStateResponse;
+import hds.security.msgtypes.WriteBackMessage;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
@@ -20,6 +23,7 @@ import java.sql.SQLException;
 
 import static hds.security.DateUtils.isOneTimestampAfterAnother;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 import static hds.server.helpers.TransactionValidityChecker.getOnGoodsTimestamp;
 import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
@@ -45,7 +49,7 @@ public class WriteBackController extends BaseController {
 	// TODO - Javadoc. //
 	@PostMapping(value = "/writeBack",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
-	public ResponseEntity<BasicMessage> writeBack(@RequestBody @Valid BasicMessage writeBackData, BindingResult result) {
+	public ResponseEntity<BasicMessage> writeBack(@RequestBody @Valid WriteBackMessage writeBackData, BindingResult result) {
 		return GeneralControllerHelper.generalControllerSetup(writeBackData, result, this);
 	}
 
@@ -59,36 +63,44 @@ public class WriteBackController extends BaseController {
 	 */
 	// TODO - Javadoc. //
 	@Override
-	public MetaResponse execute(BasicMessage requestData) throws SQLException, JSONException {
+	public MetaResponse execute(BasicMessage requestData) throws SQLException {
+
+		WriteBackMessage writeBackMessage = (WriteBackMessage) requestData;
+		// TODO - writeBackMessage.getCastedReadResponse(WriteBackMessage.GET_STATE_OF_GOOD_OPERATION, writeBackMessage);
+		GoodStateResponse goodStateResponse = (GoodStateResponse) writeBackMessage.getReadResponse();
 
 		String clientID = InputValidation.cleanString(requestData.getFrom());
-		String goodID  = "TODO GET"; // InputValidation.cleanString(requestData.getGoodID());
+		String goodID  = InputValidation.cleanString(goodStateResponse.getGoodID());
+		String ownerID = InputValidation.cleanString(goodStateResponse.getOwnerID());
 
 		String signature = requestData.getSignature();
 		requestData.setSignature("");
 		boolean res = isClientWilling(clientID, signature, requestData);
-		requestData.setSignature(signature); // TODO - Is this necessary? //
 		if (!res) {
 			throw new SignatureException("The Client's signature is not valid.");
 		}
 
+		long onOwnershipWts = goodStateResponse.getOnOwnershipWts();
+		String writeOnOwnershipsSignature = goodStateResponse.getWriteOnOwnershipOperationSignature();
+		res = verifyWriteOnOwnershipSignature(goodID, ownerID, onOwnershipWts, writeOnOwnershipsSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
+		}
 
-
-		// TODO - Verify WriteOnGoodsOperationSignature. //
-
-		// TODO - Verify WriteOnOwnershipOperationSignature. //
+		long onGoodsWts = goodStateResponse.getOnGoodsWts();
+		String writeOnGoodsSignature = goodStateResponse.getWriteOnGoodsOperationSignature();
+		res = verifyWriteOnGoodsOperationSignature(goodID, goodStateResponse.isOnSale(), ownerID, onGoodsWts, writeOnGoodsSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
+		}
 
 		Connection connection = null;
 		try {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			long requestWriteTimestamp = 2; // TODO - requestData.getWriteTimestamp();
-			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
-			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.rollback();
-				throw new OldMessageException("Write Back Timestamp " + requestWriteTimestamp + " is too old.");
-			}
+			// TODO - Check if onGoodsTimestamp is worth it. //
+			// TODO - Check if onOwnershipTimestamp is worth it. //
 
 			// TODO - Write on Goods table. //
 			// TODO - Write on Ownership table. //
