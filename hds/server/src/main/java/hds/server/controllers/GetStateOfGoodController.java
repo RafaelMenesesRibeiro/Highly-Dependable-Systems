@@ -124,10 +124,24 @@ public class GetStateOfGoodController {
 			long writerTimestamp = Long.parseLong(goodsInfo.getString("ts"));
 			String writeSignature = goodsInfo.getString("sig");
 
-			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "",
-											goodID, ownerID, state, writerID, writerTimestamp, writeSignature,
-											onOwnershipWriteTimestamp, writeOnOwnershipSignature, readID);
+			return new GoodStateResponse(
+					generateTimestamp(),
+					NO_REQUEST_ID,
+					OPERATION,
+					FROM_SERVER,
+					TO_UNKNOWN,
+					"",
+					goodID,
+					ownerID,
+					state,
+					writerID,
+					writerTimestamp,
+					writeSignature,
+					onOwnershipWriteTimestamp,
+					writeOnOwnershipSignature,
+					readID);
 		}
+		
 		catch (Exception ex) {
 			if (connection != null) {
 				connection.rollback();
