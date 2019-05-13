@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
-import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;

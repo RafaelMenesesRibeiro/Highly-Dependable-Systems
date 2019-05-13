@@ -1,4 +1,4 @@
-package hds.client.helpers;
+package hds.security.helpers.managers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,7 +121,7 @@ public class ConnectionManager {
         return new InputStreamReader(connection.getInputStream());
     }
 
-    private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
+    public static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
         String currentLine;
         StringBuilder jsonResponse = new StringBuilder();
         InputStreamReader inputStream = getBufferedReaderFromHttpURLConnection(connection, is400Response(connection));

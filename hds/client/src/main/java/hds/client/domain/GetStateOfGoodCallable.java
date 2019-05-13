@@ -5,7 +5,7 @@ import hds.security.msgtypes.BasicMessage;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
-import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.helpers.managers.ConnectionManager.*;
 
 /**
  * The type get state of good callable performs a GET request to the end point /stateOfGood of a notary replica
