@@ -58,19 +58,13 @@ public class ONBAR {
         return INSTANCE;
     }
 
-    public void Read() {
+    public void Read(JSONObject readRequest) {
         rid.incrementAndGet();
         acks.set(0);
         readList = Arrays.asList(new BasicMessage[ClientProperties.getAllReplicaIdLists().size()]);
         reading.set(Boolean.TRUE);
+        beb.broadcast(readRequest, rid.get());
+    }
 
-    }
-    /**
-     * Write.
-     *
-     * @param value the value
-     */
-    public void write(JSONObject value) {
-        wts.incrementAndGet();
-    }
+    
 }

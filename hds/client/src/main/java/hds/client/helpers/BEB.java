@@ -1,6 +1,7 @@
 package hds.client.helpers;
 
 import hds.security.msgtypes.BasicMessage;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class BEB {
         return INSTANCE;
     }
 
-    public BasicMessage broadcast(BasicMessage message) {
+    public BasicMessage broadcast(JSONObject readRequest, Integer rid) {
         return null; // TODO
     }
 }
