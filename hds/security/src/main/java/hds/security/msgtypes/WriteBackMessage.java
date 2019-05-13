@@ -11,6 +11,7 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
 
     public WriteBackMessage(long timestamp,
                             String requestID,
+                            String operation,
                             String from,
                             String to,
                             String signature,
@@ -18,7 +19,7 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
                             GoodStateResponse highestGoodState,
                             GoodStateResponse highestOwnershipState) {
 
-        super(timestamp, requestID, OPERATION, from, to, signature);
+        super(timestamp, requestID, operation, from, to, signature);
         this.rid = rid;
         this.highestGoodState = highestGoodState;
         this.highestOwnershipState = highestOwnershipState;
@@ -59,7 +60,7 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
                 ", highestGoodState=" + highestGoodState.toString() +
                 ", highestOwnershipState=" + highestOwnershipState.toString() +
                 ", requestID='" + requestID + '\'' +
-                ", operation='" + OPERATION + '\'' +
+                ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
                 ", signature='" + signature + '\'' +
