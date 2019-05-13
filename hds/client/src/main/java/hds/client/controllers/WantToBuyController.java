@@ -65,7 +65,6 @@ public class WantToBuyController {
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
         final long timestamp = generateTimestamp();
-
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job = new RequestChallengeCallable(timestamp, replicaId, requestId);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
@@ -130,8 +129,8 @@ public class WantToBuyController {
 
         final ExecutorService executorService = Executors.newFixedThreadPool(replicaIdChallengeSolutionsMap.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-        final long timestamp = generateTimestamp();
 
+        final long timestamp = generateTimestamp();
         for (Map.Entry<String, String> entry : replicaIdChallengeSolutionsMap.entrySet()) {
             Callable<BasicMessage> job = new TransferGoodCallable(timestamp, entry.getKey(), requestMessage, entry.getValue());
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
