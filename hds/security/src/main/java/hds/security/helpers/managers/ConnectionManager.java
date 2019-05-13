@@ -22,7 +22,7 @@ public class ConnectionManager {
         WRITE_BACK_RESPONSE
     }
 
-    public static final int MAX_WAIT_BEFORE_TIMEOUT = 5000;
+    public static final int MAX_WAIT_BEFORE_TIMEOUT = 10000;
 
     /***********************************************************
      *
