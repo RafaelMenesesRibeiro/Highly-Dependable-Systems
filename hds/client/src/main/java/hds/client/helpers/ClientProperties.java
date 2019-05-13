@@ -1,8 +1,13 @@
 package hds.client.helpers;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
     public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
@@ -120,5 +125,21 @@ public class ClientProperties {
 
     public static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+
+    public static void init(String portId, int maxFailures, int regularReplicasNumber, int ccReplicasNumber) {
+        ClientProperties.setMyClientPort(portId);
+
+        try {
+            ClientProperties.setMyPrivateKey(getPrivateKeyFromResource(portId));
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException exc) {
+            System.exit(1);
+        }
+
+        ClientProperties.setMaxFailures(maxFailures);
+        ClientProperties.initRegularReplicasIdList(regularReplicasNumber);
+        ClientProperties.initCitizenReplicaIdList(ccReplicasNumber);
+        ClientProperties.setReplicasList();
+        ClientProperties.setMajorityThreshold();
     }
 }
