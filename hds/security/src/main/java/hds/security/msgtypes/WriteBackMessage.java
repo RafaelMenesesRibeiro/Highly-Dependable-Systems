@@ -1,6 +1,8 @@
 package hds.security.msgtypes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -78,4 +80,16 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
         return getJSONStringFromHttpResponse(connection);
     }
 
+    public static BasicMessage getHighValue(HttpURLConnection connection) throws JSONException, IOException {
+        String jsonString = getJSONStringFromHttpResponse(connection);
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        if (jsonObject.has("reason")) {
+            return null;
+        } else {
+            String readOperation = jsonObject.getString("readOperation");
+            String readResponse = jsonObject.getJSONObject("readResponse").toString();
+            return getCastedReadResponse(readOperation, readResponse);
+        }
+    }
 }
