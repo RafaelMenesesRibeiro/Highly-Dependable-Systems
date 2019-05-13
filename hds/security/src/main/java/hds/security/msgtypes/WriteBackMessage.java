@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import static hds.security.helpers.managers.ConnectionManager.getJSONStringFromHttpResponse;
 
 public class WriteBackMessage extends BasicMessage implements Serializable {
+    public static final String GET_STATE_OF_GOOD_OPERATION = "getStateOfGood";
 
     private BasicMessage readResponse;
 
@@ -40,7 +41,7 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
     public static BasicMessage getCastedReadResponse(String readOperation, String readResponseString) {
         try {
             switch (readOperation) {
-                case "stateOfGood":
+                case GET_STATE_OF_GOOD_OPERATION:
                     return new ObjectMapper().readValue(readResponseString, GoodStateResponse.class);
                 default:
                     return null;
