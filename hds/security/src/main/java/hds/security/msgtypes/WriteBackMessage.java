@@ -1,18 +1,11 @@
 package hds.security.msgtypes;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.HttpURLConnection;
-
-import static hds.security.helpers.managers.ConnectionManager.getJSONStringFromHttpResponse;
 
 public class WriteBackMessage extends BasicMessage implements Serializable {
 
-    private BasicMessage readResponse;
+    private GoodStateResponse highestGoodState;
+    private GoodStateResponse highestOwnershipState;
 
     public WriteBackMessage(long timestamp,
                             String requestID,
@@ -20,57 +13,39 @@ public class WriteBackMessage extends BasicMessage implements Serializable {
                             String from,
                             String to,
                             String signature,
-                            BasicMessage readResponse) {
+                            GoodStateResponse highestGoodState,
+                            GoodStateResponse highestOwnershipState) {
+
         super(timestamp, requestID, operation, from, to, signature);
-        this.readResponse = readResponse;
+        this.highestGoodState = highestGoodState;
+        this.highestOwnershipState = highestOwnershipState;
     }
 
     public WriteBackMessage() {
 
     }
 
-    public BasicMessage getReadResponse() {
-        return readResponse;
+    public GoodStateResponse getHighestGoodState() {
+        return highestGoodState;
     }
 
-    public void setReadResponse(BasicMessage readResponse) {
-        this.readResponse = readResponse;
+    public void setHighestGoodState(GoodStateResponse highestGoodState) {
+        this.highestGoodState = highestGoodState;
     }
 
-    public static BasicMessage getCastedReadResponse(String readOperation, String readResponseString) {
-        try {
-            switch (readOperation) {
-                case "stateOfGood":
-                    return new ObjectMapper().readValue(readResponseString, GoodStateResponse.class);
-                default:
-                    return null;
-            }
-        } catch (IOException exc) {
-            return null;
-        }
+    public GoodStateResponse getHighestOwnershipState() {
+        return highestOwnershipState;
     }
 
-    public static String jsonString(HttpURLConnection connection) throws IOException {
-        return getJSONStringFromHttpResponse(connection);
+    public void setHighestOwnershipState(GoodStateResponse highestOwnershipState) {
+        this.highestOwnershipState = highestOwnershipState;
     }
-
-    public static BasicMessage getHighValue(HttpURLConnection connection) throws JSONException, IOException {
-        String jsonString = getJSONStringFromHttpResponse(connection);
-        JSONObject jsonObject = new JSONObject(jsonString);
-
-        if (jsonObject.has("reason")) {
-            return null;
-        } else {
-            String readOperation = jsonObject.getString("readOperation");
-            String readResponse = jsonObject.getJSONObject("readResponse").toString();
-            return getCastedReadResponse(readOperation, readResponse);
-        }
-    }
-
+    
     @Override
     public String toString() {
         return "WriteBackMessage{" +
-                "readResponse=" + readResponse +
+                "highestGoodState=" + highestGoodState.toString() +
+                ", highestOwnershipState=" + highestOwnershipState.toString() +
                 ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
