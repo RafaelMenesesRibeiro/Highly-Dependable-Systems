@@ -3,6 +3,7 @@ package hds.server.controllers.controllerHelpers;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
+import hds.server.controllers.TransferGoodController;
 import hds.server.domain.ChallengeData;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
@@ -64,9 +65,11 @@ public class GeneralControllerHelper {
 		ServerApplication.getLogManager().log(msg, requestData);
 
 		UserRequestIDKey key = new UserRequestIDKey(requestData.getFrom(), requestData.getRequestID());
-		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
-		if (cachedResponse != null) {
-			return cachedResponse;
+		if (!(controller instanceof TransferGoodController)) {
+			ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
+			if (cachedResponse != null) {
+				return cachedResponse;
+			}
 		}
 
 		String operation = controller.OPERATION;
