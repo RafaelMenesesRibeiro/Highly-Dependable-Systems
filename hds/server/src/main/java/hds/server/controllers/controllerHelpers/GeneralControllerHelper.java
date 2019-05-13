@@ -263,6 +263,10 @@ public class GeneralControllerHelper {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_CHALLENGE_RESPONSE, ex.getMessage());
 			return new MetaResponse(402, payload);
 		}
+		else if (ex instanceof FailedWriteBackException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_WRITE_BACK, ex.getMessage());
+			return new MetaResponse(406, payload);
+		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);
 	}
