@@ -1,21 +1,14 @@
 package hds.client.domain;
 
-import hds.security.CryptoUtils;
-import hds.security.DateUtils;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.GoodStateResponse;
-import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.WriteBackMessage;
-import org.json.JSONException;
 
 import java.net.HttpURLConnection;
-import java.security.SignatureException;
 import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyClientPort;
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
-import static hds.security.ConvertUtils.bytesToBase64String;
-import static hds.security.SecurityManager.newWriteOnGoodsData;
 import static hds.security.SecurityManager.setMessageSignature;
 import static hds.security.helpers.managers.ConnectionManager.*;
 
