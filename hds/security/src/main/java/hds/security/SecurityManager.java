@@ -58,6 +58,7 @@ public class SecurityManager {
             return "message is more than five minutes old";
         }
 
+        // TODO - Add try here. If from cannot be parsed to int, this might crash the system. //
         int from = Integer.parseInt(message.getFrom());
 
         // Hammering for initial value signature validation
@@ -83,6 +84,25 @@ public class SecurityManager {
 
         // Blank string means True, but we can't actually use a boolean.
         return "";
+    }
+
+    public static boolean isValidMessageFromServer(BasicMessage message) {
+        try {
+            int from = Integer.parseInt(message.getFrom());
+            if (from >= 10000) {
+                return isValidSignatureFromServer(message);
+            }
+            else if (from >= 9000) {
+                return isValidSignatureFromNode(message);
+            }
+            else if (from >= 8000){
+                return isValidSignatureFromNode(message);
+            }
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
     }
 
     /***********************************************************
