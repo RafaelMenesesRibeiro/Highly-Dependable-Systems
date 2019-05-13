@@ -103,6 +103,7 @@ public class IntentionToSellController extends BaseController {
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
+			// TODO - Move to top. //
 			String signature = ownerData.getSignature();
 			ownerData.setSignature("");
 			boolean res = isClientWilling(sellerID, signature, ownerData);
