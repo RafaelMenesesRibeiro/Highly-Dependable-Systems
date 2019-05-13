@@ -5,6 +5,8 @@ import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.SaleRequestMessage;
 import hds.server.exception.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -16,12 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static hds.security.ResourceManager.getPublicKeyFromResource;
+import static hds.server.helpers.DatabaseInterface.queryDB;
 
 /**
  * Verifies if the transaction is valid.
  *
  * @author 		Rafael Ribeiro
  */
+@SuppressWarnings("Duplicates")
 public class TransactionValidityChecker {
 	private TransactionValidityChecker() {
 		// This is here so the class can't be instantiated. //
@@ -44,7 +48,7 @@ public class TransactionValidityChecker {
 	 * @throws	IncorrectSignatureException		The payload's signature does not match its contents
 	 */
 	public static boolean isValidTransaction(Connection conn, ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException,
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException,
 					SignatureException, IncorrectSignatureException {
 
 		String buyerID = transactionData.getBuyerID();
@@ -60,7 +64,11 @@ public class TransactionValidityChecker {
 				"",
 				transactionData.getGoodID(),
 				transactionData.getBuyerID(),
-				transactionData.getSellerID()
+				transactionData.getSellerID(),
+				transactionData.getWts(),
+				transactionData.getOnSale(),
+				transactionData.getWriteOnGoodsSignature(),
+				transactionData.getWriteOnOwnershipsSignature()
 		);
 
 		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
@@ -84,20 +92,25 @@ public class TransactionValidityChecker {
 	 * @param   conn        Database connection
 	 * @param 	goodID		GoodID
 	 * @return 	String		ID of the GoodID's owner
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static String getCurrentOwner(Connection conn, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "select userID from ownership where goodId = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
+		String columnName = "userID";
+		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
+
 		try {
-			List<String> results = DatabaseInterface.queryDB(conn, query, "userID", args);
-			return results.get(0);
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0).getString(columnName);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.
@@ -112,20 +125,128 @@ public class TransactionValidityChecker {
 	 * @param   conn        Database connection
 	 * @param 	goodID		GoodID
 	 * @return 	Boolean		Represents if the GoodID is on sale
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws  SQLException                    The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static Boolean getIsOnSale(Connection conn, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "select onSale from goods where goodID = ?";
 		List<String> args = new ArrayList<>();
 		args.add(goodID);
+
+		String columnName = "onSale";
+		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
 		try {
-			List<String> results = DatabaseInterface.queryDB(conn, query, "onSale", args);
-			return results.get(0).equals("t");
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0).getString(columnName).equals("t");
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	/**
+	 * Returns the information on the database's Goods table for a certain GoodID.
+	 *
+	 * @param   conn        Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	JSONObject	Contains all the columns' values for the GoodID
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
+	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+
+		String query = "SELECT * FROM goods WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		returnColumns.add("goodID");
+		returnColumns.add("onSale");
+		returnColumns.add("wid");
+		returnColumns.add("ts");
+		returnColumns.add("sig");
+		try {
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	/**
+	 * Returns the write timestamp on the database's Goods table for a certain GoodID entry.
+	 *
+	 * @param   connection	Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	long		Write timestamp
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
+	public static long getOnGoodsTimestamp(Connection connection, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+		String query = "SELECT ts FROM goods WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		String returnColumn = "ts";
+		returnColumns.add(returnColumn);
+		try {
+			List<JSONObject> results = queryDB(connection, query, returnColumns, args);
+			JSONObject json = results.get(0);
+			String timestamp = json.getString(returnColumn);
+			return Long.parseLong(timestamp);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	/**
+	 * Returns the write timestamp on the database's Ownership table for a certain GoodID entry.
+	 *
+	 * @param   connection	Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	long		Write timestamp
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
+	public static long getOnOwnershipTimestamp(Connection connection, String goodID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+		String query = "SELECT ts FROM ownership WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		String returnColumn = "ts";
+		returnColumns.add(returnColumn);
+		try {
+			List<JSONObject> results = queryDB(connection, query, returnColumns, args);
+			JSONObject json = results.get(0);
+			String timestamp = json.getString(returnColumn);
+			return Long.parseLong(timestamp);
 		}
 		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
 		// are ignored to be caught up the chain.

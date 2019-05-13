@@ -1,5 +1,6 @@
 package hds.security.msgtypes;
 
+import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.ValidClientID;
 import hds.security.helpers.inputValidation.ValidGoodID;
 
@@ -27,14 +28,28 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
     @ValidClientID
     private String newOwner;
 
-    public SaleCertificateResponse(long timestamp, String requestID, String operation, String from, String to,
-                                   String signature, String notaryServer, String goodId, String previousOwner, String newOwner) {
+    @NotNull(message = "The wts cannot be null.")
+    @NotFutureTimestamp
+    private long wts;
+
+    public SaleCertificateResponse(long timestamp,
+                                   String requestID,
+                                   String operation,
+                                   String from,
+                                   String to,
+                                   String signature,
+                                   String notaryServer,
+                                   String goodId,
+                                   String previousOwner,
+                                   String newOwner,
+                                   long wts) {
 
         super(timestamp, requestID, operation, from, to, signature);
         this.notaryServer = notaryServer;
         this.goodId = goodId;
         this.previousOwner = previousOwner;
         this.newOwner = newOwner;
+        this.wts = wts;
     }
 
     public SaleCertificateResponse() {
@@ -72,6 +87,18 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
         this.newOwner = newOwner;
     }
 
+    public void setNotaryServer(String notaryServer) {
+        this.notaryServer = notaryServer;
+    }
+
+    public long getWts() {
+        return wts;
+    }
+
+    public void setWts(long wts) {
+        this.wts = wts;
+    }
+
     @Override
     public String toString() {
         return "SaleCertificateResponse{" +
@@ -79,7 +106,8 @@ public class SaleCertificateResponse extends BasicMessage implements Serializabl
                 ", goodId='" + goodId + '\'' +
                 ", previousOwner='" + previousOwner + '\'' +
                 ", newOwner='" + newOwner + '\'' +
-                ", requestID=" + requestID +
+                ", wts=" + wts +
+                ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +

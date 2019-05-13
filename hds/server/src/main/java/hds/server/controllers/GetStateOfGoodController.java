@@ -14,6 +14,8 @@ import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.server.helpers.TransactionValidityChecker.getOnGoodsInfo;
 
 /**
  * Responsible for handling GET requests for the endpoint /stateOfGood.
@@ -35,6 +38,7 @@ import static hds.security.DateUtils.generateTimestamp;
  *
  * @author 		Rafael Ribeiro
  */
+@SuppressWarnings("Duplicates")
 @RestController
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
@@ -47,13 +51,19 @@ public class GetStateOfGoodController {
 	 * Returns information regarding the current owner of the good and whether or not it is on sale.
 	 *
 	 * @param 	goodID 			The GoodID which is going to be looked up (for ownerID and if it is on sale)
+	 * @param 	readID 			The ReadID associated with this read operation
 	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
 	 */
-	@GetMapping(value = "/stateOfGood", params = { "goodID" })
-	public ResponseEntity<BasicMessage> getStateOfGood(@RequestParam("goodID") @NotNull @NotEmpty String goodID) {
+	@GetMapping(value = "/stateOfGood", params = { "goodID", "readID" })
+	public ResponseEntity<BasicMessage> getStateOfGood(
+														@RequestParam("goodID") @NotNull @NotEmpty String goodID,
+														@RequestParam("readID") @NotNull @NotEmpty String readID) {
 		Logger logger = Logger.getAnonymousLogger();
 		logger.info("Received Get State of Good request.");
 		logger.info("\tGoodID - " + goodID);
+		logger.info("\tReadID - " + readID);
+
+		goodID = InputValidation.cleanString(goodID);
 
 		MetaResponse metaResponse;
 		if (!isValidGoodID(goodID)) {
@@ -62,10 +72,19 @@ public class GetStateOfGoodController {
 			metaResponse = new MetaResponse(400, payload);
 			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
 		}
+		int rid = 0;
+		try {
+			rid = Integer.parseInt(readID);
+		}
+		catch (NumberFormatException nfex) {
+			String reason = "The ReadID " + readID + " is not valid.";
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ControllerErrorConsts.BAD_PARAMS, reason);
+			metaResponse = new MetaResponse(400, payload);
+			return GeneralControllerHelper.getResponseEntity(metaResponse, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
+		}
 
 		try {
-			goodID = InputValidation.cleanString(goodID);
-			metaResponse = new MetaResponse(execute(goodID));
+			metaResponse = new MetaResponse(execute(goodID, rid));
 		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
@@ -84,12 +103,31 @@ public class GetStateOfGoodController {
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
-	private GoodStateResponse execute(String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
-		try (Connection conn = DatabaseManager.getConnection()) {
-			boolean state = TransactionValidityChecker.getIsOnSale(conn, goodID);
-			String ownerID = TransactionValidityChecker.getCurrentOwner(conn, goodID);
-			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", ownerID, state);
+	public static GoodStateResponse execute(String goodID, int readID)
+			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+
+		Connection connection = null;
+		try {
+			connection = DatabaseManager.getConnection();
+			connection.setAutoCommit(false);
+
+			String ownerID = TransactionValidityChecker.getCurrentOwner(connection, goodID); // TODO - Return this wid, ts and sig. //
+
+			JSONObject goodsInfo = getOnGoodsInfo(connection, goodID);
+			boolean state = goodsInfo.getString("onSale").equals("t");
+			String writerID = goodsInfo.getString("wid");
+			long writerTimestamp = Long.parseLong(goodsInfo.getString("ts"));
+			String writeSignature = goodsInfo.getString("sig");
+
+			return new GoodStateResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "",
+											ownerID, state, goodID, writerID, writerTimestamp, readID, writeSignature);
+		}
+		catch (Exception ex) {
+			if (connection != null) {
+				connection.rollback();
+				connection.setAutoCommit(true);
+			}
+			throw ex; // Handled in getStateOfGood's main method, in the try catch were execute is called.
 		}
 	}
 

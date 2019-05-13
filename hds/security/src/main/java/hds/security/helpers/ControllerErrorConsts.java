@@ -11,6 +11,8 @@ public class ControllerErrorConsts {
 	public static final String BAD_TRANSACTION = "The transaction is not valid.";
 	public static final String BAD_SIGNATURE = "The signatures do not match the received data.";
 	public static final String BAD_SQL = "Caught an SQL Exception.";
+	public static final String BAD_JSON = "Caught a JSON Exception";
+	public static final String BAD_CHALLENGE_RESPONSE = "The challenge response was incorrect";
 
 	public static final String NO_PERMISSION = "You do not have permission to put this item on sale.";
 	public static final String OLD_MESSAGE = "This request has expired.";

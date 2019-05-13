@@ -7,19 +7,57 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class OwnerDataMessage extends GoodDataMessage implements Serializable {
+    @NotNull(message = "The write timestamp cannot be null.")
+    private long writeTimestamp;
+
+    @NotNull(message = "The on sale boolean cannot be null.")
+    private boolean onSale;
+
     @NotNull(message = "The ownerID cannot be null.")
     @NotEmpty(message = "The ownerID cannot be empty.")
     @ValidClientID
     private String owner;
 
-    public OwnerDataMessage(long timestamp, String requestID, String operation, String from, String to, String signature,
-                            String goodID, String owner) {
+    @NotNull(message = "The write operation signature cannot be null.")
+    @NotEmpty(message = "The write operation signature cannot be empty.")
+    private String writeOperationSignature;
+
+    public OwnerDataMessage(long timestamp,
+                            String requestID,
+                            String operation,
+                            String from,
+                            String to,
+                            String signature,
+                            String goodID,
+                            String owner,
+                            long writeTimestamp,
+                            boolean onSale,
+                            String writeOperationSignature) {
+
         super(timestamp, requestID, operation, from, to, signature, goodID);
         this.owner = owner;
+        this.writeTimestamp = writeTimestamp;
+        this.onSale = onSale;
+        this.writeOperationSignature = writeOperationSignature;
     }
 
     public OwnerDataMessage() {}
 
+    public long getWriteTimestamp() {
+        return writeTimestamp;
+    }
+
+    public void setWriteTimestamp(long writeTimestamp) {
+        this.writeTimestamp = writeTimestamp;
+    }
+
+    public boolean isOnSale() {
+        return onSale;
+    }
+
+    public void setOnSale(boolean onSale) {
+        this.onSale = onSale;
+    }
 
     public String getOwner() {
         return owner;
@@ -29,12 +67,23 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
         this.owner = owner;
     }
 
+    public String getWriteOperationSignature() {
+        return writeOperationSignature;
+    }
+
+    public void setWriteOperationSignature(String writeOperationSignature) {
+        this.writeOperationSignature = writeOperationSignature;
+    }
+
     @Override
     public String toString() {
         return "OwnerDataMessage{" +
-                "owner='" + owner + '\'' +
+                "writeTimestamp=" + writeTimestamp +
+                ", onSale=" + onSale +
+                ", owner='" + owner + '\'' +
+                ", writeOperationSignature='" + writeOperationSignature + '\'' +
                 ", goodID='" + goodID + '\'' +
-                ", requestID=" + requestID +
+                ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +

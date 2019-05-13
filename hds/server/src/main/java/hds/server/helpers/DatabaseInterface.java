@@ -3,6 +3,8 @@ package hds.server.helpers;
 import hds.server.exception.DBClosedConnectionException;
 import hds.server.exception.DBConnectionRefusedException;
 import hds.server.exception.DBNoResultsException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,13 +22,14 @@ class DatabaseInterface {
 	}
 
 	/**
-	 * Queries the database.
+	 * Queries the database and returns a List of JSONObjects. Each JSONObject corresponds to one result and is
+	 * comprised of column name (as key) and respective query returned value for that column (value).
 	 *
-	 * @param 	conn         Database connection
-	 * @param 	query        Query to be transformed into a PreparedStatement
-	 * @param 	returnColumn Return column for the query
-	 * @param 	args         Arguments of the PreparedStatement
-	 * @return 	List		 Represents the list of the query's results
+	 * @param 	conn         	Database connection
+	 * @param 	query        	Query to be transformed into a PreparedStatement
+	 * @param 	returnColumns 	Return columns for the query
+	 * @param 	args         	Arguments of the PreparedStatement
+	 * @return 	List		 	Represents the list of the query's results
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
@@ -34,12 +37,12 @@ class DatabaseInterface {
 	 * @see 	Connection
 	 * @see 	PreparedStatement
 	 */
-	static List<String> queryDB(Connection conn, String query, String returnColumn, List<String> args)
-			throws DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, SQLException {
+	static List<JSONObject> queryDB(Connection conn, String query, List<String> returnColumns, List<String> args)
+			throws DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, SQLException, JSONException {
 
-		List<String> results = new ArrayList<>();
+		List<JSONObject> results = new ArrayList<>();
 		try (
-			PreparedStatement stmt = conn.prepareStatement(query)) {
+				PreparedStatement stmt = conn.prepareStatement(query)) {
 
 			int i = 1;
 			for (String s: args) {
@@ -57,7 +60,11 @@ class DatabaseInterface {
 
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
-				results.add(rs.getString(returnColumn));
+				JSONObject json = new JSONObject();
+				for (String key: returnColumns) {
+					json.put(key, rs.getString(key));
+				}
+				results.add(json);
 			}
 			rs.close();
 		}
@@ -76,7 +83,7 @@ class DatabaseInterface {
 				case "08P01": // protocol_violation
 					throw new DBConnectionRefusedException(sqlex.getMessage());
 				case "02000": // no_data
-					if (!returnColumn.equals("")) {
+					if (!returnColumns.isEmpty()) {
 						throw new DBNoResultsException(sqlex.getMessage());
 					}
 					break;

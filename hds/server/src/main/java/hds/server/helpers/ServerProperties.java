@@ -8,16 +8,16 @@ import sun.security.pkcs11.wrapper.PKCS11Exception;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * TODO - @DiogoVilela
+ * Stores the Server's Properties
  *
- * @author 		Diogo Vilela
+ * @author      Diogo Vilela
+ * @author 		Rafael Ribeiro
  */
 public class ServerProperties {
 
     private static PKCS11 pkcs11;
     private static long ccSessionID;
     private static long ccSignatureKey;
-
 
     public static PKCS11 getPKCS11() {
         return pkcs11;

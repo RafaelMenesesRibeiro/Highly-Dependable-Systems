@@ -1,17 +1,20 @@
 package hds.client;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.helpers.ClientProperties;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.OwnerDataMessage;
-import hds.security.msgtypes.SaleCertificateResponse;
-import hds.security.msgtypes.SaleRequestMessage;
+import hds.client.helpers.ClientSecurityManager;
+import hds.client.helpers.ONRRMajorityVoting;
+import hds.security.msgtypes.*;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -19,21 +22,20 @@ import java.net.SocketTimeoutException;
 import java.security.SignatureException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.Collections;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ConnectionManager.*;
+import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.isValidMessage;
-import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.*;
 
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
+    private static final AtomicInteger readId = new AtomicInteger(0);
 
     /***********************************************************
      *
@@ -43,26 +45,30 @@ public class ClientApplication {
 
     public static void main(String[] args) {
         String portId = args[0];
-        String maxPortId = args[1];
-        int maxServerPort = 9000;
+        int regularReplicasNumber = 1;
+        int ccReplicasNumber = 0;
+        int maxFailures = 0;
         try {
-            maxServerPort = Integer.parseInt(args[2]);
+            regularReplicasNumber = Integer.parseInt(args[1]);
+            ccReplicasNumber = Integer.parseInt(args[2]);
+            maxFailures = Integer.parseInt(args[3]);
         }
         catch (Exception ex) {
             Logger logger = Logger.getAnonymousLogger();
             logger.warning("Exiting:\n" + ex.getMessage());
             System.exit(-1);
         }
-        ClientProperties.setPort(portId);
-        ClientProperties.setMaxPortId(maxPortId);
-        ClientProperties.initializeNotaryReplicasPortsList(maxServerPort);
+        ClientProperties.setMyClientPort(portId);
+        ClientProperties.setMaxFailures(maxFailures);
+        ClientProperties.initializeRegularReplicasIDList(regularReplicasNumber);
+        ClientProperties.initializeCCReplicasIDList(ccReplicasNumber);
         runClientServer(args);
         runClientInterface();
     }
 
     private static void runClientServer(String[] args) {
         SpringApplication app = new SpringApplication(ClientApplication.class);
-        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getPort()));
+        app.setDefaultProperties(Collections.singletonMap("server.port", ClientProperties.getMyClientPort()));
         app.run(args);
     }
 
@@ -102,36 +108,50 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void getStateOfGood() {
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
 
-        List<Callable<BasicMessage>> callableList = new ArrayList<>();
+        int rid = readId.incrementAndGet();
+
         for (String replicaId : replicasList) {
-            callableList.add(new GetStateOfGoodCallable(replicaId, goodId));
+            Callable<BasicMessage> job = new GetStateOfGoodCallable(replicaId, goodId, rid);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
-        for (Callable<BasicMessage> callable : callableList) {
-            completionService.submit(callable);
-        }
-        processCompletionService(replicasList.size(), completionService);
+
+        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processCompletionService(int replicasCount,
-                                                 ExecutorCompletionService<BasicMessage> completionService) {
+    private static void processGetStateOfGOodResponses(final int rid,
+                                                       final int replicasCount,
+                                                       ExecutorCompletionService<BasicMessage> completionService) {
 
+        int ackCount = 0;
+        List<GoodStateResponse> readList = new ArrayList<>();
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                BasicMessage resultContent = futureResult.get();
-                if (processResponse(resultContent)) break;
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
+                }
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
                 printError(cause.getMessage());
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
             }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
+            print(ONRRMajorityVoting.selectMostRecentGoodState(readList).toString());
         }
     }
 
@@ -142,45 +162,51 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void intentionToSell() {
-        final List<String> replicasList = ClientProperties.getNotaryReplicas();
-        final List<Callable<BasicMessage>> callableList = new ArrayList<>();
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+        long wts = generateTimestamp();
         final String goodId = requestGoodId();
-        final String requestId = newUUIDString();
-        final long timestamp = generateTimestamp();
 
         for (String replicaId : replicasList) {
-            callableList.add(new IntentionToSellCallable(timestamp, requestId, replicaId, goodId));
+            Callable<BasicMessage> job =
+                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, goodId, wts, Boolean.TRUE);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        List<Future<BasicMessage>> futuresList = new ArrayList<>();
-        try {
-            futuresList = executorService.invokeAll(callableList);
-        } catch (InterruptedException ie) {
-            printError(ie.getMessage());
-        }
-
-        processFuturesList(futuresList);
-
+        processIntentionToSellResponses(wts, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processFuturesList(List<Future<BasicMessage>> futuresList) {
-        for (Future<BasicMessage> future : futuresList) {
+    private static void processIntentionToSellResponses(long wts,
+                                                        final int replicasCount,
+                                                        ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+        for (int i = 0; i < replicasCount; i++) {
             try {
-                BasicMessage resultContent = future.get();
-                processResponse(resultContent);
+                Future<BasicMessage> futureResult = completionService.take();
+                    if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
+                printError(cause.getMessage());
                 if (cause instanceof SocketTimeoutException) {
                     printError("Target node did not respond within expected limits. Try again at your discretion...");
-                } else {
-                    printError(cause.getMessage());
                 }
             }
         }
+        ONRRMajorityVoting.assertOperationSuccess(ackCount,"intentionToSell");
     }
 
     /***********************************************************
@@ -191,40 +217,83 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
-            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getPrivateKey(), newSaleRequestMessage());
+            long wts = generateTimestamp();
+
+            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
-            // BasicMessage responseMessage = getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
-
-            List<ResponseEntity<BasicMessage>> responseEntityList =
-                    (List<ResponseEntity<BasicMessage>>) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
-
-            for (ResponseEntity<BasicMessage> httpResponse : responseEntityList) {
-                processResponse(httpResponse.getBody());
+            JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+            if (jsonArray == null) {
+                printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
+            } else {
+                processBuyGoodResponses(wts, jsonArray);
             }
-
-        } catch (SocketTimeoutException ste) {
-            printError("Target node did not respond within expected limits. Try again at your discretion...");
         } catch (SignatureException | JSONException | IOException exc) {
             printError(exc.getMessage());
         }
     }
 
-    public static SaleRequestMessage newSaleRequestMessage() {
+    private static void processBuyGoodResponses(long wts, JSONArray messageList) {
+        int ackCount = 0;
+        for (int i = 0; i < messageList.length(); i++) {
+            try {
+                if (messageList.isNull(i)) {
+                    printError("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
+                    printError("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
+                } else {
+                    BasicMessage message;
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JSONObject messageObject = (JSONObject) messageList.get(i);
+
+                    if (messageObject.has("reason")) {
+                        message = objectMapper.readValue(messageObject.toString(), ErrorResponse.class);
+                    } else {
+                        message = objectMapper.readValue(messageObject.toString(), SaleCertificateResponse.class);
+                    }
+
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+
+                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                }
+
+            } catch (JSONException | JsonParseException | JsonMappingException exc) {
+                // swallow
+            } catch (IOException ioe) {
+                // swallow
+            }
+        }
+        ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
+    }
+
+    private static SaleRequestMessage newSaleRequestMessage(long wts) {
         String to = requestSellerId();
         String goodId = requestGoodId();
-        String sellerId = to;
-        return new SaleRequestMessage(
-                generateTimestamp(),
-                newUUIDString(),
-                "buyGood",
-                ClientProperties.getPort(),
-                to,
-                "",
-                goodId,
-                ClientProperties.getPort(),
-                sellerId
-        );
+        Boolean onSale = Boolean.FALSE;
+
+        try {
+            byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getMyClientPort(), wts);
+            byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getMyClientPort(), wts);
+            return new SaleRequestMessage(
+                    generateTimestamp(),
+                    newUUIDString(),
+                    "buyGood",
+                    ClientProperties.getMyClientPort(), // from
+                    to,
+                    "",
+                    goodId,
+                    ClientProperties.getMyClientPort(), // buyer
+                    to, // seller
+                    wts,
+                    onSale,
+                    bytesToBase64String(writeOnGoodsSignature),
+                    bytesToBase64String(writeOnOwnershipsSignature)
+            );
+        } catch (JSONException | SignatureException exc) {
+            throw new RuntimeException(exc.getMessage());
+        }
+
     }
 
     /***********************************************************
@@ -232,17 +301,6 @@ public class ClientApplication {
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
      *
      ***********************************************************/
-
-    private static boolean processResponse(BasicMessage responseMessage) {
-        // TODO Improve return value. Use something other than true/false;
-        String validationResult = isValidMessage(ClientProperties.getPort(), responseMessage);
-        if (!"".equals(validationResult)) {
-            printError(validationResult);
-            return false;
-        }
-        print(responseMessage.toString());
-        return true;
-    }
 
     private static String scanString(String requestString) {
         print(requestString);

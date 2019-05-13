@@ -8,32 +8,67 @@ import hds.security.msgtypes.SaleRequestMessage;
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
-import static hds.client.helpers.ClientProperties.getPrivateKey;
+import static hds.client.helpers.ClientProperties.getMyPrivateKey;
 import static hds.client.helpers.ConnectionManager.*;
-import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.setMessageWrappingSignature;
 
+/**
+ * The type transfer good callable performs a PUT request to the end point /transferGood of a notary replica
+ * See also:
+ * {@link hds.security.msgtypes.SaleRequestMessage}
+ * {@link hds.security.msgtypes.ApproveSaleRequestMessage}
+ * {@link hds.security.ChallengeSolver}
+ * {@link hds.security.DateUtils#generateTimestamp()}
+ * @author Diogo Vilela
+ * @author Francisco Barros
+ * @author Rafael Ribeiro
+ */
 public class TransferGoodCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "transferGood";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
-    private final String replicaId;
     private final ApproveSaleRequestMessage message;
+    private final String replicaId;
 
-    public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage) {
+
+    /**
+     * Instantiates a new Transfer good callable.
+     *
+     * @param timestamp         the timestamp used by the notary to verify freshness of the message
+     * @param replicaId         the replica id to whom the client wishes to send the request
+     * @param requestMessage    the request message sent by another client representing his will to buy a good from this client
+     * @param challengeResponse the solution to the challenge presented by the replica to whom this client is sending this message
+     */
+    public TransferGoodCallable(long timestamp, String replicaId, SaleRequestMessage requestMessage, String challengeResponse) {
         this.replicaId = replicaId;
-        this.message = newApproveSaleRequestMessage(timestamp, replicaId, requestMessage);
+        this.message = newApproveSaleRequestMessage(timestamp, replicaId, requestMessage, challengeResponse);
     }
 
+    /**
+     * Executes this callable
+     * @return BasicMessage
+     * @throws Exception which can be of type SignatureException, IOException, JsonProcessingException and JSONException
+     */
     @Override
     public BasicMessage call() throws Exception {
-        setMessageSignature(getPrivateKey(), message);
+        setMessageWrappingSignature(getMyPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
         return (BasicMessage) getResponseMessage(connection, Expect.SALE_CERT_RESPONSE);
     }
 
+    /**
+     * Helper method that instantiates a new ApproveSaleRequestMessage
+     * @param timestamp         timestamp representing an java epoch from seconds
+     * @param replicaId         the identifier representing the port where the replica is listening on
+     * @param requestMessage    the request message sent by another client representing his will to buy a good from this client
+     * @param challengeResponse the solution to the challenge presented by the replica to whom this client is sending this message
+     * @return {@link hds.security.msgtypes.ApproveSaleRequestMessage}
+     */
     private ApproveSaleRequestMessage newApproveSaleRequestMessage(long timestamp,
                                                                    String replicaId,
-                                                                   SaleRequestMessage requestMessage) {
+                                                                   SaleRequestMessage requestMessage,
+                                                                   String challengeResponse) {
+
         return new ApproveSaleRequestMessage(
                 requestMessage.getTimestamp(),
                 requestMessage.getRequestID(),
@@ -44,11 +79,24 @@ public class TransferGoodCallable implements Callable<BasicMessage> {
                 requestMessage.getGoodID(),
                 requestMessage.getBuyerID(),
                 requestMessage.getSellerID(),
+                requestMessage.getWts(),
+                requestMessage.getOnSale(),
+                requestMessage.getWriteOnGoodsSignature(),
+                requestMessage.getWriteOnOwnershipsSignature(),
                 timestamp,
                 OPERATION,
-                ClientProperties.getPort(),
+                ClientProperties.getMyClientPort(),
                 replicaId,
-                ""
+                "",
+                challengeResponse
         );
+    }
+
+    @Override
+    public String toString() {
+        return "TransferGoodCallable{" +
+                "message=" + message.toString() +
+                ", notaryReplicaId='" + replicaId + '\'' +
+                '}';
     }
 }

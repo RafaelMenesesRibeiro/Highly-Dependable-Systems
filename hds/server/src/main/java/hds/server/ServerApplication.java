@@ -2,6 +2,7 @@ package hds.server;
 
 import hds.security.ResourceManager;
 import hds.server.exception.DBInitException;
+import hds.server.helpers.LogManager;
 import hds.server.helpers.PSQLServerSetup;
 import hds.server.helpers.ServerProperties;
 import org.springframework.boot.SpringApplication;
@@ -17,11 +18,16 @@ import java.util.logging.Logger;
 public class ServerApplication {
 	public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
+	private static LogManager logManager;
 
 	private static String port;
-	private static int replicasNumber;
+	private static boolean isUseCC = false;
+	private static int regularReplicasNumber;
+	private static int ccReplicasNumber;
 	private static String driver;
+	private static String databaseServerUrl;
 	private static String url;
 	private static String user;
 	private static String password;
@@ -31,20 +37,25 @@ public class ServerApplication {
 		int serverPort = 9000;
 		try {
 			String port = args[0];
-			ServerApplication.port = port;
-			serverPort = Integer.parseInt(port);
-			ResourceManager.setServerPort(serverPort);
 			int maxClientID = Integer.parseInt(args[1]);
-			ResourceManager.setMaxClientId(maxClientID);
+			int maxSRegularReplicasNumber = Integer.parseInt(args[2]);
+			int maxCCReplicasNumber = Integer.parseInt(args[3]);
+			serverPort = Integer.parseInt(port);
+
+			ResourceManager.setServerPort(serverPort);
 			ResourceManager.setMinClientId(HDS_NOTARY_CLIENTS_FIRST_PORT);
-			int maxServerID = Integer.parseInt(args[2]);
-			ServerApplication.replicasNumber = maxServerID - HDS_NOTARY_REPLICAS_FIRST_PORT + 1;
+			ResourceManager.setMaxClientId(HDS_NOTARY_REPLICAS_FIRST_CC_PORT + maxClientID - 1);
+
+			ServerApplication.port = port;
+			ServerApplication.regularReplicasNumber = maxSRegularReplicasNumber;
+			ServerApplication.ccReplicasNumber = maxCCReplicasNumber;
+
+			logManager = new LogManager(port);
 
 			fetchProperties();
-			// If it's the main server, starts with the Citizen Card feature.
-			// TODO - Change this to final value. //
-			if (serverPort == 9005) {
+			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
 				ServerProperties.bootstrap();
+				isUseCC = true;
 			}
 
 			logger.info("Started server in port " + serverPort + " and max client id " + maxClientID);
@@ -58,7 +69,6 @@ public class ServerApplication {
 			PSQLServerSetup.initDatabased();
 		}
 		catch (DBInitException ex) {
-			logger.warning("\n\n\n\n\n\n\n asdadadkajoiqjepoqwjepoqwje \n\n\n\n\n\n");
 			logger.warning("Could not create database. Exiting");
 			logger.warning(ex.getMessage());
 			System.exit(-3);
@@ -77,7 +87,8 @@ public class ServerApplication {
 			}
 			properties.load(input);
 			driver = properties.getProperty("spring.datasource.driverClassName");
-			url = properties.getProperty("spring.datasource.url") + DB_NAME_PREFIX + getPort();
+			databaseServerUrl = properties.getProperty("spring.datasource.url");
+			url = databaseServerUrl + DB_NAME_PREFIX + getPort();
 			user = properties.getProperty("spring.datasource.username");
 			password = properties.getProperty("spring.datasource.password");
 		}
@@ -89,6 +100,10 @@ public class ServerApplication {
 
 	public static String getDriver() {
 		return driver;
+	}
+
+	public static String getDatabaseServerUrl() {
+		return databaseServerUrl;
 	}
 
 	public static String getUrl() {
@@ -105,7 +120,19 @@ public class ServerApplication {
 		return password;
 	}
 
-	public static int getReplicasNumber() {
-		return replicasNumber;
+	public static int getRegularReplicasNumber() {
+		return regularReplicasNumber;
+	}
+
+	public static int getCCReplicasNumber() {
+		return ccReplicasNumber;
+	}
+
+	public static boolean isIsUseCC() {
+		return isUseCC;
+	}
+
+	public static LogManager getLogManager() {
+		return logManager;
 	}
 }

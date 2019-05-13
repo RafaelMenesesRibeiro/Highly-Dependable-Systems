@@ -1,19 +1,17 @@
 package hds.server.controllers;
 
-import hds.security.helpers.ControllerErrorConsts;
-import hds.security.msgtypes.ApproveSaleRequestMessage;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
-import hds.security.msgtypes.SaleCertificateResponse;
-import hds.server.ServerApplication;
+import hds.security.exceptions.SignatureException;
+import hds.security.msgtypes.*;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
+import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
+import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,8 +23,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.DateUtils.isFreshTimestamp;
+import static hds.security.DateUtils.*;
+import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.removeAndReturnChallenge;
+import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.tryGetUnansweredChallenge;
+import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimestamp;
 
 /**
  * Responsible for handling POST requests for the endpoint /transferGood.
@@ -38,12 +40,13 @@ import static hds.security.DateUtils.isFreshTimestamp;
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
-
 @RestController
-public class TransferGoodController {
-	private static final String FROM_SERVER = ServerApplication.getPort();
-	private static final String OPERATION = "transferGood";
+public class TransferGoodController extends BaseController {
 	private static final String CERTIFIED = "Certified by Notary";
+
+	public TransferGoodController() {
+		OPERATION = "transferGood";
+	}
 
 	/**
 	 * REST Controller responsible for transferring a GoodID.
@@ -54,44 +57,10 @@ public class TransferGoodController {
 	 * @see		ApproveSaleRequestMessage
 	 * @see 	BindingResult
 	 */
-	@SuppressWarnings("Duplicates")
 	@PostMapping(value = "/transferGood",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> transferGood(@RequestBody @Valid ApproveSaleRequestMessage transactionData, BindingResult result) {
-		Logger logger = Logger.getAnonymousLogger();
-		logger.info("Received Transfer Good request.");
-		logger.info("\tRequest: " + transactionData.toString());
-
-		UserRequestIDKey key = new UserRequestIDKey(transactionData.getFrom(), transactionData.getRequestID());
-		ResponseEntity<BasicMessage> cachedResponse = GeneralControllerHelper.tryGetRecentRequest(key);
-		if (cachedResponse != null) {
-			return cachedResponse;
-		}
-
-		long timestamp = transactionData.getTimestamp();
-		if (!isFreshTimestamp(timestamp)) {
-			String reason = "Timestamp " + timestamp + " is too old";
-			ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getTo(), "", ControllerErrorConsts.OLD_MESSAGE, reason);
-			MetaResponse metaResponse = new MetaResponse(408, payload);
-			return GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-
-		MetaResponse metaResponse;
-		if(result.hasErrors()) {
-			metaResponse = GeneralControllerHelper.handleInputValidationResults(result, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-			ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-			GeneralControllerHelper.cacheRecentRequest(key, response);
-			return response;
-		}
-		try {
-			metaResponse = execute(transactionData);
-		}
-		catch (Exception ex) {
-			metaResponse = GeneralControllerHelper.handleException(ex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-		ResponseEntity<BasicMessage> response = GeneralControllerHelper.getResponseEntity(metaResponse, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		GeneralControllerHelper.cacheRecentRequest(key, response);
-		return response;
+		return GeneralControllerHelper.generalControllerSetup(transactionData, result, this);
 	}
 
 	/**
@@ -100,8 +69,9 @@ public class TransferGoodController {
 	 * Confirms the GoodID is on sale.
 	 * Transfers a GoodID from the SellerID to the BuyerID.
 	 *
-	 * @param 	transactionData 	GoodID and SellerID
+	 * @param 	requestData			ApproveSaleRequestMessage
 	 * @return 	MetaResponse 		Contains an HttpStatus code and a BasicMessage
+	 * @throws 	JSONException					Can't create / parse JSONObject
 	 * @throws 	SQLException					The DB threw an SQLException
 	 * @throws 	DBClosedConnectionException		Can't access the DB
 	 * @throws 	DBConnectionRefusedException	Can't access the DB
@@ -110,47 +80,82 @@ public class TransferGoodController {
 	 * @see 	SaleCertificateResponse
 	 * @see 	MetaResponse
 	 */
-	private MetaResponse execute(ApproveSaleRequestMessage transactionData)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+	@Override
+	public MetaResponse execute(BasicMessage requestData)
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
+			DBNoResultsException, OldMessageException, NoPermissionException {
+
+		ApproveSaleRequestMessage transactionData = (ApproveSaleRequestMessage) requestData;
 
 		String buyerID = InputValidation.cleanString(transactionData.getBuyerID());
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
-		Connection conn = null;
+		UserRequestIDKey key = new UserRequestIDKey(transactionData.getWrappingFrom(), transactionData.getRequestID());
+		ChallengeData challengeData = removeAndReturnChallenge(key);
+		String challengeResponse = transactionData.getChallengeResponse();
+		if (challengeData == null || !challengeData.verify(challengeResponse)) {
+			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong.");
+		}
+
+		if (buyerID.equals(sellerID)) {
+			throw new BadTransactionException("BuyerID cannot be equal to SellerID " + buyerID);
+		}
+
+		Connection connection = null;
 		try {
-			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false);
-			if (TransactionValidityChecker.isValidTransaction(conn, transactionData)) {
-				TransferGood.transferGood(conn, sellerID, buyerID, goodID);
-				conn.commit();
-				SaleCertificateResponse payload = new SaleCertificateResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", CERTIFIED, goodID, sellerID, buyerID);
-				return new MetaResponse(payload);
+			connection = DatabaseManager.getConnection();
+			connection.setAutoCommit(false);
+
+			long requestWriteTimestamp = transactionData.getWts();
+			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
+			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
+				connection.rollback();
+				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
 			}
-			else {
-				conn.rollback();
-				String reason = "The transaction is not valid.";
-				ErrorResponse payload = new ErrorResponse(generateTimestamp(), transactionData.getRequestID(), OPERATION, FROM_SERVER, transactionData.getFrom(), "", ControllerErrorConsts.BAD_TRANSACTION, reason);
-				return new MetaResponse(403, payload);
+
+			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
+				connection.rollback();
+				throw new BadTransactionException("The transaction is not valid.");
 			}
+
+			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
+			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
+			if (!res) {
+				connection.rollback();
+				throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
+			}
+
+			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
+			if (!res) {
+				connection.rollback();
+				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
+			}
+
+			TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			connection.commit();
+			connection.close();
+			SaleCertificateResponse payload = new SaleCertificateResponse(
+					generateTimestamp(),
+					transactionData.getRequestID(),
+					OPERATION,
+					FROM_SERVER,
+					transactionData.getFrom(),
+					"",
+					CERTIFIED,
+					goodID,
+					sellerID,
+					buyerID,
+					transactionData.getWts());
+			return new MetaResponse(payload);
 		}
-		catch (SQLException | DBNoResultsException ex) {
-			if (conn != null) {
-				conn.rollback();
+		catch (Exception ex) {
+			if (connection != null) {
+				connection.rollback();
+				connection.setAutoCommit(true);
 			}
-			throw ex;
-		}
-		catch (IncorrectSignatureException isex){
-			if (conn != null) {
-				conn.rollback();
-			}
-			return GeneralControllerHelper.handleException(isex, transactionData.getRequestID(), transactionData.getFrom(), OPERATION);
-		}
-		finally {
-			if (conn != null) {
-				conn.setAutoCommit(true);
-				conn.close();
-			}
+			throw ex; // Handled in transferGood's main method, in the try catch were execute is called.
 		}
 	}
 }

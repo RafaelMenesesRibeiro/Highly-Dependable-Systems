@@ -12,7 +12,12 @@ public class GoodDataMessage extends BasicMessage implements Serializable {
     @ValidGoodID
     String goodID;
 
-    public GoodDataMessage(long timestamp, String requestID, String operation, String from, String to, String signature,
+    public GoodDataMessage(long timestamp,
+                           String requestID,
+                           String operation,
+                           String from,
+                           String to,
+                           String signature,
                            String goodID) {
         super(timestamp, requestID, operation, from, to, signature);
         this.goodID = goodID;

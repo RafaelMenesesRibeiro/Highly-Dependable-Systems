@@ -7,28 +7,44 @@ import java.sql.*;
 
 import static hds.server.ServerApplication.*;
 
+
+/**
+ * Creates and populates a Database for each created server.
+ *
+ * @author 		Rafael Ribeiro
+ */
 public class PSQLServerSetup {
-	// TODO - Add to Application.properties just like datasource.url //
-	private static final String URL = "jdbc:postgresql://localhost:5432/";
-
-
+	/**
+	 * Initializes the databases for every server.
+	 */
 	public static void initDatabased() {
 		if (Integer.parseInt(getPort()) == HDS_NOTARY_REPLICAS_FIRST_PORT) {
-			int replicasNumber = getReplicasNumber();
-			for (int i = 0; i < replicasNumber; i++) {
+			int regularReplicasNumber = getRegularReplicasNumber();
+			for (int i = 0; i < regularReplicasNumber; i++) {
 				initiSingleDB(DB_NAME_PREFIX + (HDS_NOTARY_REPLICAS_FIRST_PORT + i));
+			}
+
+			int ccReplicasNumber = getCCReplicasNumber();
+			for (int i = 0; i < ccReplicasNumber; i++) {
+				initiSingleDB(DB_NAME_PREFIX + (HDS_NOTARY_REPLICAS_FIRST_CC_PORT + i));
 			}
 		}
 	}
 
+	/**
+	 * Initializes a Database with a given name.
+	 *
+	 * @param 	dbName			Name of the database to be created
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void initiSingleDB(String dbName) throws DBInitException {
 		Connection connection = null;
 		Connection connection2 = null;
 		try {
 			Class.forName(ServerApplication.getDriver());
-			connection = DriverManager.getConnection(URL, getUser(), getPassword());
+			connection = DriverManager.getConnection(getDatabaseServerUrl(), getUser(), getPassword());
 			createDatabase(connection, dbName);
-			String dbURL = URL + dbName;
+			String dbURL = getDatabaseServerUrl() + dbName;
 			connection2 = DriverManager.getConnection(dbURL, getUser(), getPassword());
 			createTables(connection2);
 			populateTables(connection2);
@@ -50,6 +66,13 @@ public class PSQLServerSetup {
 		}
 	}
 
+	/**
+	 * Creates the database
+	 *
+	 * @param 	connection 		Connection to the database's server
+	 * @param 	dbName			Name of the database to be created
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void createDatabase(Connection connection, String dbName) throws DBInitException {
 		String query = "DROP DATABASE IF EXISTS " + dbName + ";\n" + "CREATE DATABASE " + dbName + ";";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -60,7 +83,12 @@ public class PSQLServerSetup {
 		}
 	}
 
-	// TODO - Read this from file. //
+	/**
+	 * Creates the tables
+	 *
+	 * @param 	connection 		Connection to the database
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void createTables(Connection connection) throws DBInitException {
 		String query =
 			"drop table if exists ownership cascade;" +
@@ -74,14 +102,21 @@ public class PSQLServerSetup {
 			"CREATE TABLE goods (" +
 			"goodId varchar(50), " +
 			"onSale boolean, " +
+			"wid varchar(50), " +
+			"ts text, " +
+			"sig text, " +
 			"CONSTRAINT pk_goods PRIMARY KEY (goodId));" +
 
 			"CREATE TABLE ownership (" +
 			"goodId varchar(50), " +
 			"userId varchar(50), " +
+			"ts text, " +
+			"sig text, " +
 			"CONSTRAINT pk_ownership PRIMARY KEY (goodId), " +
 			"CONSTRAINT fk_ownership_goodId FOREIGN KEY (goodId) REFERENCES goods(goodId), " +
-			"CONSTRAINT fk_ownership_userID FOREIGN KEY (userId) REFERENCES users(userId));";
+			"CONSTRAINT fk_ownership_userID FOREIGN KEY (userId) REFERENCES users(userId));" +
+
+			"drop table if exists certificates;";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
 		}
@@ -90,8 +125,12 @@ public class PSQLServerSetup {
 		}
 	}
 
-	// TODO - The number of users needs to match the actual number of users. //
-	// TODO - Read this from file. //
+	/**
+	 * Populates the tables
+	 *
+	 * @param 	connection 		Connection to the database
+	 * @throws 	DBInitException	The creation / population of the database was not successful
+	 */
 	private static void populateTables(Connection connection) throws DBInitException {
 		String query =
 			"delete from ownership;" +
@@ -103,15 +142,15 @@ public class PSQLServerSetup {
 			"insert into users values ('8003');" +
 			"insert into users values ('8004');" +
 
-			"insert into goods values ('good1', false);" +
-			"insert into goods values ('good2', false);" +
-			"insert into goods values ('good3', true);" +
-			"insert into goods values ('good4', true);" +
+			"insert into goods values ('good1', false, '8001', '0', 'initialSign');" +
+			"insert into goods values ('good2', false, '8002', '0', 'initialSign');" +
+			"insert into goods values ('good3', true, '8003', '0', 'initialSign');" +
+			"insert into goods values ('good4', true, '8004', '0', 'initialSign');" +
 
-			"insert into ownership values ('good1', '8001');" +
-			"insert into ownership values ('good2', '8002');" +
-			"insert into ownership values ('good3', '8003');" +
-			"insert into ownership values ('good4', '8004');";
+			"insert into ownership values ('good1', '8001', '0', 'initialSign');" +
+			"insert into ownership values ('good2', '8002', '0', 'initialSign');" +
+			"insert into ownership values ('good3', '8003', '0', 'initialSign');" +
+			"insert into ownership values ('good4', '8004', '0', 'initialSign');";
 		try (PreparedStatement statement = connection.prepareStatement(query)) {
 			statement.execute();
 		}

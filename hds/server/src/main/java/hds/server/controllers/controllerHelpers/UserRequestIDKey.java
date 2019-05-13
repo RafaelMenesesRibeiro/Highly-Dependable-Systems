@@ -3,21 +3,21 @@ package hds.server.controllers.controllerHelpers;
 import java.util.Objects;
 
 /**
- * TODO - @FranciscoBarros
+ * Represents a unique identifier for each request, base on the sender and the requestID.
  *
  * @author 		Francisco Barros
  */
 public class UserRequestIDKey {
-    private final String callee;
+    private final String caller;
     private final String requestID;
 
-    public UserRequestIDKey(String callee, String requestID) {
-        this.callee = callee;
+    public UserRequestIDKey(String caller, String requestID) {
+        this.caller = caller;
         this.requestID = requestID;
     }
 
-    public String getCallee() {
-        return callee;
+    public String getCaller() {
+        return caller;
     }
 
     public String getRequestID() {
@@ -29,11 +29,11 @@ public class UserRequestIDKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserRequestIDKey that = (UserRequestIDKey) o;
-        return Objects.equals(callee, that.callee) && Objects.equals(requestID, that.requestID);
+        return Objects.equals(caller, that.caller) && Objects.equals(requestID, that.requestID);
     }
 
     @Override
     public int hashCode() {
-        return (Objects.hashCode(requestID) << 16) + Objects.hashCode(callee) ;
+        return (Objects.hashCode(requestID) << 16) + Objects.hashCode(caller) ;
     }
 }
