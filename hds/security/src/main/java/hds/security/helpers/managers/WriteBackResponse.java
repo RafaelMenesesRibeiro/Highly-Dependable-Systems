@@ -1,11 +1,12 @@
 package hds.security.helpers.managers;
 
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.WriteBackMessage;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class WriteBackResponse extends BasicMessage implements Serializable {
+    @NotNull(message = "The read id cannot be null.")
     private int rid;
 
     public WriteBackResponse(long timestamp,
@@ -36,6 +37,11 @@ public class WriteBackResponse extends BasicMessage implements Serializable {
     public String toString() {
         return "WriteBackResponse{" +
                 "rid=" + rid +
+                ", requestID='" + requestID + '\'' +
+                ", operation='" + operation + '\'' +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", signature='" + signature + '\'' +
                 '}';
     }
 }
