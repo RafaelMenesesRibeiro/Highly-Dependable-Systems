@@ -1,13 +1,11 @@
 package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
-import hds.security.msgtypes.ApproveSaleRequestMessage;
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.GoodStateResponse;
-import hds.security.msgtypes.WriteBackMessage;
+import hds.security.msgtypes.*;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
+import hds.server.exception.FailedWriteBackException;
 import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
 import org.json.JSONException;
@@ -21,11 +19,11 @@ import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.DateUtils.isOneTimestampAfterAnother;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
-import static hds.server.helpers.TransactionValidityChecker.getOnGoodsTimestamp;
-import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
+import static hds.server.helpers.TransactionValidityChecker.*;
 
 /**
  * Responsible for handling POST requests for write back operation needed in (1, N) Byzantine Atomic Registers.
@@ -42,11 +40,12 @@ public class WriteBackController extends BaseController {
 	/**
 	 * REST Controller responsible for the write back operation of (1, N) Byzantine Atomic Registers.
 	 *
-	 * @param
-	 * @param
-	 * @return
+	 * @param 	writeBackData   WriteBackMessage
+	 * @param 	result    		result of validators for inputs of transactionData
+	 * @return 	ResponseEntity 	Responds to the received request wrapping a BasicMessage
+	 * @see		BasicMessage
+	 * @see 	BindingResult
 	 */
-	// TODO - Javadoc. //
 	@PostMapping(value = "/writeBack",
 			headers = {"Accept=application/json", "Content-type=application/json;charset=UTF-8"})
 	public ResponseEntity<BasicMessage> writeBack(@RequestBody @Valid WriteBackMessage writeBackData, BindingResult result) {
@@ -55,23 +54,17 @@ public class WriteBackController extends BaseController {
 
 
 	/**
-	 * Creates a challenge for the client, and stores it until it responds with a solution encapsulated
-	 * in TransferGoodController's received data.
+	 * Writes to the database's tables, if the received entries are more recent than the ones in it.
 	 *
-	 * @param
-	 * @return
+	 * @param   requestData     WriteBackMessage
+	 * @return 	MetaResponse 	Contains an HttpStatus code and a BasicMessage
+	 * @throws 	SQLException	The DB threw an SQLException
+	 * @see 	ApproveSaleRequestMessage
 	 */
-	// TODO - Javadoc. //
 	@Override
-	public MetaResponse execute(BasicMessage requestData) throws SQLException {
-
+	public MetaResponse execute(BasicMessage requestData) throws SQLException, JSONException {
 		WriteBackMessage writeBackMessage = (WriteBackMessage) requestData;
-		// TODO - writeBackMessage.getCastedReadResponse(WriteBackMessage.GET_STATE_OF_GOOD_OPERATION, writeBackMessage);
-		GoodStateResponse goodStateResponse = (GoodStateResponse) writeBackMessage.getReadResponse();
-
 		String clientID = InputValidation.cleanString(requestData.getFrom());
-		String goodID  = InputValidation.cleanString(goodStateResponse.getGoodID());
-		String ownerID = InputValidation.cleanString(goodStateResponse.getOwnerID());
 
 		String signature = requestData.getSignature();
 		requestData.setSignature("");
@@ -80,18 +73,32 @@ public class WriteBackController extends BaseController {
 			throw new SignatureException("The Client's signature is not valid.");
 		}
 
-		long onOwnershipWts = goodStateResponse.getOnOwnershipWts();
-		String writeOnOwnershipsSignature = goodStateResponse.getWriteOnOwnershipOperationSignature();
-		res = verifyWriteOnOwnershipSignature(goodID, ownerID, onOwnershipWts, writeOnOwnershipsSignature);
-		if (!res) {
-			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
+		// TODO - Check Server's signature for GoodStateResponse. //
+
+		GoodStateResponse onGoodsRelevantResponse = writeBackMessage.getHighestGoodState();
+		String onGoodsGoodID  = InputValidation.cleanString(onGoodsRelevantResponse.getGoodID());
+		String onGoodsOwnerID = InputValidation.cleanString(onGoodsRelevantResponse.getOwnerID());
+
+		GoodStateResponse onOwnershipRelevantResponse = writeBackMessage.getHighestOwnershipState();
+		String onOwnershipGoodID = InputValidation.cleanString(onGoodsRelevantResponse.getGoodID());
+		String onOwnershipOwnerID = InputValidation.cleanString(onOwnershipRelevantResponse.getOwnerID());
+
+		if (!onGoodsGoodID.equals(onOwnershipGoodID) || !onGoodsOwnerID.equals(onOwnershipOwnerID)) {
+			throw new FailedWriteBackException("The GoodID or OwnerID of the GoodStateResponses did not match.");
 		}
 
-		long onGoodsWts = goodStateResponse.getOnGoodsWts();
-		String writeOnGoodsSignature = goodStateResponse.getWriteOnGoodsOperationSignature();
-		res = verifyWriteOnGoodsOperationSignature(goodID, goodStateResponse.isOnSale(), ownerID, onGoodsWts, writeOnGoodsSignature);
+		long onGoodsWts = onGoodsRelevantResponse.getOnGoodsWts();
+		String writeOnGoodsSignature = onGoodsRelevantResponse.getWriteOnGoodsOperationSignature();
+		res = verifyWriteOnGoodsOperationSignature(onGoodsGoodID, onGoodsRelevantResponse.isOnSale(), onGoodsOwnerID, onGoodsWts, writeOnGoodsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
+		}
+
+		long onOwnershipWts = onOwnershipRelevantResponse.getOnOwnershipWts();
+		String writeOnOwnershipsSignature = onOwnershipRelevantResponse.getWriteOnOwnershipOperationSignature();
+		res = verifyWriteOnOwnershipSignature(onOwnershipGoodID, onOwnershipOwnerID, onOwnershipWts, writeOnOwnershipsSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
 		}
 
 		Connection connection = null;
@@ -99,13 +106,20 @@ public class WriteBackController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			// TODO - Check if onGoodsTimestamp is worth it. //
-			// TODO - Check if onOwnershipTimestamp is worth it. //
+			long databaseOnOwnershipWriteTimestamp = getOnOwnershipTimestamp(connection, onOwnershipGoodID);
+			if (isOneTimestampAfterAnother(onOwnershipWts, databaseOnOwnershipWriteTimestamp)) {
+				// TODO - Write on Ownership table. //
+			}
 
-			// TODO - Write on Goods table. //
-			// TODO - Write on Ownership table. //
-			// TODO - Send acknowledge. //
+			long databaseOnGoodsWriteTimestamp = getOnGoodsTimestamp(connection, onGoodsGoodID);
+			if (isOneTimestampAfterAnother(onGoodsWts, databaseOnGoodsWriteTimestamp)) {
+				// TODO - Write on Goods table. //
+			}
 
+			connection.commit();
+			BasicMessage payload = new WriteBackResponse(generateTimestamp(), writeBackMessage.getRequestID(), OPERATION,
+										FROM_SERVER, writeBackMessage.getFrom(), "", writeBackMessage.getRid());
+			return new MetaResponse(payload);
 		}
 		catch (Exception ex) {
 			if (connection != null) {
@@ -114,8 +128,5 @@ public class WriteBackController extends BaseController {
 			}
 			throw ex; // Handled in writeBack's main method, in the try catch were execute is called.
 		}
-
-
-		return null;
 	}
 }
