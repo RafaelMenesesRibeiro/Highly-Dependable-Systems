@@ -22,7 +22,7 @@ public class TransferGood {
 	}
 
 	/**
-	 * Marks a GoodID for sale in the database.
+	 * Changes the GoodID's owner and marks it off sale.
 	 *
 	 * @param 	conn				Database connection
 	 * @param 	goodID				GoodID to be transferred
