@@ -14,6 +14,7 @@ import static hds.security.helpers.managers.ConnectionManager.*;
  * @author Rafael Ribeiro
  */
 public class GetStateOfGoodCallable implements Callable<BasicMessage> {
+
     private static final String OPERATION = "stateOfGood";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?goodID=%s&readID=%s";
     private final String address;

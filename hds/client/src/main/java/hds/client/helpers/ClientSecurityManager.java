@@ -12,6 +12,7 @@ import static hds.security.SecurityManager.*;
 
 public class ClientSecurityManager {
 
+
     public static boolean isMessageFreshAndAuthentic(BasicMessage message) {
         // Verify freshness and authenticity using isValidMessage
         String validityString = isValidMessage(message);
