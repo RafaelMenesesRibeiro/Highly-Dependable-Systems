@@ -7,7 +7,6 @@ import hds.client.domain.CallableManager;
 import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.domain.IntentionToSellCallable;
 import hds.client.domain.WriteBackCallable;
-import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.*;
@@ -27,7 +26,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import static hds.client.helpers.ClientProperties.*;
 import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
@@ -62,8 +60,10 @@ public class ClientApplication {
         }
         ClientProperties.setMyClientPort(portId);
         ClientProperties.setMaxFailures(maxFailures);
-        ClientProperties.initializeRegularReplicasIDList(regularReplicasNumber);
-        ClientProperties.initializeCCReplicasIDList(ccReplicasNumber);
+        ClientProperties.initRegularReplicasIdList(regularReplicasNumber);
+        ClientProperties.initCitizenReplicaIdList(ccReplicasNumber);
+        ClientProperties.setReplicasList();
+        ClientProperties.setMajorityThreshold();
         runClientServer(args);
         runClientInterface();
     }
