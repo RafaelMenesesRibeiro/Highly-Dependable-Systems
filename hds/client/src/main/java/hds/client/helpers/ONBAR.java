@@ -58,7 +58,7 @@ public class ONBAR {
         return INSTANCE;
     }
 
-    public void Read(JSONObject readRequest) {
+    public void read(JSONObject readRequest) {
         rid.incrementAndGet();
         acks.set(0);
         readList = Arrays.asList(new BasicMessage[ClientProperties.getAllReplicaIdLists().size()]);
@@ -66,5 +66,7 @@ public class ONBAR {
         beb.broadcast(readRequest, rid.get());
     }
 
-    
+    public void deliver() {
+        
+    }
 }
