@@ -64,7 +64,7 @@ public class WriteBackCallable implements Callable<BasicMessage> {
         setMessageSignature(getMyPrivateKey(), message);
         HttpURLConnection connection = initiatePOSTConnection (String.format(REQUEST_ENDPOINT, replicaId, OPERATION));
         sendPostRequest(connection, newJSONObject(message));
-        return (BasicMessage) getResponseMessage(connection, Expect.WRITE_BACK_RESPONSE);  // TODO Expect fix
+        return (BasicMessage) getResponseMessage(connection, Expect.WRITE_BACK_RESPONSE);
     }
 
     /**
