@@ -29,13 +29,13 @@ public class ONRRMajorityVoting {
         for (GoodStateResponse message : readList) {
             if (highestOnSale == null) {
                 highestOnSale = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnGoodsWts(), highestOnSale.getOnGoodsWts())) {
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnGoodsWriteTimestamp(), highestOnSale.getOnGoodsWriteTimestamp())) {
                 highestOnSale = message;
             }
 
             if (highestOwner == null) {
                 highestOwner = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnOwnershipWts(), highestOwner.getOnOwnershipWts())) {
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnOwnershipWriteTimestamp(), highestOwner.getOnOwnershipWriteTimestamp())) {
                 highestOwner = message;
             }
         }
@@ -61,8 +61,8 @@ public class ONRRMajorityVoting {
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),
                     goodStateResponse.getOnGoodsWriterID(),
-                    goodStateResponse.getOnGoodsWts(),
-                    goodStateResponse.getWriteOnGoodsOperationSignature()
+                    goodStateResponse.getOnGoodsWriteTimestamp(),
+                    goodStateResponse.getWriteOnGoodsSignature()
             )) {
                 return 0;
             }
@@ -70,8 +70,8 @@ public class ONRRMajorityVoting {
             if (!verifyWriteOnOwnershipSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.getOnOwnershipWriterID(),
-                    goodStateResponse.getOnOwnershipWts(),
-                    goodStateResponse.getWriteOnOwnershipOperationSignature()
+                    goodStateResponse.getOnOwnershipWriteTimestamp(),
+                    goodStateResponse.getWriteOnOwnershipSignature()
             )) {
                 return 0;
             }

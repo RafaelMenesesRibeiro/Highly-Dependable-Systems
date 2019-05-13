@@ -6,9 +6,7 @@ import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.FailedWriteBackException;
-import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
-import hds.server.helpers.MarkForSale;
 import org.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -90,16 +88,16 @@ public class WriteBackController extends BaseController {
 			throw new FailedWriteBackException("The GoodID or OwnerID of the GoodStateResponses did not match.");
 		}
 
-		long onGoodsWts = onGoodsRelevantResponse.getOnGoodsWts();
+		long onGoodsWts = onGoodsRelevantResponse.getOnGoodsWriteTimestamp();
 		boolean onSale = onGoodsRelevantResponse.isOnSale();
-		String writeOnGoodsSignature = onGoodsRelevantResponse.getWriteOnGoodsOperationSignature();
+		String writeOnGoodsSignature = onGoodsRelevantResponse.getWriteOnGoodsSignature();
 		res = verifyWriteOnGoodsOperationSignature(onGoodsGoodID, onSale, onGoodsOwnerID, onGoodsWts, writeOnGoodsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
 
-		long onOwnershipWts = onOwnershipRelevantResponse.getOnOwnershipWts();
-		String writeOnOwnershipsSignature = onOwnershipRelevantResponse.getWriteOnOwnershipOperationSignature();
+		long onOwnershipWts = onOwnershipRelevantResponse.getOnOwnershipWriteTimestamp();
+		String writeOnOwnershipsSignature = onOwnershipRelevantResponse.getWriteOnOwnershipSignature();
 		res = verifyWriteOnOwnershipSignature(onOwnershipGoodID, onOwnershipOwnerID, onOwnershipWts, writeOnOwnershipsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");

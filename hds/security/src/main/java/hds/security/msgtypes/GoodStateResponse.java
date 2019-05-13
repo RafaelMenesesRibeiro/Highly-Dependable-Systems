@@ -29,11 +29,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
 
     @NotNull(message = "The on goods WriteTimestamp cannot be null.")
     @NotFutureTimestamp
-    private long onGoodsWts;
+    private long onGoodsWriteTimestamp;
 
     @NotNull(message = "The write on goods operation signature cannot be null.")
     @NotEmpty(message = "The write on goods operation signature cannot be empty.")
-    private String writeOnGoodsOperationSignature;
+    private String writeOnGoodsSignature;
 
     @NotNull(message = "The on ownership WriterID cannot be null.")
     @NotEmpty(message = "The on ownership WriterID cannot be empty.")
@@ -42,11 +42,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
 
     @NotNull(message = "The on ownership WriteTimestamp cannot be null.")
     @NotFutureTimestamp
-    private long onOwnershipWts;
+    private long onOwnershipWriteTimestamp;
 
     @NotNull(message = "The write on ownership operation signature cannot be null.")
     @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
-    private String writeOnOwnershipOperationSignature;
+    private String writeOnOwnershipSignature;
 
     @NotNull(message = "The readID cannot be null.")
     private int rid;
@@ -61,10 +61,10 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                              String ownerID,  // value associated with write
                              boolean onSale,   // goodId
                              String onGoodsWriterID,
-                             long onGoodsWts,
-                             String writeOnGoodsOperationSignature,
-                             long onOwnershipWts,
-                             String writeOnOwnershipOperationSignature,
+                             long onGoodsWriteTimestamp,
+                             String writeOnGoodsSignature,
+                             long onOwnershipWriteTimestamp,
+                             String writeOnOwnershipSignature,
                              int rid
                              )
     {
@@ -73,11 +73,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.ownerID = ownerID;
         this.onSale = onSale;
         this.onGoodsWriterID = onGoodsWriterID;
-        this.onGoodsWts = onGoodsWts;
-        this.writeOnGoodsOperationSignature = writeOnGoodsOperationSignature;
+        this.onGoodsWriteTimestamp = onGoodsWriteTimestamp;
+        this.writeOnGoodsSignature = writeOnGoodsSignature;
         this.onOwnershipWriterID = ownerID;
-        this.onOwnershipWts = onOwnershipWts;
-        this.writeOnOwnershipOperationSignature = writeOnOwnershipOperationSignature;
+        this.onOwnershipWriteTimestamp = onOwnershipWriteTimestamp;
+        this.writeOnOwnershipSignature = writeOnOwnershipSignature;
         this.rid = rid;
     }
 
@@ -116,20 +116,20 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.onGoodsWriterID = onGoodsWriterID;
     }
 
-    public long getOnGoodsWts() {
-        return onGoodsWts;
+    public long getOnGoodsWriteTimestamp() {
+        return onGoodsWriteTimestamp;
     }
 
-    public void setOnGoodsWts(long onGoodsWts) {
-        this.onGoodsWts = onGoodsWts;
+    public void setOnGoodsWriteTimestamp(long onGoodsWriteTimestamp) {
+        this.onGoodsWriteTimestamp = onGoodsWriteTimestamp;
     }
 
-    public String getWriteOnGoodsOperationSignature() {
-        return writeOnGoodsOperationSignature;
+    public String getWriteOnGoodsSignature() {
+        return writeOnGoodsSignature;
     }
 
-    public void setWriteOnGoodsOperationSignature(String writeOnGoodsOperationSignature) {
-        this.writeOnGoodsOperationSignature = writeOnGoodsOperationSignature;
+    public void setWriteOnGoodsSignature(String writeOnGoodsSignature) {
+        this.writeOnGoodsSignature = writeOnGoodsSignature;
     }
 
     public String getOnOwnershipWriterID() {
@@ -140,20 +140,20 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.onOwnershipWriterID = onOwnershipWriterID;
     }
 
-    public long getOnOwnershipWts() {
-        return onOwnershipWts;
+    public long getOnOwnershipWriteTimestamp() {
+        return onOwnershipWriteTimestamp;
     }
 
-    public void setOnOwnershipWts(long onOwnershipWts) {
-        this.onOwnershipWts = onOwnershipWts;
+    public void setOnOwnershipWriteTimestamp(long onOwnershipWriteTimestamp) {
+        this.onOwnershipWriteTimestamp = onOwnershipWriteTimestamp;
     }
 
-    public String getWriteOnOwnershipOperationSignature() {
-        return writeOnOwnershipOperationSignature;
+    public String getWriteOnOwnershipSignature() {
+        return writeOnOwnershipSignature;
     }
 
-    public void setWriteOnOwnershipOperationSignature(String writeOnOwnershipOperationSignature) {
-        this.writeOnOwnershipOperationSignature = writeOnOwnershipOperationSignature;
+    public void setWriteOnOwnershipSignature(String writeOnOwnershipSignature) {
+        this.writeOnOwnershipSignature = writeOnOwnershipSignature;
     }
 
     public int getRid() {
@@ -171,11 +171,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                 ", ownerID='" + ownerID + '\'' +
                 ", onSale=" + onSale +
                 ", onGoodsWriterID='" + onGoodsWriterID + '\'' +
-                ", onGoodsWts=" + onGoodsWts +
-                ", writeOnGoodsOperationSignature='" + writeOnGoodsOperationSignature + '\'' +
+                ", onGoodsWts=" + onGoodsWriteTimestamp +
+                ", writeOnGoodsOperationSignature='" + writeOnGoodsSignature + '\'' +
                 ", onOwnershipWriterID='" + onOwnershipWriterID + '\'' +
-                ", onOwnershipWts=" + onOwnershipWts +
-                ", writeOnOwnershipOperationSignature='" + writeOnOwnershipOperationSignature + '\'' +
+                ", onOwnershipWts=" + onOwnershipWriteTimestamp +
+                ", writeOnOwnershipOperationSignature='" + writeOnOwnershipSignature + '\'' +
                 ", rid=" + rid +
                 ", requestID='" + requestID + '\'' +
                 ", operation='" + operation + '\'' +
