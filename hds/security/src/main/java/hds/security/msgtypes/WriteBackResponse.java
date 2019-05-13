@@ -1,4 +1,4 @@
-package hds.security.helpers.managers;
+package hds.security.msgtypes;
 
 import hds.security.msgtypes.BasicMessage;
 
