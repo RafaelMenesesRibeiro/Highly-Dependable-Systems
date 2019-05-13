@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.server.controllers.BaseController.FROM_SERVER;
 import static hds.server.helpers.TransactionValidityChecker.getOnGoodsInfo;
 import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipInfo;
 
@@ -39,7 +40,6 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipInfo;
 public class GetStateOfGoodController {
 	private static final String NO_REQUEST_ID = "0";
 	private static final String TO_UNKNOWN = "unknown";
-	private static final String FROM_SERVER = ServerApplication.getPort();
 	private static final String OPERATION = "getStateOfGood";
 
 	/**
@@ -55,7 +55,7 @@ public class GetStateOfGoodController {
 														@RequestParam("goodID") @NotNull @NotEmpty String goodID,
 														@RequestParam("readID") @NotNull @NotEmpty String readID) {
 
-		String msg = "\nReceived request for " + OPERATION + "\n\tRequest: " + "\n\tGoodID - " + goodID + "\n\tReadID - " + readID;
+		String msg = "\nReceived request for " + OPERATION + ":\n\tGoodID - " + goodID + "\n\tReadID - " + readID;
 		ServerApplication.getLogManager().log(msg);
 
 		goodID = InputValidation.cleanString(goodID);
