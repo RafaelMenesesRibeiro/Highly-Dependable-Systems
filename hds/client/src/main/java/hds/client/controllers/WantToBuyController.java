@@ -178,7 +178,7 @@ public class WantToBuyController {
                         printError("Ignoring invalid message...");
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isTransferGoodAcknowledge(wts, message);
                 }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
