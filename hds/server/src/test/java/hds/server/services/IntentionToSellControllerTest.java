@@ -7,7 +7,10 @@ import hds.server.controllers.IntentionToSellController;
 import org.json.JSONException;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 
 import static hds.security.DateUtils.generateTimestamp;
@@ -26,7 +29,15 @@ public class IntentionToSellControllerTest extends BaseTests {
 
 	@Test
 	public void success() {
-		// TODO //
+		OwnerDataMessage message = newOwnerDataMessage();
+		try {
+			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
+			controller.execute(message);
+		}
+		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
 	}
 
 	// TODO - Test sending null fields or empty or not valid fields. //
@@ -34,15 +45,14 @@ public class IntentionToSellControllerTest extends BaseTests {
 	@Test(expected = SignatureException.class)
 	public void invalidSellerSignature() {
 		OwnerDataMessage message = newOwnerDataMessage();
-		setMessageSignature(getPrivateKeyFromResource(ServerApplication.getPort()), payload);
 		try {
+			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
 			controller.execute(message);
 		}
-		catch (Exception ex) {
-			ex.printStackTrace();
+		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
 			System.out.println(ex.getMessage());
 		}
-
 	}
 
 	private OwnerDataMessage newOwnerDataMessage() {
