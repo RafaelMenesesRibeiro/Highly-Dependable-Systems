@@ -327,7 +327,7 @@ public class ClientApplication {
             }
         }
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGoodWriteBack")) {
-            print("Get state of good operation with rid: " + rid + "had a successful right back phase...");
+            print("Get state of good operation with rid: " + rid + " had a successful right back phase...");
         }
     }
 
