@@ -3,7 +3,6 @@ package hds.server.services;
 import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
-import hds.server.ServerApplication;
 import hds.server.controllers.TransferGoodController;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
@@ -19,7 +18,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.Map;
@@ -37,7 +35,7 @@ public class TransferGoodControllerTest extends BaseTests {
 	private final String SERVER_ID = "9001";
 	private final String BUYER_ID = "8001";
 	private final String SELLER_ID = "8002";
-	private final String NOT_CLIENT_ID = "8003";
+	private final String STRANGER_CLIENT_ID = "8003";
 	private final String SELLER_OWNED_GOOD_ID = "good2";
 	private final String NOT_SELLER_OWNED_GOOD_ID = "good3";
 	private final boolean ON_SALE = true;
@@ -120,7 +118,7 @@ public class TransferGoodControllerTest extends BaseTests {
 		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
 
 		try {
-			setMessageWrappingSignature(getPrivateKeyFromResource(NOT_CLIENT_ID), requestMessage);
+			setMessageWrappingSignature(getPrivateKeyFromResource(STRANGER_CLIENT_ID), requestMessage);
 			controller.execute(requestMessage);
 		}
 		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
@@ -161,7 +159,31 @@ public class TransferGoodControllerTest extends BaseTests {
 
 		try {
 			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
-			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(getPrivateKeyFromResource(NOT_CLIENT_ID), rawData));
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(getPrivateKeyFromResource(STRANGER_CLIENT_ID), rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			setMessageWrappingSignature(getPrivateKeyFromResource(SELLER_ID), requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void emptyWriteOnGoodsSignature() {
+		expectedExRule.expect(SignatureException.class);
+		expectedExRule.expectMessage("The Write On Goods Operation's signature is not valid.");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(getPrivateKeyFromResource(BUYER_ID), rawData));
 			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
 
 			setMessageWrappingSignature(getPrivateKeyFromResource(SELLER_ID), requestMessage);
