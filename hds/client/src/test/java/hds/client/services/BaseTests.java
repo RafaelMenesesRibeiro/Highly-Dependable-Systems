@@ -16,11 +16,21 @@ public abstract class BaseTests {
     public static final String S_2_PORT = "9001";
     public static final String S_3_PORT = "9002";
     public static final String S_4_PORT = "9003";
-    
+
     public static final String GOOD_1 = "good1";
     public static final String GOOD_2 = "good2";
     public static final String GOOD_3 = "good3";
     public static final String GOOD_4 = "good4";
+
+    public static final int RID_1 = 1;
+    public static final int RID_2 = 2;
+    public static final int RID_3 = 3;
+    public static final int RID_4 = 4;
+
+    public static final int WTS_1 = 1;
+    public static final int WTS_2 = 2;
+    public static final int WTS_3 = 3;
+    public static final int WTS_4 = 4;
 
     public static PrivateKey c1PrivateKey;
     public static PublicKey c1PublicKey;
