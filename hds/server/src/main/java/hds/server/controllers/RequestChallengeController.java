@@ -1,13 +1,12 @@
 package hds.server.controllers;
 
+import hds.security.ChallengeSolver;
 import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ChallengeRequestResponse;
-import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
-import hds.security.ChallengeSolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.logging.Logger;
 
 import static hds.security.CryptoUtils.hashMD5;
 import static hds.security.DateUtils.generateTimestamp;
