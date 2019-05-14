@@ -93,7 +93,6 @@ public class ONRRMajorityVoting {
     }
 
     public static int isReadWtsWriteBackAcknowledge(int rid, BasicMessage message) {
-        // TODO
         if (message == null) {
             printError("A replica timed out. No information regarding the replicaId...");
             return 0;
@@ -101,12 +100,9 @@ public class ONRRMajorityVoting {
             if (((WriteBackResponse) message).getRid() == rid) {
                 return 1;
             }
-            printError("Response contained rid different than the one that was sent on write back message...");
-            return 0;
-        } else {
-            printError("isGetGoodStateWriteBackAcknowledge: \n" + message.toString());
-            return 0;
         }
+        printError("Response contained rid different than the one that was sent on write back message...");
+        return 0;
     }
 
     public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
