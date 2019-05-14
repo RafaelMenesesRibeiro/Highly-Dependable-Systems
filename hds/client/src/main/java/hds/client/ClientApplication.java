@@ -119,7 +119,7 @@ public class ClientApplication {
 
         int wts = processReadWtsResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
-        return wts;
+        return wts + 1;
     }
 
     private static int processReadWtsResponses(final int rid,
