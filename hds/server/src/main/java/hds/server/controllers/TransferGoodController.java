@@ -149,9 +149,6 @@ public class TransferGoodController extends BaseController {
 
 			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
 				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
-			} else {
-				// TODO CHECK THIS OUT
-				// SHOULD transferGood(...) be here? You dont want to continue unless you updated the function
 			}
 
 			TransferGood.transferGood(connection, goodID, buyerID, ""+ rcvWts, writeOnOwnershipsSignature, writeOnGoodsSignature);
