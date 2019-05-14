@@ -24,7 +24,7 @@ public class DateUtils {
         Instant instantNow = Instant.now();
         Instant receivedInstant = Instant.ofEpochSecond(receivedTimestamp);
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
-        boolean isOld = receivedInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES);
+        boolean isOld = receivedInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
         return isOld;
     }
 
