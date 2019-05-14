@@ -31,7 +31,7 @@ public class ONRRMajorityVoting {
         for (ReadWtsResponse message : readList) {
             System.out.println("----- READING WTS -----");
             System.out.println(message.toString());
-            System.out.println("  ----- END READ -----  ");
+            System.out.println("  ----- END READ -----  \n");
 
             if (highest == null) {
                 highest = message;
@@ -54,7 +54,7 @@ public class ONRRMajorityVoting {
         for (GoodStateResponse message : readList) {
             System.out.println("----- READING GOOD STATE -----");
             System.out.println(message.toString());
-            System.out.println("    ----- END READ -----    ");
+            System.out.println("    ----- END READ -----    \n");
 
             if (highestOnSale == null) {
                 highestOnSale = message;

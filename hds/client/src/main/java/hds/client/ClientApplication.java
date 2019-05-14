@@ -74,7 +74,7 @@ public class ClientApplication {
 
     private static void runClientInterface() {
         while (true) {
-            print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
+            print("\nPress '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
             int input;
             try {
                 input = inputScanner.nextInt();
@@ -277,7 +277,7 @@ public class ClientApplication {
             if (highestQuartet == null) {
                 printError("No good state responses were found...");
             } else {
-                print(String.format("\nHighest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+                print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
                 getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
             }
         } else {
