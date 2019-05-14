@@ -8,7 +8,7 @@ public class ReadWtsResponse extends BasicMessage implements Serializable {
     private int rid;
 
     @NotNull(message = "The write timestamp cannot be null.")
-    private long wts;
+    private int wts;
 
     public ReadWtsResponse(long timestamp,
                            String requestID,
@@ -17,7 +17,7 @@ public class ReadWtsResponse extends BasicMessage implements Serializable {
                            String to,
                            String signature,
                            int rid,
-                           long wts)
+                           int wts)
     {
         super(timestamp, requestID, operation, from, to, signature);
         this.rid = rid;
@@ -35,11 +35,11 @@ public class ReadWtsResponse extends BasicMessage implements Serializable {
         this.rid = rid;
     }
 
-    public long getWts() {
+    public int getWts() {
         return wts;
     }
 
-    public void setWts(long wts) {
+    public void setWts(int wts) {
         this.wts = wts;
     }
 

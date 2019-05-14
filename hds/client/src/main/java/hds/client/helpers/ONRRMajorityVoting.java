@@ -25,7 +25,7 @@ public class ONRRMajorityVoting {
         }
     }
 
-    public static Pair<ReadWtsResponse, Long> selectMostRecentWts(List<ReadWtsResponse> readList) {
+    public static Pair<ReadWtsResponse, Integer> selectMostRecentWts(List<ReadWtsResponse> readList) {
         ReadWtsResponse highest = null;
 
         for (ReadWtsResponse message : readList) {

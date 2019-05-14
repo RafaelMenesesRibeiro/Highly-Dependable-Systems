@@ -67,7 +67,7 @@ public class GetCurrentTimestampController {
 	 * @return 	ReadWtsResponse 	Contains the current timestamp and the readID
 	 */
 	public static ReadWtsResponse execute(String clientID, int readID) {
-		long currentWriteTimestamp = ServerApplication.getCurrentWriteTimestamp();
+		int currentWriteTimestamp = ServerApplication.getCurrentWriteTimestamp();
 		ReadWtsResponse response = new ReadWtsResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", readID, currentWriteTimestamp);
 		return response;
 	}

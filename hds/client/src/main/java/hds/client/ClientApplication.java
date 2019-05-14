@@ -117,12 +117,12 @@ public class ClientApplication {
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        long wts = processReadWtsResponses(rid, replicasList.size(), completionService);
+        int wts = processReadWtsResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
         return wts;
     }
 
-    private static long processReadWtsResponses(final int rid,
+    private static int processReadWtsResponses(final int rid,
                                                 final int replicasCount,
                                                 ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -149,7 +149,7 @@ public class ClientApplication {
             }
         }
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWts")) {
-            Pair<ReadWtsResponse, Long> highestPair = ONRRMajorityVoting.selectMostRecentWts(readList);
+            Pair<ReadWtsResponse, Integer> highestPair = ONRRMajorityVoting.selectMostRecentWts(readList);
             if (highestPair == null) {
                 printError("No wts responses were found...");
             } else {
@@ -162,7 +162,7 @@ public class ClientApplication {
         return -1;
     }
 
-    public static long readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
+    public static int readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
         print("Initiating read wts write back phase to all known replicas...");
 
         final List<String> replicasList = ClientProperties.getReplicasList();
