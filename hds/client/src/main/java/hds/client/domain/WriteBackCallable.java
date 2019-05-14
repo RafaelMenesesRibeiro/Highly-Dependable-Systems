@@ -13,7 +13,7 @@ import static hds.security.SecurityManager.setMessageSignature;
 import static hds.security.helpers.managers.ConnectionManager.*;
 
 /**
- * The type get intention to sell callable performs a PUT request to the end point /writeBack of a notary replica after a doing a GET on /stateOfGood
+ * The type get state of good write back callable performs POST request to the end point /getStateOfGoodWriteBack of a notary replica after a doing a GET on /stateOfGood
  * {@link BasicMessage}
  * {@link GoodStateResponse}
  * {@link WriteBackMessage}
@@ -91,7 +91,7 @@ public class WriteBackCallable implements Callable<BasicMessage> {
 
     @Override
     public String toString() {
-        return "IntentionToSellCallable{" +
+        return "WriteBackCallable{" +
                 "message=" + message.toString() +
                 ", notaryReplicaId='" + replicaId + '\'' +
                 '}';
