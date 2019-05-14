@@ -1,6 +1,7 @@
 package hds.server.services;
 
 import hds.security.CryptoUtils;
+import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.server.ServerApplication;
 import hds.server.controllers.IntentionToSellController;
@@ -96,7 +97,7 @@ public class IntentionToSellControllerTest extends BaseTests {
 
 	@Test
 	public void invalidSellerSignature() {
-		expectedExRule.expect(RuntimeException.class);
+		expectedExRule.expect(SignatureException.class);
 		expectedExRule.expectMessage("The Seller's signature is not valid.");
 
 		try {
@@ -111,7 +112,7 @@ public class IntentionToSellControllerTest extends BaseTests {
 
 	@Test
 	public void invalidWriteOnGoodsSignature() {
-		expectedExRule.expect(RuntimeException.class);
+		expectedExRule.expect(SignatureException.class);
 		expectedExRule.expectMessage("The Write On Goods Operation's signature is not valid.");
 
 		try {
