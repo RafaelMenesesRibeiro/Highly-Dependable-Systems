@@ -10,6 +10,7 @@ import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
 import static hds.security.SecurityManager.*;
 
+@SuppressWarnings("Duplicates")
 public class ONRRMajorityVoting {
 
     public static boolean assertOperationSuccess(int ackCount, String operation) {
@@ -52,6 +53,23 @@ public class ONRRMajorityVoting {
         return new Quartet<>(highestOnSale, highestOnSale.isOnSale(), highestOwner, highestOwner.getOwnerID());
     }
 
+    public static int isReadWtsAcknowledge(int rid, BasicMessage message, List<ReadWtsResponse> readList) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof ReadWtsResponse) {
+            ReadWtsResponse readWtsResponse = (ReadWtsResponse) message;
+
+            if (rid != readWtsResponse.getRid()) {
+                return 0;
+            }
+
+            readList.add(readWtsResponse);
+            return 1;
+        }
+        printError(message.toString());
+        return 0;
+    }
+    
     public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
