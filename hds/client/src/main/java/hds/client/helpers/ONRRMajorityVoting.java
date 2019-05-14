@@ -2,6 +2,7 @@ package hds.client.helpers;
 
 import hds.security.DateUtils;
 import hds.security.msgtypes.*;
+import org.javatuples.Pair;
 import org.javatuples.Quartet;
 
 import java.util.List;
@@ -23,15 +24,36 @@ public class ONRRMajorityVoting {
         }
     }
 
+    public static Pair<ReadWtsResponse, Long> selectMostRecentWts(List<ReadWtsResponse> readList) {
+        ReadWtsResponse highest = null;
+
+        for (ReadWtsResponse message : readList) {
+            System.out.println("----- READING WTS -----");
+            System.out.println(message.toString());
+            System.out.println("  ----- END READ -----  ");
+
+            if (highest == null) {
+                highest = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
+                highest = message;
+            }
+        }
+
+        if (highest == null) {
+            return null;
+        }
+
+        return new Pair<>(highest, highest.getWts());
+    }
+
     public static Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> selectMostRecentGoodState(List<GoodStateResponse> readList) {
         GoodStateResponse highestOnSale = null;
         GoodStateResponse highestOwner = null;
 
         for (GoodStateResponse message : readList) {
-            
-            System.out.println("-----");
+            System.out.println("----- READING GOOD STATE -----");
             System.out.println(message.toString());
-            System.out.println("-----");
+            System.out.println("    ----- END READ -----    ");
 
             if (highestOnSale == null) {
                 highestOnSale = message;
@@ -69,7 +91,24 @@ public class ONRRMajorityVoting {
         printError(message.toString());
         return 0;
     }
-    
+
+    public static int isReadWtsWriteBackAcknowledge(int rid, BasicMessage message) {
+        // TODO
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteBackResponse) {
+            if (((WriteBackResponse) message).getRid() == rid) {
+                return 1;
+            }
+            printError("Response contained rid different than the one that was sent on write back message...");
+            return 0;
+        } else {
+            printError("isGetGoodStateWriteBackAcknowledge: \n" + message.toString());
+            return 0;
+        }
+    }
+
     public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
