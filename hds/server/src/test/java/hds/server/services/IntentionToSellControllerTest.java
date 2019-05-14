@@ -62,12 +62,12 @@ public class IntentionToSellControllerTest extends BaseTests {
 				OPERATION,
 				CLIENT_ID,
 				"9001",
-				"invalid signature",
+				"",
 				"good1",
 				CLIENT_ID,
 				1,
 				true,
-				"invalid write operation signature"
+				""
 		);
 	}
 }
