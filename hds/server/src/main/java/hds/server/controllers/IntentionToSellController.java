@@ -112,10 +112,8 @@ public class IntentionToSellController extends BaseController {
 			// Leave this one here in case someone writes before this.
 			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
 				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
-			} else {
-				// TODO CHECK THIS OUT
-				// SHOULD changeGoodSaleStatus(...) be here? You dont want to continue unless you updated the function
 			}
+
 			MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+rcvWts, writeOperationSignature);
 
 			connection.commit();
