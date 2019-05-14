@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 public class DateUtils {
-    private static final int TOLERANCE = 5;
     private static final int FUTURE_TOLERANCE = 10;
 
     /**
