@@ -4,6 +4,7 @@ import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.SaleRequestMessage;
+import hds.server.ServerApplication;
 import hds.server.controllers.TransferGoodController;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
@@ -11,6 +12,7 @@ import hds.server.domain.ChallengeData;
 import hds.server.exception.BadTransactionException;
 import hds.server.exception.ChallengeFailedException;
 import hds.server.exception.IncorrectSignatureException;
+import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import mockit.Expectations;
@@ -324,6 +326,52 @@ public class TransferGoodControllerTest extends BaseTests {
 
 		new Expectations(TransactionValidityChecker.class) {{
 			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(STRANGER_CLIENT_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+		}};
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			SaleRequestMessage saleRequestMessage = newSaleRequestMessage(requestMessage.getTimestamp(), requestMessage.getWriteOnGoodsSignature(), requestMessage.getWriteOnOwnershipsSignature());
+
+			setMessageSignature(BUYER_KEY, saleRequestMessage);
+			String messageSignature = saleRequestMessage.getSignature();
+			requestMessage.setSignature(messageSignature);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void goodNotOnSale() {
+		expectedExRule.expect(BadTransactionException.class);
+		expectedExRule.expectMessage("The transaction is not valid.");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new TransferGoodControllerTest.MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransactionValidityChecker.class) {{
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(SELLER_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+
+			try { TransactionValidityChecker.getIsOnSale((Connection) any, anyString); returns(false); }
 			catch (JSONException | SQLException e) { /* Do nothing. */ }
 		}};
 
