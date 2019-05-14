@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 public class DateUtils {
-    private static final int TOLERANCE = 1;
     private static final int FUTURE_TOLERANCE = 10;
 
     /**
@@ -24,8 +23,9 @@ public class DateUtils {
         Instant instantNow = Instant.now();
         Instant receivedInstant = Instant.ofEpochSecond(receivedTimestamp);
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
-        boolean isOld = receivedInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
-        return isOld;
+        boolean isNotOld = receivedInstant.isAfter(instantNow.minus(60, ChronoUnit.SECONDS));
+        boolean isNotFuture = receivedInstant.isBefore(instantNow.plus(10, ChronoUnit.SECONDS));
+        return isNotOld && isNotFuture;
     }
 
     /**
