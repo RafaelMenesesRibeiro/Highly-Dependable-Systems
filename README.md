@@ -2,8 +2,6 @@
 
 # HDS Notary
 
-
-
 ## 1 - Introduction
 Create a Highly Dependable Notary application.  
 The main goal of HDSNotary is to certify the transfer of ownership of goods between users.  
