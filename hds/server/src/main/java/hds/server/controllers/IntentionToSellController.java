@@ -38,7 +38,7 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 @RestController
 public class IntentionToSellController extends BaseController {
 
-	private IntentionToSellController() {
+	public IntentionToSellController() {
 		OPERATION = "intentionToSell";
 	}
 

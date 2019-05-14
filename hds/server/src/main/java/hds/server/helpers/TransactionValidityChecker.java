@@ -277,7 +277,7 @@ public class TransactionValidityChecker {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
 			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload.toString());
 		}
-		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
+		catch (NullPointerException | IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
 			throw new SignatureException(e.getMessage());
 		}
 	}
