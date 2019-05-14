@@ -59,7 +59,7 @@ class DatabaseInterface {
 			}
 
 			ResultSet rs = stmt.executeQuery();
-			while(rs.next()) {
+			if (rs.next()) {
 				JSONObject json = new JSONObject();
 				for (String key: returnColumns) {
 					json.put(key, rs.getString(key));
