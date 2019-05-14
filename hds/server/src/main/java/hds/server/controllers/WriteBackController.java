@@ -51,7 +51,6 @@ public class WriteBackController extends BaseController {
 		return GeneralControllerHelper.generalControllerSetup(writeBackData, result, this);
 	}
 
-
 	/**
 	 * Writes to the database's tables, if the received entries are more recent than the ones in it.
 	 *
