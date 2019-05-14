@@ -62,7 +62,7 @@ public class ServerApplication {
 				isUseCC = true;
 			}
 
-			logger.info("Started server in port " + serverPort + " and max client id " + maxClientID);
+			logManager.log("Started server in port " + serverPort + " and max client id " + maxClientID);
 		}
 		catch (Exception ex) {
 			logger.warning("Exiting:\n" + ex.getMessage());

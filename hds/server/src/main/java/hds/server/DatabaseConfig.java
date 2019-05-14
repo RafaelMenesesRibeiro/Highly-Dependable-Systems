@@ -21,4 +21,5 @@ public class DatabaseConfig {
 		dataSource.setPassword(ServerApplication.getPassword());
 		return dataSource;
 	}
+
 }

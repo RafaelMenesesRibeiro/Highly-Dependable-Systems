@@ -18,6 +18,10 @@ import static hds.server.ServerApplication.*;
  */
 public class PSQLServerSetup {
 
+	private PSQLServerSetup() {
+		// This is here so the class can't be instantiated. //
+	}
+
 	/**
 	 * Initializes the databases for every server.
 	 */
