@@ -45,7 +45,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 		completionService.submit(callableMgrMock);
 		completionService.submit(callableMgrMock);
 
-		if (ClientApplication.processGetStateOfGoodResponses(RID_1, 4, completionService) == null) {
+		if (ClientApplication.processGetStateOfGoodResponses(RID_1,4, completionService) == null) {
 			fail("getStateOfGoodSuccess test failed");
 		}
 
@@ -53,7 +53,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 	}
 
 	/** Helpers */
-	
+
 	private GoodStateResponse newMockedGoodStateResponse(String clientPort, String replicaPort, PrivateKey replicaPrivateKey) {
 		try {
 			GoodStateResponse response = new GoodStateResponse(
