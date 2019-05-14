@@ -5,7 +5,6 @@ import org.junit.*;
 import java.nio.charset.Charset;
 import java.security.SignatureException;
 
-import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.signData;
 
 public class SignUT extends BaseUT {
