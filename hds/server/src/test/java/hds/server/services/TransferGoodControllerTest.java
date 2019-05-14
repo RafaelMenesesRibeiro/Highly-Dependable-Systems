@@ -1,8 +1,14 @@
 package hds.server.services;
 
 import hds.security.msgtypes.ApproveSaleRequestMessage;
+import hds.server.ServerApplication;
 import hds.server.controllers.TransferGoodController;
+import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
+import hds.server.controllers.controllerHelpers.UserRequestIDKey;
+import hds.server.domain.ChallengeData;
 import hds.server.exception.BadTransactionException;
+import hds.server.exception.ChallengeFailedException;
+import mockit.Expectations;
 import org.json.JSONException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,6 +22,7 @@ import java.util.concurrent.Executor;
 import static hds.security.DateUtils.generateTimestamp;
 
 public class TransferGoodControllerTest extends BaseTests {
+	private final String REQUEST_ID = "requestID";
 	private final String OPERATION = "transferGood";
 	private final String SERVER_ID = "9001";
 	private final String BUYER_ID = "8001";
@@ -51,10 +58,26 @@ public class TransferGoodControllerTest extends BaseTests {
 		}
 	}
 
+	@Test(expected = ChallengeFailedException.class)
+	public void wrongChallengeAnswer() {
+		char[] alphabet = new char[5];
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, "original", "hsahed", alphabet);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		try {
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
 	private ApproveSaleRequestMessage newApproveSaleRequestMessage() {
 		return new ApproveSaleRequestMessage(
 				generateTimestamp(),
-				"requestID",
+				REQUEST_ID,
 				OPERATION,
 				BUYER_ID,
 				SELLER_ID,
