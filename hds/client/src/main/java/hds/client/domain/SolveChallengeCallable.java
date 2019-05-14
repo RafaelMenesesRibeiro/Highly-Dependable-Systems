@@ -2,11 +2,12 @@ package hds.client.domain;
 
 import hds.security.ChallengeSolver;
 import hds.security.msgtypes.ChallengeRequestResponse;
-import org.javatuples.Pair;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 
-public class SolveChallengeCallable implements Callable<Pair<String, String>> {
+public class SolveChallengeCallable implements Callable<List<String>> {
 
     private final String replicaId;
     private final ChallengeRequestResponse challenge;
@@ -17,7 +18,7 @@ public class SolveChallengeCallable implements Callable<Pair<String, String>> {
     }
 
     @Override
-    public Pair<String, String> call() {
+    public List<String> call() {
         System.out.println("Solving challenge for replica: " + replicaId);
         String solution = ChallengeSolver.solveChallenge(
                 challenge.getHashedOriginalString(),
@@ -25,6 +26,6 @@ public class SolveChallengeCallable implements Callable<Pair<String, String>> {
                 challenge.getAlphabet()
         );
         System.out.println("Found possible solution: " + solution + ", for challenge of replica: " + replicaId);
-        return new Pair<>(replicaId, solution);
+        return Arrays.asList(replicaId, solution);
     }
 }

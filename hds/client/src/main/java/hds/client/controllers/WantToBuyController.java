@@ -82,7 +82,7 @@ public class WantToBuyController {
     private Map<String, ChallengeRequestResponse> processChallengeRequestResponses(final int replicasCount,
                                                                                    ExecutorCompletionService<BasicMessage> completionService) {
 
-        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap = new ConcurrentHashMap<>();
+        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap = new HashMap<>();
         int ackCount = 0;
         for (int i = 0; i < replicasCount; i++) {
             try {
@@ -146,33 +146,33 @@ public class WantToBuyController {
     }
 
     private Map<String, String> solveChallenges(final Map<String, ChallengeRequestResponse> challengesMap) {
-        Map<String, String> replicaIdChallengeSolutionsMap = new ConcurrentHashMap<>();
-        final ExecutorService executorService = Executors.newFixedThreadPool(challengesMap.size());
-        final List<Callable<Pair<String, String>>> callableList = new ArrayList<>();
+        Map<String, String> replicaIdChallengeSolutionsMap = new HashMap<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(challengesMap.size());
+        List<Callable<List<String>>> callableList = new ArrayList<>();
 
         for (Map.Entry<String, ChallengeRequestResponse> entry : challengesMap.entrySet()) {
             callableList.add(new SolveChallengeCallable(entry.getKey(), entry.getValue()));
         }
 
-        List<Future<Pair<String, String>>> futuresList = new ArrayList<>();
+        List<Future<List<String>>> futuresList = new ArrayList<>();
         try {
-            futuresList = executorService.invokeAll(callableList,30, TimeUnit.SECONDS);
+            futuresList = executorService.invokeAll(callableList);
         } catch (InterruptedException ie) {
             printError("InvokeAll solve challenge methods was interrupted...");
         }
 
-        for (Future<Pair<String, String>> future : futuresList) {
+        for (Future<List<String>> future : futuresList) {
             if (!future.isCancelled()) {
-                Pair<String, String> solution;
+                List<String> solution;
                 try {
-                    solution = future.get();
-                    replicaIdChallengeSolutionsMap.put(solution.getValue0(), solution.getValue1());
-                } catch (ExecutionException | InterruptedException ee) {
+                    solution = future.get(15, TimeUnit.SECONDS);
+                    replicaIdChallengeSolutionsMap.put(solution.get(0), solution.get(1));
+                } catch (ExecutionException | InterruptedException | TimeoutException ee) {
                     printError("May have been unable to get some Future<> Solutions during solution map construction...");
                 }
             }
         }
-
+        executorService.shutdown();
         return replicaIdChallengeSolutionsMap;
     }
 
