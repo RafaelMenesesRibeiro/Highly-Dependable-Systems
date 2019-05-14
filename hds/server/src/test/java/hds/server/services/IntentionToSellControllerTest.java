@@ -2,12 +2,15 @@ package hds.server.services;
 
 import hds.security.CryptoUtils;
 import hds.security.msgtypes.OwnerDataMessage;
+import hds.server.ServerApplication;
 import hds.server.controllers.IntentionToSellController;
 import hds.server.exception.NoPermissionException;
+import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
 import hds.server.helpers.TransactionValidityChecker;
 import mockit.Expectations;
 import mockit.integration.junit4.JMockit;
+import org.apache.catalina.Server;
 import org.json.JSONException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,6 +43,7 @@ public class IntentionToSellControllerTest extends BaseTests {
 	private final boolean ON_SALE = true;
 	private final int WRITE_TIMESTAMP = 1;
 	private IntentionToSellController controller;
+	private OwnerDataMessage ownerDataMessage;
 
 	@Rule
 	public ExpectedException expectedExRule = ExpectedException.none();
@@ -47,6 +51,7 @@ public class IntentionToSellControllerTest extends BaseTests {
 	@Override
 	public void populateForTests() {
 		controller = new IntentionToSellController();
+		ownerDataMessage = newOwnerDataMessage();
 	}
 
 	@Test
@@ -71,10 +76,9 @@ public class IntentionToSellControllerTest extends BaseTests {
 		expectedExRule.expect(RuntimeException.class);
 		expectedExRule.expectMessage("The Seller's signature is not valid.");
 
-		OwnerDataMessage message = newOwnerDataMessage();
 		try {
-			setMessageSignature(getPrivateKeyFromResource(NOT_CLIENT_ID), message);
-			controller.execute(message);
+			setMessageSignature(getPrivateKeyFromResource(NOT_CLIENT_ID), ownerDataMessage);
+			controller.execute(ownerDataMessage);
 		}
 		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
 			// Test failed
@@ -87,10 +91,9 @@ public class IntentionToSellControllerTest extends BaseTests {
 		expectedExRule.expect(RuntimeException.class);
 		expectedExRule.expectMessage("The Write On Goods Operation's signature is not valid.");
 
-		OwnerDataMessage message = newOwnerDataMessage();
 		try {
-			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
-			controller.execute(message);
+			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), ownerDataMessage);
+			controller.execute(ownerDataMessage);
 		}
 		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
 			// Test failed
@@ -101,35 +104,60 @@ public class IntentionToSellControllerTest extends BaseTests {
 	@Test(expected = NoPermissionException.class)
 	public void clientNotOwnerOfGood() {
 		new Expectations(DatabaseManager.class) {{
-			try {
-				DatabaseManager.getConnection();
-				this.result = new MockedConnection();
-			}
+			try { DatabaseManager.getConnection(); this.result = new MockedConnection(); }
 			catch (SQLException ex) { /* Do nothing. */ }
 		}};
 
 		new Expectations(TransactionValidityChecker.class) {{
-			try {
-				TransactionValidityChecker.getCurrentOwner((Connection) any, anyString);
-				returns("8002");
-			}
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns("8002"); }
 			catch (JSONException | SQLException e) { /* Do nothing. */ }
 		}};
 
-		OwnerDataMessage message = newOwnerDataMessage();
-		message.setGoodID(NOT_OWNED_GOOD_ID);
+		ownerDataMessage.setGoodID(NOT_OWNED_GOOD_ID);
 		try {
 			PrivateKey privateKey = getPrivateKeyFromResource(CLIENT_ID);
 
 			byte[] rawData = newWriteOnGoodsData(NOT_OWNED_GOOD_ID, ON_SALE, CLIENT_ID, WRITE_TIMESTAMP).toString().getBytes();
 			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(privateKey, rawData));
-			message.setWriteOperationSignature(writeOnGoodsSignature);
+			ownerDataMessage.setWriteOperationSignature(writeOnGoodsSignature);
 
-			setMessageSignature(privateKey, message);
+			setMessageSignature(privateKey, ownerDataMessage);
 
-			controller.execute(message);
+			controller.execute(ownerDataMessage);
 		}
 		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test(expected = OldMessageException.class)
+	public void writeTimestampIsTooOld() {
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransactionValidityChecker.class) {{
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(CLIENT_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+		}};
+
+		new Expectations(ServerApplication.class) {{ ServerApplication.getMyWts(); returns(3); }};
+
+		ownerDataMessage.setWriteTimestamp(1);
+		try {
+			PrivateKey privateKey = getPrivateKeyFromResource(CLIENT_ID);
+
+			byte[] rawData = newWriteOnGoodsData(OWNED_GOOD_ID, ON_SALE, CLIENT_ID, ownerDataMessage.getWriteTimestamp()).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(privateKey, rawData));
+			ownerDataMessage.setWriteOperationSignature(writeOnGoodsSignature);
+
+			setMessageSignature(privateKey, ownerDataMessage);
+
+			controller.execute(ownerDataMessage);
+		}
+		catch (JSONException | SQLException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
