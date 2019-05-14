@@ -339,7 +339,8 @@ public class ClientApplication {
         final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-        long wts = generateTimestamp();
+
+        long wts = readWts();
         final String goodId = requestGoodId();
 
         long timestamp = generateTimestamp();
@@ -391,8 +392,7 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
-            long wts = generateTimestamp();
-
+            long wts = readWts();
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
