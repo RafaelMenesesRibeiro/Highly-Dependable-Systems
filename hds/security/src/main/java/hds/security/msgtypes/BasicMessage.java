@@ -10,7 +10,6 @@ import java.io.Serializable;
 public class BasicMessage implements Serializable {
     @NotNull(message = "The timestamp cannot be null.")
     @RelevantTimestamp
-    @NotFutureTimestamp
     private long timestamp;
 
     @NotNull(message = "The requestID cannot be null.")
