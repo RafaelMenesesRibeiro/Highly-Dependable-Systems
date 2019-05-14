@@ -3,7 +3,7 @@ package hds.security.msgtypes;
 import java.io.Serializable;
 
 public class ReadWtsWriteBackMessage extends BasicMessage implements Serializable {
-    public static final String OPERATION = "readWtsWriteBackMessage";
+    public static final String OPERATION = "readWriteBack";
 
     private int rid;
     private ReadWtsResponse highest;

@@ -1,9 +1,6 @@
 package hds.client.domain;
 
-import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.GoodStateResponse;
-import hds.security.msgtypes.ReadWtsResponse;
-import hds.security.msgtypes.WriteBackMessage;
+import hds.security.msgtypes.*;
 
 import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
@@ -23,7 +20,7 @@ import static hds.security.helpers.managers.ConnectionManager.*;
  * @author Rafael Ribeiro
  */
 public class ReadWtsWriteBackCallable implements Callable<BasicMessage> {
-    private static final String OPERATION = "writeBack";
+    private static final String OPERATION = "readWriteBack";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
     private final BasicMessage message;
     private final String replicaId;
@@ -65,9 +62,9 @@ public class ReadWtsWriteBackCallable implements Callable<BasicMessage> {
      * @param requestId   a unique identifier used by notary replicas to return cached responses in case of loss of messages over the network
      * @param to          replica to where the client wishes to send this request message
      * @param highest     a replica signed response containing the highest read wts response the client found on a read list
-     * @return {@link WriteBackMessage}
+     * @return {@link ReadWtsWriteBackMessage}
      */
-    private WriteBackMessage newReadWtsWriteBackMessage(final long timestamp,
+    private ReadWtsWriteBackMessage newReadWtsWriteBackMessage(final long timestamp,
                                                         final String requestId,
                                                         final String to,
                                                         final int rid,
