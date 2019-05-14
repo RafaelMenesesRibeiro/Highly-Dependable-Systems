@@ -13,10 +13,12 @@ import hds.security.msgtypes.GoodStateResponse;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.integration.junit4.JMockit;
+import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,8 +78,8 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 					RID_1);
 			SecurityManager.setMessageSignature(replicaPrivateKey, response);
 			return response;
-		} catch (Exception e) {
-			fail("Could not generate mocked GoodStateResponse...");
+		} catch (SignatureException | JSONException exc) {
+			fail("Could not generate mocked GoodStateResponse... " + exc.getMessage());
 			return null;
 		}
 	}
@@ -96,8 +98,8 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 			);
 			SecurityManager.setMessageSignature(replicaPrivateKey, response);
 			return response;
-		} catch (Exception e) {
-			fail("Could not generate mocked ErrorResponse...");
+		} catch (SignatureException se) {
+			fail("Could not generate mocked ErrorResponse... " + se.getMessage());
 			return null;
 		}
 	}
