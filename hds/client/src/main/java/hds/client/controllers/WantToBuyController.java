@@ -167,7 +167,7 @@ public class WantToBuyController {
                 }
             }
         } catch (InterruptedException ie) {
-            // swallow
+            printError("Some challenges may have been interrupted during good selling...");
         }
 
         return replicaIdChallengeSolutionsMap;
