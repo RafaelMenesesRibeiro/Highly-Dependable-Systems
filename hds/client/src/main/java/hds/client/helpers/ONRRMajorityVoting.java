@@ -35,7 +35,7 @@ public class ONRRMajorityVoting {
 
             if (highest == null) {
                 highest = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
+            } else if (message.getWts() > highest.getWts()) {
                 highest = message;
             }
         }
