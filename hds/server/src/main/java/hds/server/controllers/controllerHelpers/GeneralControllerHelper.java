@@ -203,7 +203,7 @@ public class GeneralControllerHelper {
 			}
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
-		catch (SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
+		catch (NullPointerException | SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
 			ErrorResponse unsignedPayload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
