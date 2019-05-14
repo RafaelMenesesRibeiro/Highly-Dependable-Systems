@@ -165,64 +165,6 @@ public class ClientApplication {
         return -1;
     }
 
-    public static int readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
-        print("Initiating read wts write back phase to all known replicas...");
-
-        final List<String> replicasList = ClientProperties.getReplicasList();
-        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
-        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-
-        long timestamp = generateTimestamp();
-        String requestId = newUUIDString();
-        for (String replicaId : replicasList) {
-            Callable<BasicMessage> job =
-                    new ReadWtsWriteBackCallable(timestamp, requestId, replicaId, rid, readWtsResponse);
-            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
-        }
-
-        if (processReadWtsWriteBackResponses(rid, replicasList.size(), completionService)) {
-            executorService.shutdown();
-            return readWtsResponse.getWts();
-        }
-        executorService.shutdown();
-        return -1;
-    }
-
-    private static boolean processReadWtsWriteBackResponses(final int rid,
-                                                            final int replicasCount,
-                                                            ExecutorCompletionService<BasicMessage> completionService) {
-
-        int ackCount = 0;
-
-        for (int i = 0; i < replicasCount; i++) {
-            try {
-                Future<BasicMessage> futureResult = completionService.take();
-                if (!futureResult.isCancelled()) {
-                    BasicMessage message = futureResult.get();
-                    if (message == null) {
-                        continue;
-                    }
-                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                        continue;
-                    }
-                    ackCount += ONRRMajorityVoting.isReadWtsWriteBackAcknowledge(rid, message);
-                }
-            } catch (ExecutionException ee) {
-                Throwable cause = ee.getCause();
-                printError(cause.getMessage());
-            } catch (InterruptedException ie) {
-                printError(ie.getMessage());
-            }
-        }
-
-        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWtsWriteBack")) {
-            print("Read wts write with rid: " + rid + "had a successful write back phase... wts can be commit!");
-            return true;
-        }
-
-        return false;
-    }
-
     /***********************************************************
      * GET STATE OF GOOD RELATED METHODS
      ***********************************************************/
