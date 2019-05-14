@@ -80,7 +80,7 @@ public class WantToBuyController {
     private Map<String, ChallengeRequestResponse> processChallengeRequestResponses(final int replicasCount,
                                                                                    ExecutorCompletionService<BasicMessage> completionService) {
 
-        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap = new HashMap<>();
+        Map<String, ChallengeRequestResponse> replicaIdUnsolvedChallengeMap = new ConcurrentHashMap<>();
         int ackCount = 0;
         for (int i = 0; i < replicasCount; i++) {
             try {
