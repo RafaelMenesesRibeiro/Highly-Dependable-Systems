@@ -8,6 +8,11 @@ import static hds.security.ResourceManager.getPublicKeyFromResource;
 import static org.junit.Assert.fail;
 
 public abstract class BaseTests {
+    public static final String READ_WTS = "readWts";
+    public static final String GET_STATE_OF_GOOD = "getStateOfGood";
+    public static final String BUY_GOOD = "buyGood";
+    public static final String TRANSFER_GOOD = "transferGood";
+    public static final String INTENTION_TO_SELL = "intentionToSell";
 
     public static final String C_1_PORT = "8001";
     public static final String C_2_PORT = "8002";
