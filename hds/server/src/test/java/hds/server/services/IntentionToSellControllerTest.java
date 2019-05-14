@@ -7,6 +7,7 @@ import hds.server.controllers.IntentionToSellController;
 import hds.server.exception.NoPermissionException;
 import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
 import mockit.Expectations;
 import mockit.integration.junit4.JMockit;
@@ -56,17 +57,39 @@ public class IntentionToSellControllerTest extends BaseTests {
 
 	@Test
 	public void success() {
-		/*
-		OwnerDataMessage message = newOwnerDataMessage();
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransactionValidityChecker.class) {{
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(CLIENT_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+		}};
+
+		new Expectations(ServerApplication.class) {{ ServerApplication.getMyWts(); returns(1); }};
+
+		new Expectations(MarkForSale.class) {{
+			try { MarkForSale.changeGoodSaleStatus((Connection) any, anyString, anyBoolean, anyString, anyString, anyString); }
+			catch (JSONException | SQLException ex) { /* Do nothing. */ }
+		}};
+
+		ownerDataMessage.setWriteTimestamp(2);
 		try {
-			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
-			controller.execute(message);
+			PrivateKey privateKey = getPrivateKeyFromResource(CLIENT_ID);
+
+			byte[] rawData = newWriteOnGoodsData(OWNED_GOOD_ID, ON_SALE, CLIENT_ID, ownerDataMessage.getWriteTimestamp()).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(privateKey, rawData));
+			ownerDataMessage.setWriteOperationSignature(writeOnGoodsSignature);
+
+			setMessageSignature(privateKey, ownerDataMessage);
+
+			controller.execute(ownerDataMessage);
 		}
-		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+		catch (JSONException | SQLException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
-		*/
 	}
 
 	// TODO - Test sending null fields or empty or not valid fields. //
