@@ -1,5 +1,6 @@
 package hds.server.services;
 
+import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.server.ServerApplication;
 import hds.server.controllers.TransferGoodController;
@@ -8,18 +9,25 @@ import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.domain.ChallengeData;
 import hds.server.exception.BadTransactionException;
 import hds.server.exception.ChallengeFailedException;
+import hds.server.exception.IncorrectSignatureException;
 import mockit.Expectations;
 import org.json.JSONException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import static hds.security.DateUtils.generateTimestamp;
+import static hds.security.ResourceManager.getPrivateKeyFromResource;
+import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.SecurityManager.setMessageWrappingSignature;
 
 public class TransferGoodControllerTest extends BaseTests {
 	private final String REQUEST_ID = "requestID";
@@ -27,10 +35,12 @@ public class TransferGoodControllerTest extends BaseTests {
 	private final String SERVER_ID = "9001";
 	private final String BUYER_ID = "8001";
 	private final String SELLER_ID = "8002";
+	private final String NOT_CLIENT_ID = "8003";
 	private final String SELLER_OWNED_GOOD_ID = "good2";
 	private final String NOT_SELLER_OWNED_GOOD_ID = "good3";
 	private final boolean ON_SALE = true;
 	private final int WRITE_TIMESTAMP = 1;
+	private final String CHALLENGE_ANSWER = "original";
 	private TransferGoodController controller;
 	private ApproveSaleRequestMessage requestMessage;
 
@@ -41,6 +51,13 @@ public class TransferGoodControllerTest extends BaseTests {
 	public void populateForTests() {
 		controller = new TransferGoodController();
 		requestMessage = newApproveSaleRequestMessage();
+	}
+
+	// TODO - Test sending null fields or empty or not valid fields. //
+
+	@Test
+	public void success() {
+		// TODO //
 	}
 
 	@Test
@@ -60,8 +77,8 @@ public class TransferGoodControllerTest extends BaseTests {
 
 	@Test(expected = ChallengeFailedException.class)
 	public void wrongChallengeAnswer() {
-		char[] alphabet = new char[5];
-		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, "original", "hsahed", alphabet);
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER + "wrong");
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
 
 		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
 
@@ -69,6 +86,42 @@ public class TransferGoodControllerTest extends BaseTests {
 			controller.execute(requestMessage);
 		}
 		catch (SQLException | JSONException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void emptySellerSignature() {
+		expectedExRule.expect(SignatureException.class);
+		expectedExRule.expectMessage("Signature length not correct:");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		try {
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test(expected = IncorrectSignatureException.class)
+	public void incorrectSellerSignature() {
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		try {
+			setMessageWrappingSignature(getPrivateKeyFromResource(NOT_CLIENT_ID), requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
