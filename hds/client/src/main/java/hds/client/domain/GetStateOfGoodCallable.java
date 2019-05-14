@@ -24,11 +24,11 @@ public class GetStateOfGoodCallable implements Callable<BasicMessage> {
      * Instantiates a new Get state of good callable.
      * @param replicaId the replica id to whom the client wishes to ask about the goodId
      * @param goodId    the good id the client wishes to know more about
-     * @param readId    a request identifier used only by the server to ensure correct processing of incoming replies in asynchronous operation
+     * @param rid    a request identifier used only by the server to ensure correct processing of incoming replies in asynchronous operation
      */
-    public GetStateOfGoodCallable(String replicaId, String goodId, int readId) {
+    public GetStateOfGoodCallable(String replicaId, String goodId, int rid) {
         this.replicaId = replicaId;
-        this.address = String.format(REQUEST_ENDPOINT, replicaId, OPERATION, goodId, String.valueOf(readId));
+        this.address = String.format(REQUEST_ENDPOINT, replicaId, OPERATION, goodId, String.valueOf(rid));
     }
 
     /**
