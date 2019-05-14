@@ -5,6 +5,9 @@ import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.server.ServerApplication;
 import hds.server.controllers.IntentionToSellController;
+import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
+import hds.server.controllers.controllerHelpers.UserRequestIDKey;
+import hds.server.domain.ChallengeData;
 import hds.server.exception.NoPermissionException;
 import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
@@ -90,6 +93,20 @@ public class IntentionToSellControllerTest extends BaseTests {
 			controller.execute(ownerDataMessage);
 		}
 		catch (JSONException | SQLException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void emptySellerSignature() {
+		expectedExRule.expect(SignatureException.class);
+		expectedExRule.expectMessage("Signature length not correct:");
+
+		try {
+			controller.execute(ownerDataMessage);
+		}
+		catch (SQLException | JSONException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
