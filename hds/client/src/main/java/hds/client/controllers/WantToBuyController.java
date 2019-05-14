@@ -2,6 +2,7 @@ package hds.client.controllers;
 
 import hds.client.domain.CallableManager;
 import hds.client.domain.RequestChallengeCallable;
+import hds.client.domain.SolveChallengeCallable;
 import hds.client.domain.TransferGoodCallable;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ONRRMajorityVoting;
@@ -10,6 +11,7 @@ import hds.security.msgtypes.BasicMessage;
 import hds.security.msgtypes.ChallengeRequestResponse;
 import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.SaleRequestMessage;
+import org.javatuples.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -145,20 +147,29 @@ public class WantToBuyController {
 
     private Map<String, String> solveChallenges(final Map<String, ChallengeRequestResponse> challengesMap) {
         Map<String, String> replicaIdChallengeSolutionsMap = new ConcurrentHashMap<>();
+        final ExecutorService executorService = Executors.newFixedThreadPool(challengesMap.size());
+        final List<Callable<Pair<String, String>>> callableList = new ArrayList<>();
+
         for (Map.Entry<String, ChallengeRequestResponse> entry : challengesMap.entrySet()) {
-            
-            new Thread(() -> {
-                System.out.println("Solving challenge for replica: " + entry.getKey());
-                ChallengeRequestResponse challenge = entry.getValue();
-                String solution = ChallengeSolver.solveChallenge(
-                        challenge.getHashedOriginalString(),
-                        challenge.getOriginalStringSize(),
-                        challenge.getAlphabet()
-                );
-                System.out.println("Found possible solution: " + solution + ", for challenge of replica: " + entry.getKey());
-                replicaIdChallengeSolutionsMap.put(entry.getKey(), solution);
-            }).start();
+            callableList.add(new SolveChallengeCallable(entry.getKey(), entry.getValue()));
         }
+
+        try {
+            List<Future<Pair<String, String>>> futuresList = executorService.invokeAll(callableList,30, TimeUnit.SECONDS);
+            for (Future<Pair<String, String>> future : futuresList) {
+                if (!future.isCancelled()) {
+                    try {
+                        Pair<String, String> solvedChallenge = future.get();
+                        replicaIdChallengeSolutionsMap.put(solvedChallenge.getValue0(), solvedChallenge.getValue1());
+                    } catch (ExecutionException ee) {
+                        // swallow
+                    }
+                }
+            }
+        } catch (InterruptedException ie) {
+            // swallow
+        }
+
         return replicaIdChallengeSolutionsMap;
     }
 
