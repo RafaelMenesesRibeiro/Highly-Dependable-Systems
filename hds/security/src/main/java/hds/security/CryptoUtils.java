@@ -39,7 +39,7 @@ public class CryptoUtils {
             sign.initSign(key);
             sign.update(data);
             return sign.sign();
-        } catch (NoSuchAlgorithmException | InvalidKeyException exc) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NullPointerException exc) {
             throw new SignatureException(exc.getMessage());
         }
     }
