@@ -2,6 +2,7 @@ package hds.client.helpers;
 
 import hds.security.DateUtils;
 import hds.security.msgtypes.*;
+import org.javatuples.Pair;
 import org.javatuples.Quartet;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
 import static hds.security.SecurityManager.*;
 
+@SuppressWarnings("Duplicates")
 public class ONRRMajorityVoting {
 
     public static boolean assertOperationSuccess(int ackCount, String operation) {
@@ -22,15 +24,36 @@ public class ONRRMajorityVoting {
         }
     }
 
+    public static Pair<ReadWtsResponse, Long> selectMostRecentWts(List<ReadWtsResponse> readList) {
+        ReadWtsResponse highest = null;
+
+        for (ReadWtsResponse message : readList) {
+            System.out.println("----- READING WTS -----");
+            System.out.println(message.toString());
+            System.out.println("  ----- END READ -----  ");
+
+            if (highest == null) {
+                highest = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
+                highest = message;
+            }
+        }
+
+        if (highest == null) {
+            return null;
+        }
+
+        return new Pair<>(highest, highest.getWts());
+    }
+
     public static Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> selectMostRecentGoodState(List<GoodStateResponse> readList) {
         GoodStateResponse highestOnSale = null;
         GoodStateResponse highestOwner = null;
 
         for (GoodStateResponse message : readList) {
-            
-            System.out.println("-----");
+            System.out.println("----- READING GOOD STATE -----");
             System.out.println(message.toString());
-            System.out.println("-----");
+            System.out.println("    ----- END READ -----    ");
 
             if (highestOnSale == null) {
                 highestOnSale = message;
@@ -50,6 +73,36 @@ public class ONRRMajorityVoting {
         }
 
         return new Quartet<>(highestOnSale, highestOnSale.isOnSale(), highestOwner, highestOwner.getOwnerID());
+    }
+
+    public static int isReadWtsAcknowledge(int rid, BasicMessage message, List<ReadWtsResponse> readList) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof ReadWtsResponse) {
+            ReadWtsResponse readWtsResponse = (ReadWtsResponse) message;
+
+            if (rid != readWtsResponse.getRid()) {
+                return 0;
+            }
+
+            readList.add(readWtsResponse);
+            return 1;
+        }
+        printError(message.toString());
+        return 0;
+    }
+
+    public static int isReadWtsWriteBackAcknowledge(int rid, BasicMessage message) {
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteBackResponse) {
+            if (((WriteBackResponse) message).getRid() == rid) {
+                return 1;
+            }
+        }
+        printError("Response contained rid different than the one that was sent on write back message...");
+        return 0;
     }
 
     public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {

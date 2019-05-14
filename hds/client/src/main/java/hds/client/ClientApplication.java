@@ -3,14 +3,12 @@ package hds.client;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.client.domain.CallableManager;
-import hds.client.domain.GetStateOfGoodCallable;
-import hds.client.domain.IntentionToSellCallable;
-import hds.client.domain.WriteBackCallable;
+import hds.client.domain.*;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.*;
+import org.javatuples.Pair;
 import org.javatuples.Quartet;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +32,7 @@ import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.setMessageSignature;
 import static hds.security.helpers.managers.ConnectionManager.*;
 
+@SuppressWarnings("Duplicates")
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
@@ -103,9 +102,126 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
+     * GET WTS RELATED METHODS
+     ***********************************************************/
+
+    private static long readWts() {
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        int rid = readId.incrementAndGet();
+
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job = new GetWtsCallable(replicaId, getMyClientPort(), rid);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        long wts = processReadWtsResponses(rid, replicasList.size(), completionService);
+        executorService.shutdown();
+        return wts;
+    }
+
+    private static long processReadWtsResponses(final int rid,
+                                                final int replicasCount,
+                                                ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+        List<ReadWtsResponse> readList = new ArrayList<>();
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isReadWtsAcknowledge(rid, message, readList);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWts")) {
+            Pair<ReadWtsResponse, Long> highestPair = ONRRMajorityVoting.selectMostRecentWts(readList);
+            if (highestPair == null) {
+                printError("No wts responses were found...");
+            } else {
+                print(String.format("Highest wts: %s\n", highestPair.getValue1()));
+                return readWtsWriteBack(rid, highestPair.getValue0());
+            }
+        } else {
+            printError("");
+        }
+        return -1;
+    }
+
+    public static long readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
+        print("Initiating read wts write back phase to all known replicas...");
+
+        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job =
+                    new ReadWtsWriteBackCallable(timestamp, requestId, replicaId, rid, readWtsResponse);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        if (processReadWtsWriteBackResponses(rid, replicasList.size(), completionService)) {
+            executorService.shutdown();
+            return readWtsResponse.getWts();
+        }
+        executorService.shutdown();
+        return -1;
+    }
+
+    private static boolean processReadWtsWriteBackResponses(final int rid,
+                                                            final int replicasCount,
+                                                            ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isReadWtsWriteBackAcknowledge(rid, message);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWtsWriteBack")) {
+            print("Read wts write with rid: " + rid + "had a successful write back phase... wts can be commit!");
+            return true;
+        }
+
+        return false;
+    }
+
+    /***********************************************************
      * GET STATE OF GOOD RELATED METHODS
-     *
      ***********************************************************/
 
     private static void getStateOfGood() {
@@ -167,7 +283,7 @@ public class ClientApplication {
     }
 
     private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {
-        print("Initiating write back phase to all known replicas...");
+        print("Initiating get state of good write back phase to all known replicas...");
 
         final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
@@ -188,8 +304,8 @@ public class ClientApplication {
     private static void processGetStateOfGOodWriteBackResponses(final int rid,
                                                                 final int replicasCount,
                                                                 ExecutorCompletionService<BasicMessage> completionService) {
-        int ackCount = 0;
 
+        int ackCount = 0;
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
@@ -216,9 +332,7 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
      * INTENTION TO SELL RELATED METHODS
-     *
      ***********************************************************/
 
     private static void intentionToSell() {
@@ -272,9 +386,7 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
      * BUY GOOD RELATED METHODS
-     *
      ***********************************************************/
 
     private static void buyGood() {
@@ -358,9 +470,7 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
-     *
      ***********************************************************/
 
     private static String scanString(String requestString) {
