@@ -118,7 +118,10 @@ public class ClientApplication {
         }
 
         int wts = processReadWtsResponses(rid, replicasList.size(), completionService);
+
         executorService.shutdown();
+
+        print("My commit wts attempt: " + (wts + 1));
         return wts + 1;
     }
 
@@ -342,6 +345,12 @@ public class ClientApplication {
         final String goodId = requestGoodId();
 
         int wts = readWts();
+
+        if (wts == 0) {
+            print("Invalid wts, can't proceed with intention to sell operation...");
+            return;
+        }
+
         long timestamp = generateTimestamp();
         String requestId = newUUIDString();
         for (String replicaId : replicasList) {
@@ -392,6 +401,11 @@ public class ClientApplication {
     private static void buyGood() {
         try {
             int wts = readWts();
+            if (wts == 0) {
+                print("Invalid wts, can't proceed with buy good operation...");
+                return;
+            }
+
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
