@@ -113,7 +113,7 @@ public class ClientApplication {
         int rid = readId.incrementAndGet();
 
         for (String replicaId : replicasList) {
-            Callable<BasicMessage> job = new GetWtsCallable(replicaId, getMyClientPort(), rid);
+            Callable<BasicMessage> job = new ReadWtsCallable(replicaId, getMyClientPort(), rid);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
@@ -339,10 +339,9 @@ public class ClientApplication {
         final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-
-        long wts = readWts();
         final String goodId = requestGoodId();
 
+        long wts = readWts();
         long timestamp = generateTimestamp();
         String requestId = newUUIDString();
         for (String replicaId : replicasList) {

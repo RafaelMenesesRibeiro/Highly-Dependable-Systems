@@ -19,7 +19,7 @@ import static hds.security.helpers.managers.ConnectionManager.initiateGETConnect
  * @author Francisco Barros
  * @author Rafael Ribeiro
  */
-public class GetWtsCallable  implements Callable<BasicMessage> {
+public class ReadWtsCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "getCurrentTimestamp";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?clientID=%s&rid=%s";
     private final String address;
@@ -32,7 +32,7 @@ public class GetWtsCallable  implements Callable<BasicMessage> {
      * @param clientId  the string that uniquely identifies this client
      * @param rid       a request identifier used only by the server to ensure correct processing of incoming replies in asynchronous operation
      */
-    public GetWtsCallable(String replicaId, String clientId, int rid) {
+    public ReadWtsCallable(String replicaId, String clientId, int rid) {
         this.replicaId = replicaId;
         this.address = String.format(REQUEST_ENDPOINT, replicaId, OPERATION, clientId, String.valueOf(rid));
     }
@@ -50,7 +50,7 @@ public class GetWtsCallable  implements Callable<BasicMessage> {
 
     @Override
     public String toString() {
-        return "GetWtsCallable{" +
+        return "ReadWtsCallable{" +
                 "address='" + address + '\'' +
                 ", notaryReplicaId='" + replicaId + '\'' +
                 '}';
