@@ -56,6 +56,8 @@ public class IntentionToSellControllerTest extends BaseTests {
 		ownerDataMessage = newOwnerDataMessage();
 	}
 
+	// TODO - Test sending null fields or empty or not valid fields. //
+
 	@Test
 	public void success() {
 		new Expectations(DatabaseManager.class) {{
@@ -92,8 +94,6 @@ public class IntentionToSellControllerTest extends BaseTests {
 			System.out.println(ex.getMessage());
 		}
 	}
-
-	// TODO - Test sending null fields or empty or not valid fields. //
 
 	@Test
 	public void invalidSellerSignature() {
