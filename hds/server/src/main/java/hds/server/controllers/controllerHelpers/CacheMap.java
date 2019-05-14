@@ -9,7 +9,7 @@ import java.util.Map;
  * @author 		Francisco Barros
  */
 public class CacheMap<K, V> extends LinkedHashMap<K, V> {
-    private final int MAX_CACHED_ENTRIES = 128;
+    private static final int MAX_CACHED_ENTRIES = 128;
 
     @Override
     protected boolean removeEldestEntry(Map.Entry eldest) {
