@@ -1,8 +1,5 @@
 package hds.security.msgtypes;
 
-import hds.security.helpers.inputValidation.ValidClientID;
-
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 

@@ -20,7 +20,7 @@ import static hds.security.helpers.managers.ConnectionManager.*;
  * @author Rafael Ribeiro
  */
 public class ReadWtsWriteBackCallable implements Callable<BasicMessage> {
-    private static final String OPERATION = "readWriteBack";
+    private static final String OPERATION = "readWtsWriteBack";
     private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s";
     private final BasicMessage message;
     private final String replicaId;
@@ -57,7 +57,7 @@ public class ReadWtsWriteBackCallable implements Callable<BasicMessage> {
     }
 
     /**
-     * Helper method that instantiates a new OwnerDataMessage
+     * Helper method that instantiates a new ReadWtsWriteBackMessage
      * @param timestamp   timestamp representing an java epoch from seconds
      * @param requestId   a unique identifier used by notary replicas to return cached responses in case of loss of messages over the network
      * @param to          replica to where the client wishes to send this request message

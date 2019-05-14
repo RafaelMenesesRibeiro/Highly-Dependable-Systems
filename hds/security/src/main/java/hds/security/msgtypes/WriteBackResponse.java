@@ -1,7 +1,5 @@
 package hds.security.msgtypes;
 
-import hds.security.msgtypes.BasicMessage;
-
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
