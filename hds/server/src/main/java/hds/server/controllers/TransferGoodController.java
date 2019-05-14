@@ -2,6 +2,7 @@ package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.*;
+import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
@@ -9,6 +10,7 @@ import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import org.json.JSONException;
@@ -128,12 +130,7 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
-			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.rollback();
-				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
-			}
-
+			// TODO - Check this. //
 			/*
 				The timestamp is not verified against the one in Goods table, is it will be replaced regardless.
 				The only problem is it might break the property of the safety (more specifically ordering).
@@ -152,7 +149,17 @@ public class TransferGoodController extends BaseController {
 				throw new BadTransactionException("The transaction is not valid.");
 			}
 
-			TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			synchronized (this) {
+				// TODO - Add same verification up top to be able to refuse faster.
+				// Leave this one here in case someone writes before this.
+				long writeTimestamp = ServerApplication.getCurrentWriteTimestamp();
+				res = requestWriteTimestamp > writeTimestamp;
+				if (!res) {
+					throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
+				}
+				TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			}
+
 			connection.commit();
 			connection.close();
 			SaleCertificateResponse payload = new SaleCertificateResponse(

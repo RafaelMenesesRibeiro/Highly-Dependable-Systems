@@ -113,6 +113,8 @@ public class IntentionToSellController extends BaseController {
 			}
 
 			synchronized (this) {
+				// TODO - Add same verification up top to be able to refuse faster.
+				// Leave this one here in case someone writes before this.
 				long writeTimestamp = ServerApplication.getCurrentWriteTimestamp();
 				res = requestWriteTimestamp > writeTimestamp;
 				if (!res) {
