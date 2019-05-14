@@ -7,18 +7,17 @@ import javax.validation.ConstraintValidatorContext;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("Duplicates")
 public class ValidClientIDValidator implements ConstraintValidator<ValidClientID, String> {
-	private int minValue = -100;
-	private int maxValue = -101;
-
 	@Override
-	public void initialize(ValidClientID constraintAnnotation) {
-		this.minValue = ResourceManager.getMinClientId();
-		this.maxValue = ResourceManager.getMaxClientId();
-	}
+	public void initialize(ValidClientID constraintAnnotation) { /* Nothing to do. */ }
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
+		return isValid(value);
+	}
+
+	public static boolean isValid(String value) {
 		value = inputValidation.cleanString(value);
 
 		Pattern pattern = Pattern.compile("^[0-9]+$");
@@ -26,7 +25,6 @@ public class ValidClientIDValidator implements ConstraintValidator<ValidClientID
 		if (!matcher.matches()) {
 			return false;
 		}
-
 		int stringValue = 0;
 		try {
 			stringValue = Integer.parseInt(value);
@@ -34,6 +32,8 @@ public class ValidClientIDValidator implements ConstraintValidator<ValidClientID
 		catch (NumberFormatException nfex) {
 			return false;
 		}
-		return (stringValue >= this.minValue && stringValue <= maxValue);
+		int minValue = ResourceManager.getMinClientId();
+		int maxValue = ResourceManager.getMaxClientId();
+		return (stringValue >= minValue && stringValue <= maxValue);
 	}
 }

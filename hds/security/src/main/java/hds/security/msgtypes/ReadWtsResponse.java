@@ -10,7 +10,7 @@ public class ReadWtsResponse extends BasicMessage implements Serializable {
     @NotNull(message = "The readID cannot be null.")
     private int rid;
 
-    @NotNull(message = "The readID cannot be null.")
+    @NotNull(message = "The write timestamp cannot be null.")
     private long wts;
 
     public ReadWtsResponse(long timestamp,
