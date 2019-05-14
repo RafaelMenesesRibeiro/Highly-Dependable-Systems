@@ -89,10 +89,10 @@ public class IntentionToSellController extends BaseController {
 			throw new SignatureException("The Seller's signature is not valid.");
 		}
 
-		long requestWriteTimestamp = ownerData.getWriteTimestamp();
+		long rcvWts = ownerData.getWriteTimestamp();
 		String writeOperationSignature = ownerData.getWriteOperationSignature();
 		String writerID = ownerData.getOwner();
-		res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, requestWriteTimestamp, writeOperationSignature);
+		res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, rcvWts, writeOperationSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
@@ -111,12 +111,11 @@ public class IntentionToSellController extends BaseController {
 			synchronized (this) {
 				// TODO - Add same verification up top to be able to refuse faster.
 				// Leave this one here in case someone writes before this.
-				long writeTimestamp = ServerApplication.getCurrentWriteTimestamp();
-				res = requestWriteTimestamp > writeTimestamp;
-				if (!res) {
-					throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
+				int myWts = ServerApplication.getCurrentWriteTimestamp();
+				if (!(rcvWts > myWts)) {
+					throw new OldMessageException("Write Timestamp " + rcvWts + " is too old.");
 				}
-				MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+requestWriteTimestamp, writeOperationSignature);
+				MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+rcvWts, writeOperationSignature);
 			}
 
 			connection.commit();

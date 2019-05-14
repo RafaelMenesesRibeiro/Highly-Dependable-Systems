@@ -110,15 +110,15 @@ public class TransferGoodController extends BaseController {
 		}
 		transactionData.setWrappingSignature(wrappingSignature);
 
-		long requestWriteTimestamp = transactionData.getWts();
+		long rcvWts = transactionData.getWts();
 		String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
-		boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
+		boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, rcvWts, writeOnOwnershipsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
 		}
 
 		String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
-		res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
+		res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, rcvWts, writeOnGoodsSignature);
 		if (!res) {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
@@ -150,12 +150,12 @@ public class TransferGoodController extends BaseController {
 			synchronized (this) {
 				// TODO - Add same verification up top to be able to refuse faster.
 				// Leave this one here in case someone writes before this.
-				long writeTimestamp = ServerApplication.getCurrentWriteTimestamp();
-				res = requestWriteTimestamp > writeTimestamp;
-				if (!res) {
-					throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
+				int myWts = ServerApplication.getCurrentWriteTimestamp();
+
+				if (!(rcvWts > myWts)) {
+					throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
 				}
-				TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+				TransferGood.transferGood(connection, goodID, buyerID, ""+ rcvWts, writeOnOwnershipsSignature, writeOnGoodsSignature);
 			}
 
 			connection.commit();
