@@ -105,7 +105,7 @@ public class ClientApplication {
      * GET WTS RELATED METHODS
      ***********************************************************/
 
-    private static long readWts() {
+    private static int readWts() {
         final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
@@ -341,7 +341,7 @@ public class ClientApplication {
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
 
-        long wts = readWts();
+        int wts = readWts();
         long timestamp = generateTimestamp();
         String requestId = newUUIDString();
         for (String replicaId : replicasList) {
@@ -391,7 +391,7 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
-            long wts = readWts();
+            int wts = readWts();
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
