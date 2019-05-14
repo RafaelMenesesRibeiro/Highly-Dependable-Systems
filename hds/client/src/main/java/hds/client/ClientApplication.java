@@ -124,8 +124,8 @@ public class ClientApplication {
     }
 
     private static int processReadWtsResponses(final int rid,
-                                                final int replicasCount,
-                                                ExecutorCompletionService<BasicMessage> completionService) {
+                                               final int replicasCount,
+                                               ExecutorCompletionService<BasicMessage> completionService) {
 
         int ackCount = 0;
         List<ReadWtsResponse> readList = new ArrayList<>();
@@ -311,7 +311,7 @@ public class ClientApplication {
         for (int i = 0; i < replicasCount; i++) {
             try {
                 Future<BasicMessage> futureResult = completionService.take();
-                    if (!futureResult.isCancelled()) {
+                if (!futureResult.isCancelled()) {
                     BasicMessage message = futureResult.get();
                     if (message == null) {
                         continue;
