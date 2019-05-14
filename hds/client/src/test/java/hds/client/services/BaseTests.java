@@ -1,13 +1,21 @@
 package hds.client.services;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 import static org.junit.Assert.fail;
 
 public abstract class BaseTests {
+    public static final String READ_WTS = "readWts";
+    public static final String GET_STATE_OF_GOOD = "getStateOfGood";
+    public static final String BUY_GOOD = "buyGood";
+    public static final String TRANSFER_GOOD = "transferGood";
+    public static final String INTENTION_TO_SELL = "intentionToSell";
 
     public static final String C_1_PORT = "8001";
     public static final String C_2_PORT = "8002";
@@ -50,6 +58,7 @@ public abstract class BaseTests {
     static {
         try {
             c1PrivateKey = getPrivateKeyFromResource(C_1_PORT);
+            c1PrivateKey = getPrivateKeyFromResource(C_1_PORT);
             c1PublicKey = getPublicKeyFromResource(C_1_PORT);
             c2PrivateKey = getPrivateKeyFromResource(C_2_PORT);
             c2PublicKey = getPublicKeyFromResource(C_2_PORT);
@@ -64,7 +73,7 @@ public abstract class BaseTests {
             s4PrivateKey = getPrivateKeyFromResource(S_4_PORT);
             s4PublicKey = getPublicKeyFromResource(S_4_PORT);
         } catch (Exception e) {
-            fail("Could not load public/private key pairs from resource...");
+            fail("Could not load public/private key pairs from resource... " + e.getMessage());
         }
     }
 }
