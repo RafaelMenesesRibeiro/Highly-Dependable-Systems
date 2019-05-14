@@ -52,7 +52,7 @@ public class GetCurrentTimestampController {
 				throw new IllegalArgumentException("The ClientID " + clientID + " is not valid.");
 			}
 			int rid = Integer.parseInt(readID);
-			metaResponse = new MetaResponse(execute(clientID, rid));
+			metaResponse = new MetaResponse(execute(rid));
 		}
 		catch (Exception ex) {
 			metaResponse = GeneralControllerHelper.handleException(ex, NO_REQUEST_ID, TO_UNKNOWN, OPERATION);
@@ -63,12 +63,11 @@ public class GetCurrentTimestampController {
 	/**
 	 * Gets the state of the given GoodID.
 	 *
-	 * @param 	clientID 			The ClientID who is asking the current timestamp
+	 * @param 	readID 				The ReadID associated with this read request
 	 * @return 	ReadWtsResponse 	Contains the current timestamp and the readID
 	 */
-	public static ReadWtsResponse execute(String clientID, int readID) {
+	public static ReadWtsResponse execute(int readID) {
 		int currentWriteTimestamp = ServerApplication.getMyWts();
-		ReadWtsResponse response = new ReadWtsResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", readID, currentWriteTimestamp);
-		return response;
+		return new ReadWtsResponse(generateTimestamp(), NO_REQUEST_ID, OPERATION, FROM_SERVER, TO_UNKNOWN, "", readID, currentWriteTimestamp);
 	}
 }

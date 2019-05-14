@@ -27,7 +27,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 public class KeyPairGeneratorScript {
-	private static final int FIRST_PORT = 10000;
+	private static final int FIRST_PORT = 9000;
 	private static final String PRIVATE_KEY_BASE_FILENAME = "HDSNotary_PrivateK_ID_";
 	private static final String PUBLIC_KEY_BASE_FILENAME = "HDSNotary_PublicK_ID_";
 	private static final String KEY_FACTORY_ALGORITHM = "RSA";

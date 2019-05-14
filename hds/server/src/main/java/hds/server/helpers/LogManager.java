@@ -49,7 +49,8 @@ public class LogManager {
 	}
 
 	private void logToLogger(String msg, BasicMessage basicMessage) {
-		logger.info(msg + basicMessage.toString());
+		String logMsg = msg + basicMessage.toString();
+		logger.info(logMsg);
 	}
 
 	private void logToLogger(String msg) {
