@@ -238,7 +238,7 @@ public class TransferGoodControllerTest extends BaseTests {
 	}
 
 	@Test
-	public void emptyBuyerSignature(@Mocked DatabaseManager dbManager) {
+	public void emptyBuyerSignature() {
 		expectedExRule.expect(SignatureException.class);
 		expectedExRule.expectMessage("Signature length not correct:");
 
@@ -271,7 +271,7 @@ public class TransferGoodControllerTest extends BaseTests {
 	}
 
 	@Test
-	public void incorrectBuyerSignature(@Mocked DatabaseManager dbManager) {
+	public void incorrectBuyerSignature() {
 		expectedExRule.expect(IncorrectSignatureException.class);
 		expectedExRule.expectMessage("The Buyer's signature is not valid.");
 
