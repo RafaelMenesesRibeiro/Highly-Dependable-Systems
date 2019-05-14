@@ -144,17 +144,20 @@ public class WantToBuyController {
     }
 
     private Map<String, String> solveChallenges(final Map<String, ChallengeRequestResponse> challengesMap) {
-        Map<String, String> replicaIdChallengeSolutionsMap = new HashMap<>();
+        Map<String, String> replicaIdChallengeSolutionsMap = new ConcurrentHashMap<>();
         for (Map.Entry<String, ChallengeRequestResponse> entry : challengesMap.entrySet()) {
-            System.out.println("Solving challenge for replica: " + entry.getKey());
-            ChallengeRequestResponse challenge = entry.getValue();
-            String solution = ChallengeSolver.solveChallenge(
-                    challenge.getHashedOriginalString(),
-                    challenge.getOriginalStringSize(),
-                    challenge.getAlphabet()
-            );
-            System.out.println("Found possible solution: " + solution + ", for challenge of replica: " + entry.getKey());
-            replicaIdChallengeSolutionsMap.put(entry.getKey(), solution);
+            
+            new Thread(() -> {
+                System.out.println("Solving challenge for replica: " + entry.getKey());
+                ChallengeRequestResponse challenge = entry.getValue();
+                String solution = ChallengeSolver.solveChallenge(
+                        challenge.getHashedOriginalString(),
+                        challenge.getOriginalStringSize(),
+                        challenge.getAlphabet()
+                );
+                System.out.println("Found possible solution: " + solution + ", for challenge of replica: " + entry.getKey());
+                replicaIdChallengeSolutionsMap.put(entry.getKey(), solution);
+            }).start();
         }
         return replicaIdChallengeSolutionsMap;
     }
