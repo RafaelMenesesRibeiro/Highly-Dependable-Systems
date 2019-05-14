@@ -400,13 +400,17 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
+            String to = requestSellerId();
+            String goodId = requestGoodId();
+            
             int wts = readWts();
             if (wts == 0) {
                 print("Invalid wts, can't proceed with buy good operation...");
                 return;
             }
 
-            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
+            SaleRequestMessage message =
+                    (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts, to, goodId));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
@@ -453,11 +457,8 @@ public class ClientApplication {
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
-    private static SaleRequestMessage newSaleRequestMessage(int wts) {
-        String to = requestSellerId();
-        String goodId = requestGoodId();
+    private static SaleRequestMessage newSaleRequestMessage(int wts, String to, String goodId) {
         Boolean onSale = Boolean.FALSE;
-
         try {
             byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getMyClientPort(), wts);
             byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getMyClientPort(), wts);
