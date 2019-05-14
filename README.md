@@ -1,166 +1,63 @@
-# Highly-Dependable-Systems
+# Project Design Decisions
 
-# HDS Notary
+Multiple nodes must communicate with each other with dependability guarantees. Nodes aren't trustworthy.
+Clients and Servers talk using JSON over HTTP.
+The nodes implement a (1,N) Atomic Byzantine Regular Registers with authenticated links and logical write timestamps obtained by majority before each write.
 
-## 1 - Introduction
-Create a Highly Dependable Notary application.  
-The main goal of HDSNotary is to certify the transfer of ownership of goods between users.  
+# Usage:
 
-## 2 - Setup for testing
-Notice: the guide that follows is meant to be followed on a Windows 10 operating system. The current project works
-similarly well on Linux distributions, but it's not guaranteed that the setup steps are the same, as such, if 
-you prefer to test this project under another operating system, it's up to you to correctly setup everything that
-might be different from the present guide;
+You need Java JDK 1.8, Maven 3.5, PSQL and Spring Boot installed to run this project.
+If you need more keys use our KeyPairGeneratorScript.java, then put place the output on resources/keys folder
 
-#### 2.2 Java (JDK 1.8)
-* It is assumed that you already have jdk 1.8 installed on your system with the respective environment variables configured. If you don't follow this guide https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html
+Server, 9000 <= svPort  < 10000 for regular sv and >= 10000 for smart card sv:
 
-### 2.2 Databases
-#### 2.2.1 Downloading and installing both PostgreSQL and PGAdmin4
-* Go ahead to https://www.enterprisedb.com/downloads/postgres-postgresql-downloads.
-* Download PostgreSQL Version 11.2 Windows x86-64 or whichever version fits you.
-* Execute the item you just downloaded.
-* Leave all items selected except StackBuilder. In this guide we'll use PGAdmin4 to create the databases, but if you feel comfortable using
-a command line interface uncheck the PGAdmin4 checkbox.
-* Specify installation folder, choose your own or keep the suggested default.
-* Choose the name for the database's superuser and password. Don't forget these.
-* Enter a port for PostgreSQL Server. Make sure that no other applications are using this port and if you are unsure just leave the default port.
-* Choose a locale for the database
-* Wait until installation is complete.
- 
-#### 2.2.2 Verifying your installation
-* Open your terminal (windows cmd) and type in  
-  
-      psql --version
-  
-* If you followed the previous steps correctly you should see the following message appearing on your cmd window:  
-  
-      psql (PostgreSQL) 11.2
-  
-#### 2.2.3 Setting up your postgreSQL Server
-* Open the newly installed application PGAdmin4. This will launch a new browser window.
-* On the left panel of your screen, right click 'Servers', choose 'Create' > 'Server'.
-* A small window will pop up with a few fields. Enter any name you desire on the 'Name' field, for example 'hds-db'.
-* Under the 'Connection' tab of that same window insert '127.0.0.1' on 'Host name/address' field.
-* Also fill in the 'Port' field with the port used in step 2.1.1.
-* Fill in the name of 'Maintenance Database', it should be 'postgresql' by default.
-* Fill in 'Username' and 'Password' to match the ones in step 2.1.1.
-* Click 'Save' and connect to the server. After saving it's likely that the connection is done automatically, but if doesn't double click the database server you just created in the left panel.
+	mvn spring-boot:run -Dspring-boot.run.arguments=<#svPort>,<#clients>,<#regularSv>,<#smartCardSv>
 
-#### 2.2.4 Setting up your postgreSQL Database (used in this project)
-* On the top menu click 'Object' > 'Create' > 'Database' and give it a 'Name' for example 'notary-db', leave the remaining
-fields as default.
-* Click 'Save' then double click the database you just created in the left panel to connect to it.
+Client, 8001 <= cliPort < 9000
 
-#### 2.2.5 Setting up your database schemas
-* Now, on the top menu, click 'Tools' > 'Query Tool' or alternatively just click the thundering symbol near 'File'.
-* Head to our project's folder. Under ~/docs/psql/ you'll find two important .sql files named 'schemas.sql' and 'populate.sql'.
-* Copy & Paste the contents of schemas.sql into your query tool and press 'F5' on your keyboard, or the thunder that appears
-on the query tool menu, the one that is somewhat on the middle of the screen, not the one near the 'File' option.
-* Clear the query tool window and then Copy & Paste the text inside populate.sql and then press 'F5' again.
-* You should now have a database with some entries to test the system. You can verify this by right clicking anything on the left - the server or database you created - and then choosing 'refresh'. 
-* If you did everything right, you can right click the database you created, then open schemas, then tables (all of them on the left panel) to see the tables there. You can use the query tool to see the data inside any one table, by issuing the following SQL
-command inside the query tool:
-        
-        SELECT * FROM <tablename>
-  
-    In PGAdmin4 you do not need the semicolon after any command unless you intend to piggyback/chain multiple commands.
+	mvn spring-boot:run -Dspring-boot.run.arguments=<#cliPort>,<#servers>,<#regularSv>,<#smartCardSv>
 
-#### 2.2.6 Finishing up the setup
-* Go to our project's folders and find the file 'application.properties.template'. Rename it to 'application.properties'.
-* Change the following fields according to the previous steps, ignore the lines preceded by $ in this snippet:
+Use our JMockits to test dependability. Discover tests within 'tests' folder of each module. Run with:
 
-      $ server.port=8000
-      $ spring.datasource.driverClassName=org.postgresql.Driver
-      $ spring.datasource.platform=postgres
-       spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/notary-db
-       spring.datasource.username=postgresql
-       spring.datasource.password=rootroot
+	mvn test -Dtest=classname
 
-The database can now be used by the HDS Project
+For more testing options check: https://www.mkyong.com/maven/how-to-run-unit-test-with-maven/
 
-#### Extra notes regarding the database schemas adopted by this project.
-* For simplicity, each user in the system is identified by the port where their REST Endpoints are located.
-* The notary endpoint is always 8000, you should not try to change this behaviour. That's why the server.port property is set to 8000.
-* If you want to add new users to the system to test loading capacity, identify them with a port that's bigger than 8000.
+# Threat Analysis
 
-### 2.3 Maven
-#### 2.3.1 Downloading Maven
-* Head over to https://maven.apache.org/download.cgi and download the newest Maven version in Binary Zip Archive format. At the time of writing that would be: 
-        
-        apache-maven-3.6.0-bin.zip
- 
-#### 2.3.2 Installing Maven
-* Go the folder where you've downloaded the item and extract it's contents to a folder where you wish maven to be installed.
-* Now, open your windows task bar and search for 'environment variables' and open the appropriate result. A small window will open.
-* On that window, on the bottom right corner you'll find a button saying 'environment variables', click it.
-* Under system path, select the variable 'Path' and click 'Edit' > 'New' and type in the path where you installed maven followed by \bin, for example like so:
+This is a notary system, messages are meant to be visible. No confidentiality allowed.
 
-        C:\Program Files\apache-maven-3.6.0\bin
-        
-#### 2.3.3 Verifying your installation
-* Open your terminal (windows cmd) and type in
+## Message Tampering
+Messages are signed node to node
+## Message Replay
+Physical timestamps and nonces.
+## Message Stealing
+Notaries validate 'to', 'from', 'seller', 'owner' and other signed fields before acting;
+## SQL Injection
+All messages are sanitized with jsoup library before they reach our Spring Controllers. JDBC Prepared Statements are used to interact with databases.
+## Escalation of Privilege
+For simplicity nodes load keys from the filesystem. To retrived them user id's are validated against a regex to prevent path traversing.
+## Denial Of Service
+Notary servers are protected with rate limiting computational challenge that must be answered before transfer good is effectuated. This mechanism wasn't applyed to any other node or operation for simplicity. No defense mechanisms put in place. There are no proxy servers in this project. Some requests are responded faster using cached messages.
+## Sybil Attacks
+Unless #maxFailures+1 occur nodes can't forge transaction documents (SaleCertResponses). However byzantine clients/servers may emit write timestamps that are much higher than the actual highest timestamp on the system, effectively moving the logical clock of write operations into the future. If a node emits MAX_INT the notaries can't recover.
+## Double Spending Attacks
+Prevented programatically by veryfing ownership of items before taking actions and by using the highest transactional level in access to the databases;
+This delivery uses some locking and synchronized mechanisms.
+## Other byzantine problems
+Clients may emit valid, yet different, write messages to all notaries. They don't detect the situation.
+Clients are no longer allowed to buy items from themselves, meaning they can no longer consume, slowly, yet effectively, the replicas storage space by making infinite buys.
 
-        mvn --version
-      
-* If you have followed the previous steps correctly you should see the following message appearing on your cmd window:
+# Dependability and Security Guarantees
 
-        Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T19:41:47+01:00)
-        Maven home: C:\Program Files\apache-maven-3.6.0\bin\..
-        Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk1.8.0_191\jre
-        Default locale: en_US, platform encoding: Cp1252
-        OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
-
-### 2.4 Executing
-
-#### 2.4.1 Installing dependencies and compiling the project
-* Open your IDE terminal or your Windows CMD terminal.
-* Head over to the root of the Maven project, it should be something like '~/Highly-Dependable-Systems/hds'.
-* You now have to install the inter-dependencies between the various project modules:  
-
-        mvn clean install -DskipTests
-        
-* If no errors are displayed, you are now ready to extract the authentication certificate from Citizen Card.
- 
-#### 2.4.2 Extract authentication certificate from Citizen Card
-* You now have to extract the authentiaction certificate from the the Citizen Card
-* Plug in the card reader/keyboard with the Citizen Card
-* In the same terminal as the previous step type:
-
-         mkdir client/src/main/resources/certs
-         
-         java -Djava.library.path=/usr/local/lib -cp ./security/target/classes:./security/src/main/resources/pteidlibj.jar hds.security.AuthCertExtractor ./client/src/main/resources/certs/server.pem        
-
-* If no errors are displayed, you are now ready to test the project.
- 
-#### 2.4.3 Running client and server programs
-* To run a server issue the following command two commands (launch only one of these):
-        
-        cd server
-        
-        mvn spring-boot:run -Dspring-boot.run.arguments=8010 -Pwindows
-  
-     The first argument is the userId with the highest port in the system, assuming that no client is dead, 
-     unreachable and that clients will be created contiguously, without gaps between their ports. If you are running
-     this project on Linux Distribution use -Plinux instead.
-     
-* To run a client, first go back in your folder structures and then into the client folder like so:
- 
-        cd ../client
-        
-        
-* Now you can launch as many clients as you want issue the following command repeatedly:
- 
-        mvn spring-boot:run -Dspring-boot.run.arguments=8001,8010
-        
-     Where the first argument is the port (userId) of the running client and the second argument is the the number of 
-     clients you will run in total plus eight-thousand, that is the highest userId in the system assuming the same as in 
-     the server launch command.
- 
- ## 3 - Documentation
- The main documentation are in the /docs directory at the root of the project
- 
-* DESIGNDECISIONS.md - for a concise description and justification of the design decisions.
-* THREATANALYSIS.md - for an analysis of the possible threats and corresponding protection mechanisms.
-
- 
+## Availability
+If a server fails even if temporarely cached messages are lost, but ownership and membership is still persisted in databases.
+Service availability is ensured up to #maxFailures by having multiple instances of notary servers online. Notary servers don't talk with each other.
+## Reliability
+As long as the server is alive, due to protections mechanisms mentioned in (1) the services provided are correct. The system ensures linearizability.
+## Safety
+Non-idempotent operations are properly validated before being executed. Users can't advertise sale of goods owned by others and can't force other users to sell them goods.
+## Integrity
+Any altered message passing through the network or within a rogue host, is rejected by any receiving nodes due to the use of signatures.
+## Maintainability
+As long as a server is in maintenance, if other servers are alive and #maxFailures haven't been reach, the system will still be useable.
