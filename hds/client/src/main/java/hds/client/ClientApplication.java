@@ -154,7 +154,7 @@ public class ClientApplication {
                 printError("No wts responses were found...");
             } else {
                 print(String.format("Highest wts: %s\n", highestPair.getValue1()));
-                return readWtsWriteBack(rid, highestPair.getValue0());
+                return highestPair.getValue1();
             }
         } else {
             printError("");
