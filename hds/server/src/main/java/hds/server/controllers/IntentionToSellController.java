@@ -106,19 +106,21 @@ public class IntentionToSellController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			long databaseWriteTimestamp = getOnGoodsTimestamp(connection, goodID);
-			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.rollback();
-				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
-			}
-
 			String ownerID = getCurrentOwner(connection, goodID);
 			if (!ownerID.equals(sellerID)) {
 				connection.rollback();
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
-			MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+requestWriteTimestamp, writeOperationSignature);
+			synchronized (this) {
+				long writeTimestamp = ServerApplication.getCurrentWriteTimestamp();
+				res = requestWriteTimestamp > writeTimestamp;
+				if (!res) {
+					throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old.");
+				}
+				MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+requestWriteTimestamp, writeOperationSignature);
+			}
+
 			connection.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());
 			return new MetaResponse(payload);
