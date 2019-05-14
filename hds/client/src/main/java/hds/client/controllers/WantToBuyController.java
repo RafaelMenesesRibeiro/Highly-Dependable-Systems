@@ -154,20 +154,23 @@ public class WantToBuyController {
             callableList.add(new SolveChallengeCallable(entry.getKey(), entry.getValue()));
         }
 
+        List<Future<Pair<String, String>>> futuresList = new ArrayList<>();
         try {
-            List<Future<Pair<String, String>>> futuresList = executorService.invokeAll(callableList,30, TimeUnit.SECONDS);
-            for (Future<Pair<String, String>> future : futuresList) {
-                if (!future.isCancelled()) {
-                    try {
-                        Pair<String, String> solvedChallenge = future.get();
-                        replicaIdChallengeSolutionsMap.put(solvedChallenge.getValue0(), solvedChallenge.getValue1());
-                    } catch (ExecutionException ee) {
-                        // swallow
-                    }
+            futuresList = executorService.invokeAll(callableList,30, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            printError("InvokeAll solve challenge methods was interrupted...");
+        }
+
+        for (Future<Pair<String, String>> future : futuresList) {
+            if (!future.isCancelled()) {
+                Pair<String, String> solution;
+                try {
+                    solution = future.get();
+                    replicaIdChallengeSolutionsMap.put(solution.getValue0(), solution.getValue1());
+                } catch (ExecutionException | InterruptedException ee) {
+                    printError("May have been unable to get some Future<> Solutions during solution map construction...");
                 }
             }
-        } catch (InterruptedException ie) {
-            printError("Some challenges may have been interrupted during good selling...");
         }
 
         return replicaIdChallengeSolutionsMap;
