@@ -2,6 +2,7 @@ package hds.client.services;
 
 import hds.client.ClientApplication;
 import hds.client.domain.CallableManager;
+import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
@@ -29,7 +30,15 @@ import static org.junit.Assert.fail;
 public class GetStateOfGoodCallableMethodTest extends BaseTests {
 	// private Callable<BasicMessage> job1 = new GetStateOfGoodCallable(S_1_PORT, GOOD_1, RID_1);
 	@Test
-	public void getStateOfGoodSuccess(@Mocked CallableManager callableMgrMock) {
+	public void getStateOfGoodSuccess(@Mocked final CallableManager callableMgrMock, @Mocked final ClientProperties clientProperties) {
+		new Expectations() {{
+			ClientProperties.getMyPrivateKey(); returns(
+					c1PrivateKey, c1PrivateKey,
+					c1PrivateKey, c1PrivateKey,
+					c1PrivateKey, c1PrivateKey,
+					c1PrivateKey, c1PrivateKey);
+		}};
+
 		GoodStateResponse res1 = newMockedGoodStateResponse(C_1_PORT, S_1_PORT, s1PrivateKey);
 		GoodStateResponse res2 = newMockedGoodStateResponse(C_1_PORT, S_2_PORT, s2PrivateKey);
 		GoodStateResponse res3 = newMockedGoodStateResponse(C_1_PORT, S_3_PORT, s3PrivateKey);
@@ -37,6 +46,8 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 
 		new Expectations() {{
 			callableMgrMock.call(); returns(res1, res2, res3, res4);
+			ClientProperties.getMajorityThreshold(); returns (3);
+			ClientProperties.print(anyString); returns(null, null, null);
 		}};
 
 		ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -62,8 +73,8 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 					DateUtils.generateTimestamp(),
 					CryptoUtils.newUUIDString(),
 					GET_STATE_OF_GOOD,
-					clientPort,
 					replicaPort,
+					clientPort,
 					"",
 					GOOD_1,
 					clientPort,
