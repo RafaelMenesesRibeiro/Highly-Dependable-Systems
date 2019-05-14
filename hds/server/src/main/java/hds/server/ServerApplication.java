@@ -55,6 +55,8 @@ public class ServerApplication {
 
 			logManager = new LogManager(port);
 
+			writeTimestamp.set(0);
+
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
 				ServerProperties.bootstrap();
