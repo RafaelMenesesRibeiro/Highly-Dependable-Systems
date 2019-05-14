@@ -5,8 +5,8 @@ import java.time.temporal.ChronoUnit;
 
 @SuppressWarnings("Duplicates")
 public class DateUtils {
-    private static final int INNER_PAST_TOLERANCE = 160;
     private static final int PAST_TOLERANCE = 30;
+    private static final int INNER_PAST_TOLERANCE = (int) (PAST_TOLERANCE * 2.5);
     private static final int FUTURE_TOLERANCE = 10;
 
     /**
