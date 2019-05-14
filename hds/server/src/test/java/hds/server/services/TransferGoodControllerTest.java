@@ -18,6 +18,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.Map;
@@ -43,6 +44,9 @@ public class TransferGoodControllerTest extends BaseTests {
 	private final String CHALLENGE_ANSWER = "original";
 	private TransferGoodController controller;
 	private ApproveSaleRequestMessage requestMessage;
+	private PrivateKey BUYER_KEY;
+	private PrivateKey SELLER_KEY;
+	private PrivateKey STRANGER_KEY;
 
 	@Rule
 	public ExpectedException expectedExRule = ExpectedException.none();
@@ -51,6 +55,14 @@ public class TransferGoodControllerTest extends BaseTests {
 	public void populateForTests() {
 		controller = new TransferGoodController();
 		requestMessage = newApproveSaleRequestMessage();
+		try {
+			BUYER_KEY = getPrivateKeyFromResource(BUYER_ID);
+			SELLER_KEY = getPrivateKeyFromResource(SELLER_ID);
+			STRANGER_KEY = getPrivateKeyFromResource(STRANGER_CLIENT_ID);
+		}
+		catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+			/* All tests will fail. Nothing can be done. */
+		}
 	}
 
 	// TODO - Test sending null fields or empty or not valid fields. //
@@ -118,10 +130,10 @@ public class TransferGoodControllerTest extends BaseTests {
 		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
 
 		try {
-			setMessageWrappingSignature(getPrivateKeyFromResource(STRANGER_CLIENT_ID), requestMessage);
+			setMessageWrappingSignature(STRANGER_KEY, requestMessage);
 			controller.execute(requestMessage);
 		}
-		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
@@ -138,10 +150,10 @@ public class TransferGoodControllerTest extends BaseTests {
 		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
 
 		try {
-			setMessageWrappingSignature(getPrivateKeyFromResource(SELLER_ID), requestMessage);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
 			controller.execute(requestMessage);
 		}
-		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
@@ -159,13 +171,13 @@ public class TransferGoodControllerTest extends BaseTests {
 
 		try {
 			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
-			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(getPrivateKeyFromResource(STRANGER_CLIENT_ID), rawData));
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(STRANGER_KEY, rawData));
 			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
 
-			setMessageWrappingSignature(getPrivateKeyFromResource(SELLER_ID), requestMessage);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
 			controller.execute(requestMessage);
 		}
-		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
@@ -183,13 +195,41 @@ public class TransferGoodControllerTest extends BaseTests {
 
 		try {
 			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
-			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(getPrivateKeyFromResource(BUYER_ID), rawData));
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
 			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
 
-			setMessageWrappingSignature(getPrivateKeyFromResource(SELLER_ID), requestMessage);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
 			controller.execute(requestMessage);
 		}
-		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void incorrectWriteOnGoodsSignature() {
+		expectedExRule.expect(SignatureException.class);
+		expectedExRule.expectMessage("The Write On Goods Operation's signature is not valid.");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(STRANGER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
