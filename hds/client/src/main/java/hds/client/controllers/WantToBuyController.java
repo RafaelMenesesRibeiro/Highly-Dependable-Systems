@@ -44,7 +44,7 @@ public class WantToBuyController {
 
     private ResponseEntity<List<BasicMessage>> initiateTwoPhaseProtocol(SaleRequestMessage requestMessage) {
         // Obtain replicas known to this server
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         // For each of them, get a challenge that will allow transfer good to be effectuated;
         final Map<String, ChallengeRequestResponse>challengesList = getChallenges(replicasList, requestMessage.getRequestID());
         // If majority of replicas replied with a challenge, solve all challenges and proceed
