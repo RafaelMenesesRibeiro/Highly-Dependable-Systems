@@ -7,7 +7,8 @@ import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.ResourceManager.getPublicKeyFromResource;
 import static org.junit.Assert.fail;
 
-public class BaseUT {
+abstract class BaseUT {
+
     private static final String C_1_PORT = "8001";
     private static final String C_2_PORT = "8002";
 
@@ -15,6 +16,10 @@ public class BaseUT {
     static PublicKey c1PublicKey;
     static PrivateKey c2PrivateKey;
     static PublicKey c2PublicKey;
+
+    static String testData = "TEST";
+
+    static String wrongData = "WRONG_TEST";
 
     static {
         try {

@@ -10,31 +10,44 @@ import static hds.security.CryptoUtils.*;
 
 public class SignNVerifyUT extends BaseUT {
 
-    private static String testData = "TEST";
-    private static String wrongData = "WRONG_TEST";
-
     @Test
-    public void signNVerifySuccess() throws SignatureException {
-        String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
-        Assert.assertTrue(authenticateSignatureWithPubKey(c1PublicKey, signature, testData));
+    public void success() {
+        try {
+            String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
+            Assert.assertTrue(authenticateSignatureWithPubKey(c1PublicKey, signature, testData));
+        } catch (SignatureException se) {
+            Assert.fail(se.getMessage());
+        }
     }
 
     @Test
-    public void signNVerifyFailWrongKeyPair() throws SignatureException {
-        String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
-        Assert.assertFalse(authenticateSignatureWithPubKey(c2PublicKey, signature, testData));
+    public void wrongKeyPair() {
+        try {
+            String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
+            Assert.assertFalse(authenticateSignatureWithPubKey(c2PublicKey, signature, testData));
+        } catch (SignatureException se) {
+            Assert.fail(se.getMessage());
+        }
     }
 
     @Test
-    public void signNVerifyFailWrongSignature() throws SignatureException {
-        String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
-        String wrongSignature = "AAAA" + signature.substring(4);
-        Assert.assertFalse(authenticateSignatureWithPubKey(c1PublicKey, wrongSignature, testData));
+    public void wrongSignature() {
+        try {
+            String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
+            String wrongSignature = "AAAA" + signature.substring(4);
+            Assert.assertFalse(authenticateSignatureWithPubKey(c1PublicKey, wrongSignature, testData));
+        } catch (SignatureException se) {
+            Assert.fail(se.getMessage());
+        }
     }
 
     @Test
-    public void signNVerifyFailWrongData() throws SignatureException {
-        String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
-        Assert.assertFalse(authenticateSignatureWithPubKey(c1PublicKey, signature, wrongData));
+    public void wrongData() {
+        try {
+            String signature = bytesToBase64String(signData(c1PrivateKey, testData.getBytes(Charset.forName("UTF-8"))));
+            Assert.assertFalse(authenticateSignatureWithPubKey(c1PublicKey, signature, wrongData));
+        } catch (SignatureException se) {
+            Assert.fail(se.getMessage());
+        }
     }
 }
