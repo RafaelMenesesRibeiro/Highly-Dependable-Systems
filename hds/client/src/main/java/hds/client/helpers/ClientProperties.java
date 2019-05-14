@@ -11,8 +11,8 @@ import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
     public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
-    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
-    public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
+    private static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+    private static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 
     public static final String HDS_BASE_HOST = "http://localhost:";
 
@@ -31,23 +31,23 @@ public class ClientProperties {
         return myPrivateKey;
     }
 
-    public static void setMyPrivateKey(PrivateKey myPrivateKey) {
+    private static void setMyPrivateKey(PrivateKey myPrivateKey) {
         ClientProperties.myPrivateKey = myPrivateKey;
     }
 
-    public static List<String> getRegularReplicaIdList() {
+    private static List<String> getRegularReplicaIdList() {
         return regularReplicaIdList;
     }
 
-    public static void setRegularReplicaIdList(List<String> regularReplicaIdList) {
+    private static void setRegularReplicaIdList(List<String> regularReplicaIdList) {
         ClientProperties.regularReplicaIdList = regularReplicaIdList;
     }
 
-    public static List<String> getCitizenReplicaIdList() {
+    private static List<String> getCitizenReplicaIdList() {
         return citizenReplicaIdList;
     }
 
-    public static void setCitizenReplicaIdList(List<String> citizenReplicaIdList) {
+    private static void setCitizenReplicaIdList(List<String> citizenReplicaIdList) {
         ClientProperties.citizenReplicaIdList = citizenReplicaIdList;
     }
 
@@ -55,7 +55,7 @@ public class ClientProperties {
         return replicasList;
     }
 
-    public static void setReplicasList() {
+    private static void setReplicasList() {
         ClientProperties.replicasList.addAll(regularReplicaIdList);
         ClientProperties.replicasList.addAll(citizenReplicaIdList);
         setNumberOfReplicas();
@@ -73,7 +73,7 @@ public class ClientProperties {
         return maxFailures;
     }
 
-    public static void setMaxFailures(Integer maxFailures) {
+    private static void setMaxFailures(Integer maxFailures) {
         ClientProperties.maxFailures = maxFailures;
     }
 
@@ -81,15 +81,15 @@ public class ClientProperties {
         return myClientPort;
     }
 
-    public static void setMyClientPort(String myClientPort) {
+    private static void setMyClientPort(String myClientPort) {
         ClientProperties.myClientPort = myClientPort;
     }
 
-    public static void setMajorityThreshold() {
+    private static void setMajorityThreshold() {
         ClientProperties.majorityThreshold = (numberOfReplicas + maxFailures) / 2;
     }
 
-    public static int getMajorityThreshold() {
+    static int getMajorityThreshold() {
         return majorityThreshold;
     }
 
@@ -97,12 +97,12 @@ public class ClientProperties {
      *  CLIENT APPLICATION INITIALIZERS
      *************************************/
 
-    public static void initRegularReplicasIdList(int number) {
+    private static void initRegularReplicasIdList(int number) {
         int maxPort = HDS_NOTARY_REPLICAS_FIRST_PORT + number - 1;
         setRegularReplicaIdList(newReplicasList(HDS_NOTARY_REPLICAS_FIRST_PORT, maxPort));
     }
 
-    public static void initCitizenReplicaIdList(int number) {
+    private static void initCitizenReplicaIdList(int number) {
         int maxPort = HDS_NOTARY_REPLICAS_FIRST_CC_PORT + number - 1;
         setCitizenReplicaIdList(newReplicasList(HDS_NOTARY_REPLICAS_FIRST_CC_PORT, maxPort));
     }

@@ -106,7 +106,7 @@ public class ClientApplication {
      ***********************************************************/
 
     private static long readWts() {
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
@@ -165,7 +165,7 @@ public class ClientApplication {
     public static long readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
         print("Initiating read wts write back phase to all known replicas...");
 
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
@@ -225,7 +225,7 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void getStateOfGood() {
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
@@ -285,7 +285,7 @@ public class ClientApplication {
     private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {
         print("Initiating get state of good write back phase to all known replicas...");
 
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
@@ -336,7 +336,7 @@ public class ClientApplication {
      ***********************************************************/
 
     private static void intentionToSell() {
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         long wts = generateTimestamp();
