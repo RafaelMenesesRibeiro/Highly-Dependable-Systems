@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 @SpringBootApplication
@@ -22,7 +21,7 @@ public class ServerApplication {
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
-	private static final AtomicInteger writeTimestamp = new AtomicInteger();
+	private static final AtomicInteger myWts = new AtomicInteger();
 	private static LogManager logManager;
 
 	private static String port;
@@ -55,7 +54,7 @@ public class ServerApplication {
 
 			logManager = new LogManager(port);
 
-			writeTimestamp.set(0);
+			myWts.set(0);
 
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
@@ -141,11 +140,19 @@ public class ServerApplication {
 		return logManager;
 	}
 
-	public static int getCurrentWriteTimestamp() {
-		return writeTimestamp.get();
+	public static synchronized boolean tryIncrementMyWts(int receivedWts) {
+		if (receivedWts > getMyWts()) {
+			myWts.set(receivedWts);
+			return true;
+		}
+		return false;
 	}
 
-	public static void setCurrentWriteTimestamp(int newWriteTimestamp) {
-		writeTimestamp.set(newWriteTimestamp);
+	public static int getMyWts() {
+		return myWts.get();
+	}
+
+	public static void setMyWts(int newWriteTimestamp) {
+		myWts.set(newWriteTimestamp);
 	}
 }

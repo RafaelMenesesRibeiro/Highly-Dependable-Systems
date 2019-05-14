@@ -87,7 +87,7 @@ public class WriteBackController extends BaseController {
 			throw new FailedWriteBackException("The GoodID or OwnerID of the GoodStateResponses did not match.");
 		}
 
-		long onGoodsWts = onGoodsRelevantResponse.getOnGoodsWriteTimestamp();
+		int onGoodsWts = onGoodsRelevantResponse.getOnGoodsWriteTimestamp();
 		boolean onSale = onGoodsRelevantResponse.isOnSale();
 		String writeOnGoodsSignature = onGoodsRelevantResponse.getWriteOnGoodsSignature();
 		res = verifyWriteOnGoodsOperationSignature(onGoodsGoodID, onSale, onGoodsOwnerID, onGoodsWts, writeOnGoodsSignature);
@@ -95,7 +95,7 @@ public class WriteBackController extends BaseController {
 			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
 
-		long onOwnershipWts = onOwnershipRelevantResponse.getOnOwnershipWriteTimestamp();
+		int onOwnershipWts = onOwnershipRelevantResponse.getOnOwnershipWriteTimestamp();
 		String writeOnOwnershipsSignature = onOwnershipRelevantResponse.getWriteOnOwnershipSignature();
 		res = verifyWriteOnOwnershipSignature(onOwnershipGoodID, onOwnershipOwnerID, onOwnershipWts, writeOnOwnershipsSignature);
 		if (!res) {

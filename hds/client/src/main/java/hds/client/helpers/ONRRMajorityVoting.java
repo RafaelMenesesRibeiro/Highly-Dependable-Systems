@@ -158,19 +158,19 @@ public class ONRRMajorityVoting {
         }
     }
 
-    public static int isIntentionToSellAcknowledge(long wts, BasicMessage message) {
+    public static int isIntentionToSellAcknowledge(int wts, BasicMessage message) {
         return iwWriteAcknowledge(wts, message);
     }
 
-    public static int isBuyGoodAcknowledge(long wts, BasicMessage message) {
+    public static int isBuyGoodAcknowledge(int wts, BasicMessage message) {
         return iwWriteAcknowledge(wts, message);
     }
 
-    public static int isTransferGoodAcknowledge(long wts, BasicMessage message) {
+    public static int isTransferGoodAcknowledge(int wts, BasicMessage message) {
         return iwWriteAcknowledge(wts, message);
     }
 
-    private static int iwWriteAcknowledge(long wts, BasicMessage message) {
+    private static int iwWriteAcknowledge(int wts, BasicMessage message) {
         if (message == null) {
             printError("A replica timed out. No information regarding the replicaId...");
             return 0;

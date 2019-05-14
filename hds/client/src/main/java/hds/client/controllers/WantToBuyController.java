@@ -159,7 +159,7 @@ public class WantToBuyController {
         return replicaIdChallengeSolutionsMap;
     }
 
-    private List<BasicMessage> processTransferGoodResponses(long wts,
+    private List<BasicMessage> processTransferGoodResponses(int wts,
                                                             final int replicasCount,
                                                             ExecutorCompletionService<BasicMessage> completionService) {
 

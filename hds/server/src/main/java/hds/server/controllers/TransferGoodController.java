@@ -110,7 +110,7 @@ public class TransferGoodController extends BaseController {
 		}
 		transactionData.setWrappingSignature(wrappingSignature);
 
-		long rcvWts = transactionData.getWts();
+		int rcvWts = transactionData.getWts();
 		String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
 		boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, rcvWts, writeOnOwnershipsSignature);
 		if (!res) {
@@ -147,16 +147,15 @@ public class TransferGoodController extends BaseController {
 				throw new BadTransactionException("The transaction is not valid.");
 			}
 
-			synchronized (this) {
-				// TODO - Add same verification up top to be able to refuse faster.
-				// Leave this one here in case someone writes before this.
-				int myWts = ServerApplication.getCurrentWriteTimestamp();
-
-				if (!(rcvWts > myWts)) {
-					throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
-				}
-				TransferGood.transferGood(connection, goodID, buyerID, ""+ rcvWts, writeOnOwnershipsSignature, writeOnGoodsSignature);
+			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
+				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
+			} else {
+				// TODO CHECK THIS OUT
+				// SHOULD transferGood(...) be here? You dont want to continue unless you updated the function
 			}
+
+			TransferGood.transferGood(connection, goodID, buyerID, ""+ rcvWts, writeOnOwnershipsSignature, writeOnGoodsSignature);
+
 
 			connection.commit();
 			connection.close();

@@ -44,7 +44,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                                    String requestId,
                                    String replicaId,
                                    String goodId,
-                                   long wts,
+                                   int wts,
                                    Boolean onSale) {
 
         this.replicaId = replicaId;
@@ -81,7 +81,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
      * @throws JSONException
      * @throws SignatureException
      */
-    private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final long wts)
+    private byte[] newWriteOnGoodsDataSignature(final String goodId, final Boolean onSale, final int wts)
             throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnGoodsData(goodId, onSale, getMyClientPort(), wts).toString().getBytes();
@@ -105,7 +105,7 @@ public class IntentionToSellCallable implements Callable<BasicMessage> {
                                                  final String requestId,
                                                  final String to,
                                                  final String goodId,
-                                                 final long wts,
+                                                 final int wts,
                                                  final Boolean onSale,
                                                  final String writeOnGoodsSignature) {
 

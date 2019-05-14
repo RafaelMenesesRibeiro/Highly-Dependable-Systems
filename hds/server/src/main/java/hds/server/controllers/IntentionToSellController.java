@@ -89,7 +89,7 @@ public class IntentionToSellController extends BaseController {
 			throw new SignatureException("The Seller's signature is not valid.");
 		}
 
-		long rcvWts = ownerData.getWriteTimestamp();
+		int rcvWts = ownerData.getWriteTimestamp();
 		String writeOperationSignature = ownerData.getWriteOperationSignature();
 		String writerID = ownerData.getOwner();
 		res = verifyWriteOnGoodsOperationSignature(goodID, ownerData.isOnSale(), writerID, rcvWts, writeOperationSignature);
@@ -108,15 +108,15 @@ public class IntentionToSellController extends BaseController {
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
-			synchronized (this) {
-				// TODO - Add same verification up top to be able to refuse faster.
-				// Leave this one here in case someone writes before this.
-				int myWts = ServerApplication.getCurrentWriteTimestamp();
-				if (!(rcvWts > myWts)) {
-					throw new OldMessageException("Write Timestamp " + rcvWts + " is too old.");
-				}
-				MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+rcvWts, writeOperationSignature);
+			// TODO - Add same verification up top to be able to refuse faster.
+			// Leave this one here in case someone writes before this.
+			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
+				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
+			} else {
+				// TODO CHECK THIS OUT
+				// SHOULD changeGoodSaleStatus(...) be here? You dont want to continue unless you updated the function
 			}
+			MarkForSale.changeGoodSaleStatus(connection, goodID, true, writerID, ""+rcvWts, writeOperationSignature);
 
 			connection.commit();
 			BasicMessage payload = new WriteResponse(generateTimestamp(), ownerData.getRequestID(), OPERATION, FROM_SERVER, ownerData.getFrom(), "", ownerData.getWriteTimestamp());

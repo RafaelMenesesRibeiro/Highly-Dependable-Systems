@@ -30,7 +30,7 @@ public class ClientSecurityManager {
     public static byte[] newWriteOnGoodsDataSignature(final String goodId,
                                                       final Boolean onSale,
                                                       final String writer,
-                                                      final long wts) throws JSONException, SignatureException {
+                                                      final int wts) throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnGoodsData(goodId, onSale, writer, wts).toString().getBytes();
         return CryptoUtils.signData(getMyPrivateKey(), rawData);
@@ -38,7 +38,7 @@ public class ClientSecurityManager {
 
     public static byte[] newWriteOnOwnershipsDataSignature(final String goodId,
                                                            final String writerID,
-                                                           final long wts) throws JSONException, SignatureException {
+                                                           final int wts) throws JSONException, SignatureException {
 
         byte[] rawData = newWriteOnOwnershipData(goodId, writerID, wts).toString().getBytes();
         return CryptoUtils.signData(getMyPrivateKey(), rawData);

@@ -95,13 +95,13 @@ public class GetStateOfGoodController {
 
 			JSONObject ownershipInfo = getOnOwnershipInfo(connection, goodID);
 			String ownerID = ownershipInfo.getString("userID");
-			long onOwnershipWriteTimestamp = Long.parseLong(ownershipInfo.getString("ts"));
+			int onOwnershipWriteTimestamp = Integer.parseInt(ownershipInfo.getString("ts"));
 			String writeOnOwnershipSignature = ownershipInfo.getString("sig");
 
 			JSONObject goodsInfo = getOnGoodsInfo(connection, goodID);
 			boolean state = goodsInfo.getString("onSale").equals("t");
 			String onGoodsWriterID = goodsInfo.getString("wid");
-			long onGoodsWriteTimestamp = Long.parseLong(goodsInfo.getString("ts"));
+			int onGoodsWriteTimestamp = Integer.parseInt(goodsInfo.getString("ts"));
 			String writeOnGoodsOperationSignature = goodsInfo.getString("sig");
 
 			return new GoodStateResponse(

@@ -143,7 +143,7 @@ public class SecurityManager {
     public static boolean verifyWriteOnGoodsOperationSignature(final String goodId,
                                                                final Boolean value,
                                                                final String writerId,
-                                                               final long wts,
+                                                               final int wts,
                                                                final String signature) {
 
         try {
@@ -159,7 +159,7 @@ public class SecurityManager {
     public static boolean verifyWriteOnGoodsDataResponseSignature(final String goodId,
                                                                   final Boolean value,
                                                                   final String writerId,
-                                                                  final long wts,
+                                                                  final int wts,
                                                                   final String signature) {
 
         try {
@@ -174,7 +174,7 @@ public class SecurityManager {
 
     public static boolean verifyWriteOnOwnershipSignature(final String goodID,
                                                           final String writerId,
-                                                          final long wts,
+                                                          final int wts,
                                                           final String signature) {
 
         try {
@@ -190,7 +190,7 @@ public class SecurityManager {
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
-                                                 final long wts) throws JSONException {
+                                                 final int wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("onSale", value);
@@ -202,14 +202,14 @@ public class SecurityManager {
     public static JSONObject newWriteOnGoodsDataResponse(final String goodId,
                                                          final Boolean value,
                                                          final String writerId,
-                                                         final long wts) throws JSONException {
+                                                         final int wts) throws JSONException {
 
         return newWriteOnGoodsData(goodId, value, writerId, wts);
     }
 
     public static JSONObject newWriteOnOwnershipData(final String goodId,
                                                      final String writerId,
-                                                     final long wts) throws JSONException {
+                                                     final int wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("writerId", writerId);

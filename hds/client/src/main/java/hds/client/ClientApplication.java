@@ -363,7 +363,7 @@ public class ClientApplication {
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(long wts,
+    private static void processIntentionToSellResponses(int wts,
                                                         final int replicasCount,
                                                         ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -420,7 +420,7 @@ public class ClientApplication {
         }
     }
 
-    private static void processBuyGoodResponses(long wts, JSONArray messageList) {
+    private static void processBuyGoodResponses(int wts, JSONArray messageList) {
         int ackCount = 0;
         for (int i = 0; i < messageList.length(); i++) {
             try {
@@ -453,7 +453,7 @@ public class ClientApplication {
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
-    private static SaleRequestMessage newSaleRequestMessage(long wts) {
+    private static SaleRequestMessage newSaleRequestMessage(int wts) {
         String to = requestSellerId();
         String goodId = requestGoodId();
         Boolean onSale = Boolean.FALSE;

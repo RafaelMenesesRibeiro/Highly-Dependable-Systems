@@ -7,22 +7,21 @@ import java.io.Serializable;
 
 public class WriteResponse extends BasicMessage implements Serializable {
 	@NotNull(message = "The write timestamp cannot be null.")
-	@NotFutureTimestamp
-	private long wts;
+	private int wts;
 
 	// TODO - Should it be wts that's being sent to verify? //
-	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, long wts) {
+	public WriteResponse(long timestamp, String requestID, String operation, String from, String to, String signature, int wts) {
 		super(timestamp, requestID, operation, from, to, signature);
 		this.wts = wts;
 	}
 
 	public WriteResponse() {}
 
-	public long getWts() {
+	public int getWts() {
 		return wts;
 	}
 
-	public void setWts(long wts) {
+	public void setWts(int wts) {
 		this.wts = wts;
 	}
 

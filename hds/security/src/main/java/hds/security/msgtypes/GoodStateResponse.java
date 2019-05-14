@@ -1,6 +1,5 @@
 package hds.security.msgtypes;
 
-import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.ValidClientID;
 import hds.security.helpers.inputValidation.ValidGoodID;
 
@@ -28,8 +27,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     private String onGoodsWriterID;
 
     @NotNull(message = "The on goods WriteTimestamp cannot be null.")
-    @NotFutureTimestamp
-    private long onGoodsWriteTimestamp;
+    private int onGoodsWriteTimestamp;
 
     @NotNull(message = "The write on goods operation signature cannot be null.")
     @NotEmpty(message = "The write on goods operation signature cannot be empty.")
@@ -41,8 +39,7 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
     private String onOwnershipWriterID;
 
     @NotNull(message = "The on ownership WriteTimestamp cannot be null.")
-    @NotFutureTimestamp
-    private long onOwnershipWriteTimestamp;
+    private int onOwnershipWriteTimestamp;
 
     @NotNull(message = "The write on ownership operation signature cannot be null.")
     @NotEmpty(message = "The write on ownership operation signature cannot be empty.")
@@ -61,9 +58,9 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
                              String ownerID,  // value associated with write
                              boolean onSale,   // goodId
                              String onGoodsWriterID,
-                             long onGoodsWriteTimestamp,
+                             int onGoodsWriteTimestamp,
                              String writeOnGoodsSignature,
-                             long onOwnershipWriteTimestamp,
+                             int onOwnershipWriteTimestamp,
                              String writeOnOwnershipSignature,
                              int rid
                              )
@@ -116,11 +113,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.onGoodsWriterID = onGoodsWriterID;
     }
 
-    public long getOnGoodsWriteTimestamp() {
+    public int getOnGoodsWriteTimestamp() {
         return onGoodsWriteTimestamp;
     }
 
-    public void setOnGoodsWriteTimestamp(long onGoodsWriteTimestamp) {
+    public void setOnGoodsWriteTimestamp(int onGoodsWriteTimestamp) {
         this.onGoodsWriteTimestamp = onGoodsWriteTimestamp;
     }
 
@@ -140,11 +137,11 @@ public class GoodStateResponse extends BasicMessage implements Serializable {
         this.onOwnershipWriterID = onOwnershipWriterID;
     }
 
-    public long getOnOwnershipWriteTimestamp() {
+    public int getOnOwnershipWriteTimestamp() {
         return onOwnershipWriteTimestamp;
     }
 
-    public void setOnOwnershipWriteTimestamp(long onOwnershipWriteTimestamp) {
+    public void setOnOwnershipWriteTimestamp(int onOwnershipWriteTimestamp) {
         this.onOwnershipWriteTimestamp = onOwnershipWriteTimestamp;
     }
 
