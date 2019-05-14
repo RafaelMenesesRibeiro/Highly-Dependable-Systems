@@ -2,7 +2,6 @@ package hds.client.services;
 
 import hds.client.ClientApplication;
 import hds.client.domain.CallableManager;
-import hds.client.domain.GetStateOfGoodCallable;
 import hds.client.helpers.ClientSecurityManager;
 import hds.security.ConvertUtils;
 import hds.security.CryptoUtils;
@@ -18,19 +17,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(JMockit.class)
 public class GetStateOfGoodCallableMethodTest extends BaseTests {
 	// private Callable<BasicMessage> job1 = new GetStateOfGoodCallable(S_1_PORT, GOOD_1, RID_1);
-
 	@Test
 	public void getStateOfGoodSuccess(@Mocked CallableManager callableMgrMock) {
 		GoodStateResponse res1 = newMockedGoodStateResponse(C_1_PORT, S_1_PORT, s1PrivateKey);
@@ -58,6 +53,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 	}
 
 	/** Helpers */
+	
 	private GoodStateResponse newMockedGoodStateResponse(String clientPort, String replicaPort, PrivateKey replicaPrivateKey) {
 		try {
 			GoodStateResponse response = new GoodStateResponse(
@@ -85,6 +81,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 			return null;
 		}
 	}
+
 	private ErrorResponse newMockedErrorResponse(String clientPort, String replicaPort, PrivateKey replicaPrivateKey) {
 		try {
 			ErrorResponse response = new ErrorResponse(
@@ -104,6 +101,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 			return null;
 		}
 	}
+
 	private BasicMessage newNullResponse() {
 		return null;
 	}
