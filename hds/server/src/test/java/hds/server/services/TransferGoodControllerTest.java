@@ -14,7 +14,9 @@ import hds.server.exception.ChallengeFailedException;
 import hds.server.exception.IncorrectSignatureException;
 import hds.server.exception.OldMessageException;
 import hds.server.helpers.DatabaseManager;
+import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
+import hds.server.helpers.TransferGood;
 import mockit.Expectations;
 import mockit.Mocked;
 import org.json.JSONException;
@@ -46,8 +48,8 @@ public class TransferGoodControllerTest extends BaseTests {
 	private final String SELLER_OWNED_GOOD_ID = "good2";
 	private final String NOT_SELLER_OWNED_GOOD_ID = "good3";
 	private final boolean ON_SALE = true;
-	private final int WRITE_TIMESTAMP = 1;
 	private final String CHALLENGE_ANSWER = "original";
+	private int WRITE_TIMESTAMP = 1;
 	private TransferGoodController controller;
 	private ApproveSaleRequestMessage requestMessage;
 	private PrivateKey BUYER_KEY;
@@ -75,7 +77,60 @@ public class TransferGoodControllerTest extends BaseTests {
 
 	@Test
 	public void success() {
-		// TODO //
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new TransferGoodControllerTest.MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransactionValidityChecker.class) {{
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(SELLER_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+
+			try { TransactionValidityChecker.getIsOnSale((Connection) any, anyString); returns(true); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+		}};
+
+		new Expectations(ServerApplication.class) {{ ServerApplication.getMyWts(); returns(1); }};
+
+		new Expectations(MarkForSale.class) {{
+			try { MarkForSale.changeGoodSaleStatus((Connection) any, anyString, anyBoolean, anyString, anyString, anyString); }
+			catch (JSONException | SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransferGood.class) {{
+			try { TransferGood.changeGoodOwner((Connection) any, anyString, anyString, anyString, anyString); }
+			catch (JSONException | SQLException ex) { /* Do nothing. */ }
+		}};
+
+		WRITE_TIMESTAMP = 3;
+		requestMessage.setWts(WRITE_TIMESTAMP);
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			SaleRequestMessage saleRequestMessage = newSaleRequestMessage(requestMessage.getTimestamp(), requestMessage.getWriteOnGoodsSignature(), requestMessage.getWriteOnOwnershipsSignature());
+
+			setMessageSignature(BUYER_KEY, saleRequestMessage);
+			String messageSignature = saleRequestMessage.getSignature();
+			requestMessage.setSignature(messageSignature);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
 	}
 
 	@Test
@@ -423,7 +478,7 @@ public class TransferGoodControllerTest extends BaseTests {
 
 		new Expectations(ServerApplication.class) {{ ServerApplication.getMyWts(); returns(3); }};
 
-		requestMessage.setWts(1);
+		requestMessage.setWts(WRITE_TIMESTAMP);
 
 		try {
 			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
