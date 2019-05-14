@@ -17,14 +17,16 @@ public class DateUtils {
     }
 
     /**
-     * @param   sentTimestamp   Long timestamp retrieved from received message
+     * @param   receivedTimestamp   Long timestamp retrieved from received message
      * @return  boolean         Acknowledging or denying freshness of a message
      */
-    public static boolean isFreshTimestamp(long sentTimestamp) {
+    public static boolean isFreshTimestamp(long receivedTimestamp) {
         Instant instantNow = Instant.now();
-        Instant sentInstant = Instant.ofEpochSecond(sentTimestamp);
+        Instant receivedInstant = Instant.ofEpochSecond(receivedTimestamp);
         // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
-        return sentInstant.isAfter(instantNow.minus(TOLERANCE, ChronoUnit.MINUTES));
+        boolean isNotOld = receivedInstant.isAfter(instantNow.minus(60, ChronoUnit.SECONDS));
+        boolean isNotFuture = receivedInstant.isBefore(instantNow.plus(10, ChronoUnit.SECONDS));
+        return isNotOld && isNotFuture;
     }
 
     /**
