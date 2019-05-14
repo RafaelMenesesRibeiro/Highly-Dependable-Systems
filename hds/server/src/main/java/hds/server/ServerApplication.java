@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 @SpringBootApplication
@@ -20,6 +21,7 @@ public class ServerApplication {
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
+	private static final AtomicLong writeTimestamp = new AtomicLong();
 	private static LogManager logManager;
 
 	private static String port;
@@ -134,5 +136,13 @@ public class ServerApplication {
 
 	public static LogManager getLogManager() {
 		return logManager;
+	}
+
+	public static long getCurrentWriteTimestamp() {
+		return writeTimestamp.get();
+	}
+
+	public static void setCurrentWriteTimestamp(long newWriteTimestamp) {
+		writeTimestamp.set(newWriteTimestamp);
 	}
 }
