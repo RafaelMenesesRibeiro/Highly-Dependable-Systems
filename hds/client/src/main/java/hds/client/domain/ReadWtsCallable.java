@@ -21,7 +21,7 @@ import static hds.security.helpers.managers.ConnectionManager.initiateGETConnect
  */
 public class ReadWtsCallable implements Callable<BasicMessage> {
     private static final String OPERATION = "getCurrentTimestamp";
-    private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?clientID=%s&rid=%s";
+    private static final String REQUEST_ENDPOINT = "http://localhost:%s/%s?clientID=%s&readID=%s";
     private final String address;
     private final String replicaId;
 
