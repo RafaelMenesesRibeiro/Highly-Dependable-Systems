@@ -121,7 +121,7 @@ public class ClientApplication {
 
         executorService.shutdown();
 
-        print("My commit wts attempt: " + (wts + 1));
+        print("My commit wts attempt: " + (wts + 1) + "\n");
         return wts + 1;
     }
 
@@ -156,7 +156,7 @@ public class ClientApplication {
             if (highestPair == null) {
                 printError("No wts responses were found...");
             } else {
-                print(String.format("Highest wts: %s\n", highestPair.getValue1()));
+                print(String.format("Highest wts: %s", highestPair.getValue1()));
                 return highestPair.getValue1();
             }
         } else {
@@ -277,7 +277,7 @@ public class ClientApplication {
             if (highestQuartet == null) {
                 printError("No good state responses were found...");
             } else {
-                print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+                print(String.format("\nHighest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
                 getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
             }
         } else {
