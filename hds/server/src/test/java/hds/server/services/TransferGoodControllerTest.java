@@ -398,6 +398,56 @@ public class TransferGoodControllerTest extends BaseTests {
 		}
 	}
 
+	@Test
+	public void writeTimestampIsTooOld() {
+		expectedExRule.expect(OldMessageException.class);
+		expectedExRule.expectMessage("is too old.");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new TransferGoodControllerTest.MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		new Expectations(TransactionValidityChecker.class) {{
+			try { TransactionValidityChecker.getCurrentOwner((Connection) any, anyString); returns(SELLER_ID); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+
+			try { TransactionValidityChecker.getIsOnSale((Connection) any, anyString); returns(true); }
+			catch (JSONException | SQLException e) { /* Do nothing. */ }
+		}};
+
+		new Expectations(ServerApplication.class) {{ ServerApplication.getMyWts(); returns(3); }};
+
+		requestMessage.setWts(1);
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			SaleRequestMessage saleRequestMessage = newSaleRequestMessage(requestMessage.getTimestamp(), requestMessage.getWriteOnGoodsSignature(), requestMessage.getWriteOnOwnershipsSignature());
+
+			setMessageSignature(BUYER_KEY, saleRequestMessage);
+			String messageSignature = saleRequestMessage.getSignature();
+			requestMessage.setSignature(messageSignature);
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
 	private ApproveSaleRequestMessage newApproveSaleRequestMessage() {
 		return new ApproveSaleRequestMessage(
 				generateTimestamp(),
