@@ -39,9 +39,7 @@ public class ClientApplication {
     private static final AtomicInteger readId = new AtomicInteger(0);
 
     /***********************************************************
-     *
      * CLIENT COMMAND LINE INTERFACE AND SERVER INITIATION
-     *
      ***********************************************************/
 
     public static void main(String[] args) {
