@@ -10,7 +10,9 @@ import hds.server.domain.ChallengeData;
 import hds.server.exception.BadTransactionException;
 import hds.server.exception.ChallengeFailedException;
 import hds.server.exception.IncorrectSignatureException;
+import hds.server.helpers.DatabaseManager;
 import mockit.Expectations;
+import mockit.Mocked;
 import org.json.JSONException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -226,6 +228,74 @@ public class TransferGoodControllerTest extends BaseTests {
 			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(STRANGER_KEY, rawData));
 			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
 
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void emptyBuyerSignature(@Mocked DatabaseManager dbManager) {
+		expectedExRule.expect(SignatureException.class);
+		expectedExRule.expectMessage("Signature length not correct:");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new TransferGoodControllerTest.MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			setMessageWrappingSignature(SELLER_KEY, requestMessage);
+			controller.execute(requestMessage);
+		}
+		catch (SQLException | JSONException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void incorrectBuyerSignature(@Mocked DatabaseManager dbManager) {
+		expectedExRule.expect(IncorrectSignatureException.class);
+		expectedExRule.expectMessage("The Buyer's signature is not valid.");
+
+		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);
+		ChallengeData replicaChallengeData = new ChallengeData(REQUEST_ID, CHALLENGE_ANSWER, "hsahed", new char[5]);
+
+		new Expectations(GeneralControllerHelper.class) {{ GeneralControllerHelper.removeAndReturnChallenge((UserRequestIDKey) any); returns(replicaChallengeData); }};
+
+		new Expectations(DatabaseManager.class) {{
+			try { DatabaseManager.getConnection(); this.result = new TransferGoodControllerTest.MockedConnection(); }
+			catch (SQLException ex) { /* Do nothing. */ }
+		}};
+
+
+		try {
+			byte[] rawData = newWriteOnOwnershipData(SELLER_OWNED_GOOD_ID, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnOwnershipSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnOwnershipsSignature(writeOnOwnershipSignature);
+
+			rawData = newWriteOnGoodsData(SELLER_OWNED_GOOD_ID, ON_SALE, BUYER_ID, WRITE_TIMESTAMP).toString().getBytes();
+			String writeOnGoodsSignature = bytesToBase64String(CryptoUtils.signData(BUYER_KEY, rawData));
+			requestMessage.setWriteOnGoodsSignature(writeOnGoodsSignature);
+
+			setMessageSignature(STRANGER_KEY, requestMessage);
 			setMessageWrappingSignature(SELLER_KEY, requestMessage);
 			controller.execute(requestMessage);
 		}
