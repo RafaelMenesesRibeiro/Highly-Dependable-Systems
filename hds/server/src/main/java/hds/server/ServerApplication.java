@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 @SpringBootApplication
@@ -20,6 +21,7 @@ public class ServerApplication {
 	public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
 	public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 	public static final String DB_NAME_PREFIX = "hds_replica_";
+	private static final AtomicInteger myWts = new AtomicInteger();
 	private static LogManager logManager;
 
 	private static String port;
@@ -51,6 +53,8 @@ public class ServerApplication {
 			ServerApplication.ccReplicasNumber = maxCCReplicasNumber;
 
 			logManager = new LogManager(port);
+
+			myWts.set(0);
 
 			fetchProperties();
 			if (serverPort >= HDS_NOTARY_REPLICAS_FIRST_CC_PORT) {
@@ -134,5 +138,21 @@ public class ServerApplication {
 
 	public static LogManager getLogManager() {
 		return logManager;
+	}
+
+	public static synchronized boolean tryIncrementMyWts(int receivedWts) {
+		if (receivedWts > getMyWts()) {
+			myWts.set(receivedWts);
+			return true;
+		}
+		return false;
+	}
+
+	public static int getMyWts() {
+		return myWts.get();
+	}
+
+	public static void setMyWts(int newWriteTimestamp) {
+		myWts.set(newWriteTimestamp);
 	}
 }

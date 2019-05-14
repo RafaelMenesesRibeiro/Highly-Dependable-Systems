@@ -5,50 +5,75 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 
 public class ClientProperties {
     public static final int HDS_NOTARY_CLIENTS_FIRST_PORT = 8000;
-    public static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
-    public static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
+    private static final int HDS_NOTARY_REPLICAS_FIRST_PORT = 9000;
+    private static final int HDS_NOTARY_REPLICAS_FIRST_CC_PORT = 10000;
 
     public static final String HDS_BASE_HOST = "http://localhost:";
 
-    private static int maxFailures = 0;
-    private static String myClientPort;
-    private static ArrayList<String> regularReplicaIdList = new ArrayList<>();
-    private static ArrayList<String> citizenReplicaIdList = new ArrayList<>();
-
-    private static PrivateKey myPrivateKey;
+    private static PrivateKey myPrivateKey = null;
+    private static List<String> regularReplicaIdList = new ArrayList<>();
+    private static List<String> citizenReplicaIdList = new ArrayList<>();
+    private static List<String> replicasList = new ArrayList<>();
+    private static Integer numberOfReplicas = 0;
+    private static Integer maxFailures = 0;
+    private static Integer majorityThreshold = 0;
+    private static String myClientPort = "";
 
     private ClientProperties() {}
 
-    public static ArrayList<String> createIDList(int start, int end) {
-        ArrayList<String> replicas = new ArrayList<>();
-        for (int replicaPort = start; replicaPort <= end; replicaPort++) {
-            replicas.add("" + replicaPort);
-        }
-        return replicas;
+    public static PrivateKey getMyPrivateKey() {
+        return myPrivateKey;
     }
 
-    public static void initializeRegularReplicasIDList(int number) {
-        int maxPort = HDS_NOTARY_REPLICAS_FIRST_PORT + number - 1;
-        setRegularReplicaIdList(createIDList(HDS_NOTARY_REPLICAS_FIRST_PORT, maxPort));
+    private static void setMyPrivateKey(PrivateKey myPrivateKey) {
+        ClientProperties.myPrivateKey = myPrivateKey;
     }
 
-    public static void initializeCCReplicasIDList(int number) {
-        int maxPort = HDS_NOTARY_REPLICAS_FIRST_CC_PORT + number - 1;
-        setCitizenReplicaIdList(createIDList(HDS_NOTARY_REPLICAS_FIRST_CC_PORT, maxPort));
+    private static List<String> getRegularReplicaIdList() {
+        return regularReplicaIdList;
     }
 
-    public static int getMaxFailures() {
+    private static void setRegularReplicaIdList(List<String> regularReplicaIdList) {
+        ClientProperties.regularReplicaIdList = regularReplicaIdList;
+    }
+
+    private static List<String> getCitizenReplicaIdList() {
+        return citizenReplicaIdList;
+    }
+
+    private static void setCitizenReplicaIdList(List<String> citizenReplicaIdList) {
+        ClientProperties.citizenReplicaIdList = citizenReplicaIdList;
+    }
+
+    public static List<String> getReplicasList() {
+        return replicasList;
+    }
+
+    private static void setReplicasList() {
+        ClientProperties.replicasList.addAll(regularReplicaIdList);
+        ClientProperties.replicasList.addAll(citizenReplicaIdList);
+        setNumberOfReplicas();
+    }
+
+    public static Integer getNumberOfReplicas() {
+        return numberOfReplicas;
+    }
+
+    private static void setNumberOfReplicas() {
+        ClientProperties.numberOfReplicas = replicasList.size();
+    }
+
+    public static Integer getMaxFailures() {
         return maxFailures;
     }
 
-    public static void setMaxFailures(int maxFailures) {
+    private static void setMaxFailures(Integer maxFailures) {
         ClientProperties.maxFailures = maxFailures;
     }
 
@@ -56,54 +81,43 @@ public class ClientProperties {
         return myClientPort;
     }
 
-    public static void setMyClientPort(String myClientPort) {
+    private static void setMyClientPort(String myClientPort) {
         ClientProperties.myClientPort = myClientPort;
-        try {
-            ClientProperties.myPrivateKey = getPrivateKeyFromResource(myClientPort);
+    }
+
+    private static void setMajorityThreshold() {
+        ClientProperties.majorityThreshold = (numberOfReplicas + maxFailures) / 2;
+    }
+
+    static int getMajorityThreshold() {
+        return majorityThreshold;
+    }
+
+    /**************************************
+     *  CLIENT APPLICATION INITIALIZERS
+     *************************************/
+
+    private static void initRegularReplicasIdList(int number) {
+        int maxPort = HDS_NOTARY_REPLICAS_FIRST_PORT + number - 1;
+        setRegularReplicaIdList(newReplicasList(HDS_NOTARY_REPLICAS_FIRST_PORT, maxPort));
+    }
+
+    private static void initCitizenReplicaIdList(int number) {
+        int maxPort = HDS_NOTARY_REPLICAS_FIRST_CC_PORT + number - 1;
+        setCitizenReplicaIdList(newReplicasList(HDS_NOTARY_REPLICAS_FIRST_CC_PORT, maxPort));
+    }
+
+    private static ArrayList<String> newReplicasList(int start, int end) {
+        ArrayList<String> replicas = new ArrayList<>();
+        for (int replicaPort = start; replicaPort <= end; replicaPort++) {
+            replicas.add("" + replicaPort);
         }
-        catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
-            Logger logger = Logger.getAnonymousLogger();
-            logger.log(Level.SEVERE, "Error loading privateKey from resources");
-            System.exit(-1);
-        }
+        return replicas;
     }
 
-    public static ArrayList<String> getRegularReplicaIdList() {
-        return regularReplicaIdList;
-    }
-
-    public static void setRegularReplicaIdList(ArrayList<String> regularReplicaIdList) {
-        ClientProperties.regularReplicaIdList = regularReplicaIdList;
-    }
-
-    public static ArrayList<String> getCitizenReplicaIdList() {
-        return citizenReplicaIdList;
-    }
-
-    public static void setCitizenReplicaIdList(ArrayList<String> citizenReplicaIdList) {
-        ClientProperties.citizenReplicaIdList = citizenReplicaIdList;
-    }
-
-    public static PrivateKey getMyPrivateKey() {
-        return myPrivateKey;
-    }
-
-    public static void setMyPrivateKey(PrivateKey myPrivateKey) {
-        ClientProperties.myPrivateKey = myPrivateKey;
-    }
-
-    public static int getMajorityThreshold() {
-        int numberOfReplicas =
-                ClientProperties.getRegularReplicaIdList().size() + ClientProperties.getCitizenReplicaIdList().size();
-        return (numberOfReplicas + ClientProperties.getMaxFailures()) / 2;
-    }
-
-    public static ArrayList<String> getAllReplicaIdLists() {
-        ArrayList<String> allReplicaIdList = new ArrayList<>();
-        allReplicaIdList.addAll(ClientProperties.regularReplicaIdList);
-        allReplicaIdList.addAll(ClientProperties.citizenReplicaIdList);
-        return allReplicaIdList;
-    }
+    /**************************************
+     *  HELPERS
+     *************************************/
 
     public static void print(String msg) {
         System.out.println("[o] " + msg);
@@ -111,5 +125,19 @@ public class ClientProperties {
 
     public static void printError(String msg) {
         System.out.println("    [x] " + msg);
+    }
+
+    public static void init(String portId, int maxFailures, int regularReplicasNumber, int ccReplicasNumber) {
+        ClientProperties.setMyClientPort(portId);
+        try {
+            ClientProperties.setMyPrivateKey(getPrivateKeyFromResource(portId));
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException exc) {
+            System.exit(1);
+        }
+        ClientProperties.setMaxFailures(maxFailures);
+        ClientProperties.initRegularReplicasIdList(regularReplicasNumber);
+        ClientProperties.initCitizenReplicaIdList(ccReplicasNumber);
+        ClientProperties.setReplicasList();
+        ClientProperties.setMajorityThreshold();
     }
 }

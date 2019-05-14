@@ -3,13 +3,13 @@ package hds.client;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hds.client.domain.CallableManager;
-import hds.client.domain.GetStateOfGoodCallable;
-import hds.client.domain.IntentionToSellCallable;
+import hds.client.domain.*;
 import hds.client.helpers.ClientProperties;
 import hds.client.helpers.ClientSecurityManager;
 import hds.client.helpers.ONRRMajorityVoting;
 import hds.security.msgtypes.*;
+import org.javatuples.Pair;
+import org.javatuples.Quartet;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,12 +26,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static hds.client.helpers.ClientProperties.*;
-import static hds.client.helpers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.newUUIDString;
 import static hds.security.DateUtils.generateTimestamp;
-import static hds.security.SecurityManager.*;
+import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.helpers.managers.ConnectionManager.*;
 
+@SuppressWarnings("Duplicates")
 @SpringBootApplication
 public class ClientApplication {
     private static Scanner inputScanner = new Scanner(System.in);
@@ -58,10 +59,9 @@ public class ClientApplication {
             logger.warning("Exiting:\n" + ex.getMessage());
             System.exit(-1);
         }
-        ClientProperties.setMyClientPort(portId);
-        ClientProperties.setMaxFailures(maxFailures);
-        ClientProperties.initializeRegularReplicasIDList(regularReplicasNumber);
-        ClientProperties.initializeCCReplicasIDList(ccReplicasNumber);
+
+        ClientProperties.init(portId, maxFailures, regularReplicasNumber, ccReplicasNumber);
+
         runClientServer(args);
         runClientInterface();
     }
@@ -102,13 +102,133 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
+     * GET WTS RELATED METHODS
+     ***********************************************************/
+
+    private static int readWts() {
+        final List<String> replicasList = ClientProperties.getReplicasList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        int rid = readId.incrementAndGet();
+
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job = new ReadWtsCallable(replicaId, getMyClientPort(), rid);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        int wts = processReadWtsResponses(rid, replicasList.size(), completionService);
+
+        executorService.shutdown();
+
+        print("My commit wts attempt: " + (wts + 1) + "\n");
+        return wts + 1;
+    }
+
+    private static int processReadWtsResponses(final int rid,
+                                                final int replicasCount,
+                                                ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+        List<ReadWtsResponse> readList = new ArrayList<>();
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isReadWtsAcknowledge(rid, message, readList);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWts")) {
+            Pair<ReadWtsResponse, Integer> highestPair = ONRRMajorityVoting.selectMostRecentWts(readList);
+            if (highestPair == null) {
+                printError("No wts responses were found...");
+            } else {
+                print(String.format("Highest wts: %s", highestPair.getValue1()));
+                return highestPair.getValue1();
+            }
+        } else {
+            printError("");
+        }
+        return -1;
+    }
+
+    public static int readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
+        print("Initiating read wts write back phase to all known replicas...");
+
+        final List<String> replicasList = ClientProperties.getReplicasList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job =
+                    new ReadWtsWriteBackCallable(timestamp, requestId, replicaId, rid, readWtsResponse);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        if (processReadWtsWriteBackResponses(rid, replicasList.size(), completionService)) {
+            executorService.shutdown();
+            return readWtsResponse.getWts();
+        }
+        executorService.shutdown();
+        return -1;
+    }
+
+    private static boolean processReadWtsWriteBackResponses(final int rid,
+                                                            final int replicasCount,
+                                                            ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isReadWtsWriteBackAcknowledge(rid, message);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWtsWriteBack")) {
+            print("Read wts write with rid: " + rid + "had a successful write back phase... wts can be commit!");
+            return true;
+        }
+
+        return false;
+    }
+
+    /***********************************************************
      * GET STATE OF GOOD RELATED METHODS
-     *
      ***********************************************************/
 
     private static void getStateOfGood() {
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
         final String goodId = requestGoodId();
@@ -120,11 +240,11 @@ public class ClientApplication {
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        processGetStateOfGOodResponses(rid, replicasList.size(), completionService);
+        processGetStateOfGoodResponses(rid, replicasList.size(), completionService);
         executorService.shutdown();
     }
 
-    private static void processGetStateOfGOodResponses(final int rid,
+    private static void processGetStateOfGoodResponses(final int rid,
                                                        final int replicasCount,
                                                        ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -141,7 +261,7 @@ public class ClientApplication {
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.isGoodStateReadAcknowledge(rid, message, readList);
+                    ackCount += ONRRMajorityVoting.isGetGoodStateAcknowledge(rid, message, readList);
                 }
             } catch (ExecutionException ee) {
                 Throwable cause = ee.getCause();
@@ -151,26 +271,91 @@ public class ClientApplication {
             }
         }
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
-            print(ONRRMajorityVoting.selectMostRecentGoodState(readList).toString());
+            Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> highestQuartet =
+                    ONRRMajorityVoting.selectMostRecentGoodState(readList);
+
+            if (highestQuartet == null) {
+                printError("No good state responses were found...");
+            } else {
+                print(String.format("\nHighest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+                getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
+            }
+        } else {
+            printError("");
+        }
+    }
+
+    private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {
+        print("Initiating get state of good write back phase to all known replicas...");
+
+        final List<String> replicasList = ClientProperties.getReplicasList();
+        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
+        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
+        for (String replicaId : replicasList) {
+            Callable<BasicMessage> job =
+                    new WriteBackCallable(timestamp, requestId, replicaId, rid, highestGoodState, highestOwnershipState);
+            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
+        }
+
+        processGetStateOfGOodWriteBackResponses(rid, replicasList.size(), completionService);
+        executorService.shutdown();
+    }
+
+    private static void processGetStateOfGOodWriteBackResponses(final int rid,
+                                                                final int replicasCount,
+                                                                ExecutorCompletionService<BasicMessage> completionService) {
+
+        int ackCount = 0;
+        for (int i = 0; i < replicasCount; i++) {
+            try {
+                Future<BasicMessage> futureResult = completionService.take();
+                if (!futureResult.isCancelled()) {
+                    BasicMessage message = futureResult.get();
+                    if (message == null) {
+                        continue;
+                    }
+                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
+                        continue;
+                    }
+                    ackCount += ONRRMajorityVoting.isGetGoodStateWriteBackAcknowledge(rid, message);
+                }
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause();
+                printError(cause.getMessage());
+            } catch (InterruptedException ie) {
+                printError(ie.getMessage());
+            }
+        }
+        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGoodWriteBack")) {
+            print("Get state of good operation with rid: " + rid + " had a successful right back phase...");
         }
     }
 
     /***********************************************************
-     *
      * INTENTION TO SELL RELATED METHODS
-     *
      ***********************************************************/
 
     private static void intentionToSell() {
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-        long wts = generateTimestamp();
         final String goodId = requestGoodId();
 
+        int wts = readWts();
+
+        if (wts == 0) {
+            print("Invalid wts, can't proceed with intention to sell operation...");
+            return;
+        }
+
+        long timestamp = generateTimestamp();
+        String requestId = newUUIDString();
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job =
-                    new IntentionToSellCallable(generateTimestamp(), newUUIDString(), replicaId, goodId, wts, Boolean.TRUE);
+                    new IntentionToSellCallable(timestamp, requestId, replicaId, goodId, wts, Boolean.TRUE);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
@@ -178,7 +363,7 @@ public class ClientApplication {
         executorService.shutdown();
     }
 
-    private static void processIntentionToSellResponses(long wts,
+    private static void processIntentionToSellResponses(int wts,
                                                         final int replicasCount,
                                                         ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -194,7 +379,7 @@ public class ClientApplication {
                     if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isIntentionToSellAcknowledge(wts, message);
                 }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());
@@ -210,14 +395,16 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
      * BUY GOOD RELATED METHODS
-     *
      ***********************************************************/
 
     private static void buyGood() {
         try {
-            long wts = generateTimestamp();
+            int wts = readWts();
+            if (wts == 0) {
+                print("Invalid wts, can't proceed with buy good operation...");
+                return;
+            }
 
             SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
@@ -233,12 +420,11 @@ public class ClientApplication {
         }
     }
 
-    private static void processBuyGoodResponses(long wts, JSONArray messageList) {
+    private static void processBuyGoodResponses(int wts, JSONArray messageList) {
         int ackCount = 0;
         for (int i = 0; i < messageList.length(); i++) {
             try {
                 if (messageList.isNull(i)) {
-                    printError("ClientApplication#processBuyGoodResponses(long wts, JSONArray messageList) had null element");
                     printError("Seller (mediator) claims a replica timed out. No information regarding the replicaId...");
                 } else {
                     BasicMessage message;
@@ -255,7 +441,7 @@ public class ClientApplication {
                         continue;
                     }
 
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isBuyGoodAcknowledge(wts, message);
                 }
 
             } catch (JSONException | JsonParseException | JsonMappingException exc) {
@@ -267,7 +453,7 @@ public class ClientApplication {
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
-    private static SaleRequestMessage newSaleRequestMessage(long wts) {
+    private static SaleRequestMessage newSaleRequestMessage(int wts) {
         String to = requestSellerId();
         String goodId = requestGoodId();
         Boolean onSale = Boolean.FALSE;
@@ -297,9 +483,7 @@ public class ClientApplication {
     }
 
     /***********************************************************
-     *
      * HELPER METHODS WITH NO LOGICAL IMPORTANCE
-     *
      ***********************************************************/
 
     private static String scanString(String requestString) {

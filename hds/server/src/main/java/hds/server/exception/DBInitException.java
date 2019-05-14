@@ -6,6 +6,7 @@ package hds.server.exception;
  * @author 		Rafael Ribeiro
  */
 public class DBInitException extends RuntimeException{
+
 	public DBInitException (String msg) {
 		super(msg);
 	}

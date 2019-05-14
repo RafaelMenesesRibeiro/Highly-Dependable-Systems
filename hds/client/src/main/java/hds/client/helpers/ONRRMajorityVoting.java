@@ -2,14 +2,17 @@ package hds.client.helpers;
 
 import hds.security.DateUtils;
 import hds.security.msgtypes.*;
+import org.javatuples.Pair;
+import org.javatuples.Quartet;
 
 import java.util.List;
 
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
-import static hds.security.SecurityManager.INITIAL_DATABASE_ENRTY_SIGNATURE;
 import static hds.security.SecurityManager.verifyWriteOnGoodsDataResponseSignature;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 
+@SuppressWarnings("Duplicates")
 public class ONRRMajorityVoting {
 
     public static boolean assertOperationSuccess(int ackCount, String operation) {
@@ -17,46 +20,93 @@ public class ONRRMajorityVoting {
             print(operation + " operation finished with majority quorum!");
             return true;
         } else {
-            print(operation + " operation failed... Not enough votes.");
+            print(operation + " operation failed... insufficient quorum!.");
             return false;
         }
     }
 
-    public static BasicMessage selectMostRecentGoodState(List<GoodStateResponse> readList) {
-        GoodStateResponse highest = null;
-        for (GoodStateResponse message : readList) {
+    public static Pair<ReadWtsResponse, Integer> selectMostRecentWts(List<ReadWtsResponse> readList) {
+        ReadWtsResponse highest = null;
+
+        for (ReadWtsResponse message : readList) {
+            System.out.println("----- READING WTS -----");
+            System.out.println(message.toString());
+            System.out.println("  ----- END READ -----  ");
+
             if (highest == null) {
                 highest = message;
-            } else if (DateUtils.isOneTimestampAfterAnother(message.getWts(), highest.getWts())) {
+            } else if (message.getWts() > highest.getWts()) {
                 highest = message;
             }
         }
-        return highest;
+
+        if (highest == null) {
+            return null;
+        }
+
+        return new Pair<>(highest, highest.getWts());
     }
 
-    public static int iwWriteAcknowledge(long wts, BasicMessage message) {
+    public static Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> selectMostRecentGoodState(List<GoodStateResponse> readList) {
+        GoodStateResponse highestOnSale = null;
+        GoodStateResponse highestOwner = null;
+
+        for (GoodStateResponse message : readList) {
+            System.out.println("----- READING GOOD STATE -----");
+            System.out.println(message.toString());
+            System.out.println("    ----- END READ -----    ");
+
+            if (highestOnSale == null) {
+                highestOnSale = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnGoodsWriteTimestamp(), highestOnSale.getOnGoodsWriteTimestamp())) {
+                highestOnSale = message;
+            }
+
+            if (highestOwner == null) {
+                highestOwner = message;
+            } else if (DateUtils.isOneTimestampAfterAnother(message.getOnOwnershipWriteTimestamp(), highestOwner.getOnOwnershipWriteTimestamp())) {
+                highestOwner = message;
+            }
+        }
+
+        if (highestOnSale == null || highestOwner == null) {
+            return null;
+        }
+
+        return new Quartet<>(highestOnSale, highestOnSale.isOnSale(), highestOwner, highestOwner.getOwnerID());
+    }
+
+    public static int isReadWtsAcknowledge(int rid, BasicMessage message, List<ReadWtsResponse> readList) {
+        if (message == null) {
+            return 0;
+        } else if (message instanceof ReadWtsResponse) {
+            ReadWtsResponse readWtsResponse = (ReadWtsResponse) message;
+
+            if (rid != readWtsResponse.getRid()) {
+                return 0;
+            }
+
+            readList.add(readWtsResponse);
+            return 1;
+        }
+        printError(message.toString());
+        return 0;
+    }
+
+    public static int isReadWtsWriteBackAcknowledge(int rid, BasicMessage message) {
         if (message == null) {
             printError("A replica timed out. No information regarding the replicaId...");
             return 0;
-        } else if (message instanceof WriteResponse) {
-            if (((WriteResponse) message).getWts() == wts) {
+        } else if (message instanceof WriteBackResponse) {
+            if (((WriteBackResponse) message).getRid() == rid) {
                 return 1;
             }
-            printError("Response contained wts different than the one that was sent on request");
-            return 0;
-        } else if (message instanceof SaleCertificateResponse) {
-            if (((SaleCertificateResponse) message).getWts() == wts) {
-                return 1;
-            }
-            printError("Response contained wts different than the one that was sent on request");
-            return 0;
-        } else {
-            printError(message.toString());
-            return 0;
         }
+        printError("Response contained rid different than the one that was sent on write back message...");
+        return 0;
     }
 
-    public static int isGoodStateReadAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
+    public static int isGetGoodStateAcknowledge(int rid, BasicMessage message, List<GoodStateResponse> readList) {
         if (message == null) {
             return 0;
         } else if (message instanceof GoodStateResponse) {
@@ -66,12 +116,21 @@ public class ONRRMajorityVoting {
                 return 0;
             }
 
-            else if (!verifyWriteOnGoodsDataResponseSignature(
+            if (!verifyWriteOnGoodsDataResponseSignature(
                     goodStateResponse.getGoodID(),
                     goodStateResponse.isOnSale(),
-                    goodStateResponse.getWriterID(),
-                    goodStateResponse.getWts(),
-                    goodStateResponse.getWriteOperationSignature()
+                    goodStateResponse.getOnGoodsWriterID(),
+                    goodStateResponse.getOnGoodsWriteTimestamp(),
+                    goodStateResponse.getWriteOnGoodsSignature()
+            )) {
+                return 0;
+            }
+
+            if (!verifyWriteOnOwnershipSignature(
+                    goodStateResponse.getGoodID(),
+                    goodStateResponse.getOnOwnershipWriterID(),
+                    goodStateResponse.getOnOwnershipWriteTimestamp(),
+                    goodStateResponse.getWriteOnOwnershipSignature()
             )) {
                 return 0;
             }
@@ -83,12 +142,54 @@ public class ONRRMajorityVoting {
         return 0;
     }
 
-    public static int isSimpleAcknowledge(BasicMessage message) {
-        if (message instanceof ChallengeRequestResponse) {
-            return 1;
+    public static int isGetGoodStateWriteBackAcknowledge(int rid, BasicMessage message) {
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteBackResponse) {
+            if (((WriteBackResponse) message).getRid() == rid) {
+                return 1;
+            }
+            printError("Response contained rid different than the one that was sent on write back message...");
+            return 0;
         } else {
-            printError(message.toString());
+            printError("isGetGoodStateWriteBackAcknowledge: \n" + message.toString());
             return 0;
         }
     }
+
+    public static int isIntentionToSellAcknowledge(int wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    public static int isBuyGoodAcknowledge(int wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    public static int isTransferGoodAcknowledge(int wts, BasicMessage message) {
+        return iwWriteAcknowledge(wts, message);
+    }
+
+    private static int iwWriteAcknowledge(int wts, BasicMessage message) {
+        if (message == null) {
+            printError("A replica timed out. No information regarding the replicaId...");
+            return 0;
+        } else if (message instanceof WriteResponse) {
+            if (((WriteResponse) message).getWts() == wts) {
+                return 1;
+            }
+            printError("Response contained wts different than the one that was sent on the write request");
+            return 0;
+        } else if (message instanceof SaleCertificateResponse) {
+            if (((SaleCertificateResponse) message).getWts() == wts) {
+                return 1;
+            }
+            printError("Response contained wts different than the one that was sent on the write request");
+            return 0;
+        } else {
+            printError("iwWriteAcknowledge: \n" + message.toString());
+            return 0;
+        }
+    }
+
 }

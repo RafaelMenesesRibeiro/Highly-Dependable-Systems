@@ -44,7 +44,7 @@ public class WantToBuyController {
 
     private ResponseEntity<List<BasicMessage>> initiateTwoPhaseProtocol(SaleRequestMessage requestMessage) {
         // Obtain replicas known to this server
-        final List<String> replicasList = ClientProperties.getRegularReplicaIdList();
+        final List<String> replicasList = ClientProperties.getReplicasList();
         // For each of them, get a challenge that will allow transfer good to be effectuated;
         final Map<String, ChallengeRequestResponse>challengesList = getChallenges(replicasList, requestMessage.getRequestID());
         // If majority of replicas replied with a challenge, solve all challenges and proceed
@@ -65,7 +65,6 @@ public class WantToBuyController {
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
 
         final long timestamp = generateTimestamp();
-
         for (String replicaId : replicasList) {
             Callable<BasicMessage> job = new RequestChallengeCallable(timestamp, replicaId, requestId);
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
@@ -130,8 +129,8 @@ public class WantToBuyController {
 
         final ExecutorService executorService = Executors.newFixedThreadPool(replicaIdChallengeSolutionsMap.size());
         final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-        final long timestamp = generateTimestamp();
 
+        final long timestamp = generateTimestamp();
         for (Map.Entry<String, String> entry : replicaIdChallengeSolutionsMap.entrySet()) {
             Callable<BasicMessage> job = new TransferGoodCallable(timestamp, entry.getKey(), requestMessage, entry.getValue());
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
@@ -160,7 +159,7 @@ public class WantToBuyController {
         return replicaIdChallengeSolutionsMap;
     }
 
-    private List<BasicMessage> processTransferGoodResponses(long wts,
+    private List<BasicMessage> processTransferGoodResponses(int wts,
                                                             final int replicasCount,
                                                             ExecutorCompletionService<BasicMessage> completionService) {
 
@@ -179,7 +178,7 @@ public class WantToBuyController {
                         printError("Ignoring invalid message...");
                         continue;
                     }
-                    ackCount += ONRRMajorityVoting.iwWriteAcknowledge(wts, message);
+                    ackCount += ONRRMajorityVoting.isTransferGoodAcknowledge(wts, message);
                 }
             } catch (InterruptedException ie) {
                 printError(ie.getMessage());

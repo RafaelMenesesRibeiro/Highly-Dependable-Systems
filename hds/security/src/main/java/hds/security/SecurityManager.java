@@ -2,7 +2,8 @@ package hds.security;
 
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
-
+import org.json.JSONException;
+import org.json.JSONObject;
 import sun.security.pkcs11.wrapper.PKCS11;
 
 import java.io.IOException;
@@ -14,10 +15,6 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.util.logging.Logger;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.CryptoUtils.*;
@@ -58,6 +55,7 @@ public class SecurityManager {
             return "message is more than five minutes old";
         }
 
+        // TODO - Add try here. If from cannot be parsed to int, this might crash the system. //
         int from = Integer.parseInt(message.getFrom());
 
         // Hammering for initial value signature validation
@@ -83,6 +81,25 @@ public class SecurityManager {
 
         // Blank string means True, but we can't actually use a boolean.
         return "";
+    }
+
+    public static boolean isValidMessageFromServer(BasicMessage message) {
+        try {
+            int from = Integer.parseInt(message.getFrom());
+            if (from >= 10000) {
+                return isValidSignatureFromServer(message);
+            }
+            else if (from >= 9000) {
+                return isValidSignatureFromNode(message);
+            }
+            else if (from >= 8000){
+                return isValidSignatureFromNode(message);
+            }
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
     }
 
     /***********************************************************
@@ -126,7 +143,7 @@ public class SecurityManager {
     public static boolean verifyWriteOnGoodsOperationSignature(final String goodId,
                                                                final Boolean value,
                                                                final String writerId,
-                                                               final long wts,
+                                                               final int wts,
                                                                final String signature) {
 
         try {
@@ -142,7 +159,7 @@ public class SecurityManager {
     public static boolean verifyWriteOnGoodsDataResponseSignature(final String goodId,
                                                                   final Boolean value,
                                                                   final String writerId,
-                                                                  final long wts,
+                                                                  final int wts,
                                                                   final String signature) {
 
         try {
@@ -157,7 +174,7 @@ public class SecurityManager {
 
     public static boolean verifyWriteOnOwnershipSignature(final String goodID,
                                                           final String writerId,
-                                                          final long wts,
+                                                          final int wts,
                                                           final String signature) {
 
         try {
@@ -173,7 +190,7 @@ public class SecurityManager {
     public static JSONObject newWriteOnGoodsData(final String goodId,
                                                  final Boolean value,
                                                  final String writer,
-                                                 final long wts) throws JSONException {
+                                                 final int wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("onSale", value);
@@ -185,14 +202,14 @@ public class SecurityManager {
     public static JSONObject newWriteOnGoodsDataResponse(final String goodId,
                                                          final Boolean value,
                                                          final String writerId,
-                                                         final long wts) throws JSONException {
+                                                         final int wts) throws JSONException {
 
         return newWriteOnGoodsData(goodId, value, writerId, wts);
     }
 
     public static JSONObject newWriteOnOwnershipData(final String goodId,
                                                      final String writerId,
-                                                     final long wts) throws JSONException {
+                                                     final int wts) throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("goodId", goodId);
         jsonObject.put("writerId", writerId);

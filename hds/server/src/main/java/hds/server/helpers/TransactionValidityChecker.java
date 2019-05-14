@@ -4,7 +4,10 @@ import hds.security.CryptoUtils;
 import hds.security.exceptions.SignatureException;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.SaleRequestMessage;
-import hds.server.exception.*;
+import hds.server.exception.DBClosedConnectionException;
+import hds.server.exception.DBConnectionRefusedException;
+import hds.server.exception.DBNoResultsException;
+import hds.server.exception.IncorrectSignatureException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,13 +77,6 @@ public class TransactionValidityChecker {
 		if (!isClientWilling(buyerID, transactionData.getSignature(), saleRequestMessage)) {
 			throw new IncorrectSignatureException("The Buyer's signature is not valid.");
 		}
-
-		String wrappingSignature = transactionData.getWrappingSignature();
-		transactionData.setWrappingSignature("");
-		if (!isClientWilling(sellerID, wrappingSignature, transactionData)) {
-			throw new IncorrectSignatureException("The Seller's signature is not valid.");
-		}
-		transactionData.setWrappingSignature(wrappingSignature);
 
 		String currentOwner = getCurrentOwner(conn, goodID);
 		return (currentOwner.equals(sellerID) && getIsOnSale(conn, goodID));
@@ -152,6 +148,41 @@ public class TransactionValidityChecker {
 	}
 
 	/**
+	 * Returns the information on the database's Ownership table for a certain GoodID.
+	 *
+	 * @param   conn        Database connection
+	 * @param 	goodID		GoodID
+	 * @return 	JSONObject	Contains all the columns' values for the GoodID
+	 * @throws 	JSONException					Can't create / parse JSONObject
+	 * @throws  SQLException                    The DB threw an SQLException
+	 * @throws 	DBClosedConnectionException		Can't access the DB
+	 * @throws 	DBConnectionRefusedException	Can't access the DB
+	 * @throws 	DBNoResultsException			The DB did not return any results
+	 */
+	public static JSONObject getOnOwnershipInfo(Connection conn, String goodID)
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
+
+		String query = "SELECT * FROM ownership WHERE goodId = ?";
+		List<String> args = new ArrayList<>();
+		args.add(goodID);
+
+		List<String> returnColumns = new ArrayList<>();
+		returnColumns.add("goodID");
+		returnColumns.add("userID");
+		returnColumns.add("ts");
+		returnColumns.add("sig");
+		try {
+			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+			return results.get(0);
+		}
+		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
+		// are ignored to be caught up the chain.
+		catch (IndexOutOfBoundsException | NullPointerException ex) {
+			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
+		}
+	}
+
+	/**
 	 * Returns the information on the database's Goods table for a certain GoodID.
 	 *
 	 * @param   conn        Database connection
@@ -164,7 +195,7 @@ public class TransactionValidityChecker {
 	 * @throws 	DBNoResultsException			The DB did not return any results
 	 */
 	public static JSONObject getOnGoodsInfo(Connection conn, String goodID)
-			throws SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException, JSONException {
+			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException, DBNoResultsException {
 
 		String query = "SELECT * FROM goods WHERE goodId = ?";
 		List<String> args = new ArrayList<>();

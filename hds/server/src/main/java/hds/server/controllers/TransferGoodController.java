@@ -1,7 +1,10 @@
 package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
-import hds.security.msgtypes.*;
+import hds.security.msgtypes.ApproveSaleRequestMessage;
+import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.SaleCertificateResponse;
+import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
 import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
@@ -21,14 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 
-import static hds.security.DateUtils.*;
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
 import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.removeAndReturnChallenge;
-import static hds.server.controllers.controllerHelpers.GeneralControllerHelper.tryGetUnansweredChallenge;
-import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipTimestamp;
+import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
 /**
  * Responsible for handling POST requests for the endpoint /transferGood.
@@ -91,6 +92,10 @@ public class TransferGoodController extends BaseController {
 		String sellerID = InputValidation.cleanString(transactionData.getSellerID());
 		String goodID = InputValidation.cleanString(transactionData.getGoodID());
 
+		if (buyerID.equals(sellerID)) {
+			throw new BadTransactionException("BuyerID cannot be equal to SellerID " + buyerID);
+		}
+
 		UserRequestIDKey key = new UserRequestIDKey(transactionData.getWrappingFrom(), transactionData.getRequestID());
 		ChallengeData challengeData = removeAndReturnChallenge(key);
 		String challengeResponse = transactionData.getChallengeResponse();
@@ -98,8 +103,24 @@ public class TransferGoodController extends BaseController {
 			throw new ChallengeFailedException("The response " + challengeResponse + " was wrong.");
 		}
 
-		if (buyerID.equals(sellerID)) {
-			throw new BadTransactionException("BuyerID cannot be equal to SellerID " + buyerID);
+		String wrappingSignature = transactionData.getWrappingSignature();
+		transactionData.setWrappingSignature("");
+		if (!isClientWilling(sellerID, wrappingSignature, transactionData)) {
+			throw new IncorrectSignatureException("The Seller's signature is not valid.");
+		}
+		transactionData.setWrappingSignature(wrappingSignature);
+
+		int rcvWts = transactionData.getWts();
+		String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
+		boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, rcvWts, writeOnOwnershipsSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
+		}
+
+		String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
+		res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, rcvWts, writeOnGoodsSignature);
+		if (!res) {
+			throw new SignatureException("The Write On Goods Operation's signature is not valid.");
 		}
 
 		Connection connection = null;
@@ -107,33 +128,35 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			long requestWriteTimestamp = transactionData.getWts();
-			long databaseWriteTimestamp = getOnOwnershipTimestamp(connection, goodID);
-			if (!isOneTimestampAfterAnother(requestWriteTimestamp, databaseWriteTimestamp)) {
-				connection.rollback();
-				throw new OldMessageException("Write Timestamp " + requestWriteTimestamp + " is too old");
-			}
+			// TODO - Check this. //
+			/*
+				The timestamp is not verified against the one in Goods table, is it will be replaced regardless.
+				The only problem is it might break the property of the safety (more specifically ordering).
+				That would be the case when a client marks a good for sale (with ts=t1) immediately after a client
+				requests that same seller with buyGood. When it requests, it generates an entry for the Goods table
+				with "onSale"=false and, in this case, ts=t2.
+				If a client then reads the state of good it will receive "onSale"=true and ts=t2.
+				After the sale, the Goods table is updated with the entry sent by the buyer ("onSale"=false, ts=t2)
+				If a client calls GetStateOfGood, it will read "onSale"=false, ts=2.
+				The problem becomes apparent because t2<t1. Therefore, a read v, that came after read w, returned
+				a value that was written before the one read by w.
+			 */
 
 			if (!TransactionValidityChecker.isValidTransaction(connection, transactionData)) {
 				connection.rollback();
 				throw new BadTransactionException("The transaction is not valid.");
 			}
 
-			String writeOnOwnershipsSignature = transactionData.getWriteOnOwnershipsSignature();
-			boolean res = verifyWriteOnOwnershipSignature(goodID, buyerID, requestWriteTimestamp, writeOnOwnershipsSignature);
-			if (!res) {
-				connection.rollback();
-				throw new SignatureException("The Write On Ownership Operation's signature is not valid.");
+			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
+				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
+			} else {
+				// TODO CHECK THIS OUT
+				// SHOULD transferGood(...) be here? You dont want to continue unless you updated the function
 			}
 
-			String writeOnGoodsSignature = transactionData.getWriteOnGoodsSignature();
-			res = verifyWriteOnGoodsOperationSignature(goodID, transactionData.getOnSale(), buyerID, requestWriteTimestamp, writeOnGoodsSignature);
-			if (!res) {
-				connection.rollback();
-				throw new SignatureException("The Write On Goods Operation's signature is not valid.");
-			}
+			TransferGood.transferGood(connection, goodID, buyerID, ""+ rcvWts, writeOnOwnershipsSignature, writeOnGoodsSignature);
 
-			TransferGood.transferGood(connection, goodID, buyerID, ""+requestWriteTimestamp, writeOnOwnershipsSignature, writeOnGoodsSignature);
+
 			connection.commit();
 			connection.close();
 			SaleCertificateResponse payload = new SaleCertificateResponse(

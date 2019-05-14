@@ -1,4 +1,4 @@
-package hds.client.helpers;
+package hds.security.helpers.managers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,10 +18,12 @@ public class ConnectionManager {
         SALE_CERT_RESPONSE,
         SALE_CERT_RESPONSES,
         CHALLENGE_REQUEST_RESPONSE,
-        WRITE_RESPONSE
+        WRITE_RESPONSE,
+        WRITE_BACK_RESPONSE,
+        READ_WTS_RESPONSE
     }
 
-    public static final int MAX_WAIT_BEFORE_TIMEOUT = 5000;
+    public static final int MAX_WAIT_BEFORE_TIMEOUT = 10000;
 
     /***********************************************************
      *
@@ -86,6 +88,10 @@ public class ConnectionManager {
                     return objectMapper.readValue(jsonString, ChallengeRequestResponse.class);
                 case WRITE_RESPONSE:
                     return objectMapper.readValue(jsonString, WriteResponse.class);
+                case WRITE_BACK_RESPONSE:
+                    return objectMapper.readValue(jsonString, WriteBackResponse.class);
+                case READ_WTS_RESPONSE:
+                    return objectMapper.readValue(jsonString, ReadWtsResponse.class);
             }
         } else if (conn.getResponseCode() == HttpURLConnection.HTTP_MULT_CHOICE) {
             try {
@@ -121,7 +127,7 @@ public class ConnectionManager {
         return new InputStreamReader(connection.getInputStream());
     }
 
-    private static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
+    public static String getJSONStringFromHttpResponse(HttpURLConnection connection) throws IOException {
         String currentLine;
         StringBuilder jsonResponse = new StringBuilder();
         InputStreamReader inputStream = getBufferedReaderFromHttpURLConnection(connection, is400Response(connection));

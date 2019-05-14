@@ -3,11 +3,11 @@ package hds.server.controllers.controllerHelpers;
 import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
-import hds.server.controllers.TransferGoodController;
-import hds.server.domain.ChallengeData;
 import hds.security.msgtypes.ErrorResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.BaseController;
+import hds.server.controllers.TransferGoodController;
+import hds.server.domain.ChallengeData;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import hds.server.helpers.ServerProperties;
@@ -20,7 +20,6 @@ import org.springframework.validation.ObjectError;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
@@ -31,7 +30,6 @@ import java.util.logging.Logger;
 import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.SecurityManager.setMessageSignature;
-import static hds.server.ServerApplication.HDS_NOTARY_REPLICAS_FIRST_CC_PORT;
 
 /**
  * Contains methods used by all Server's Controllers.
@@ -262,6 +260,14 @@ public class GeneralControllerHelper {
 		else if (ex instanceof ChallengeFailedException) {
 			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_CHALLENGE_RESPONSE, ex.getMessage());
 			return new MetaResponse(402, payload);
+		}
+		else if (ex instanceof FailedWriteBackException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_WRITE_BACK, ex.getMessage());
+			return new MetaResponse(406, payload);
+		}
+		else if (ex instanceof IllegalArgumentException || ex instanceof NumberFormatException) {
+			ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, ex.getMessage());
+			return new MetaResponse(400, payload);
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 		return new MetaResponse(500, payload);

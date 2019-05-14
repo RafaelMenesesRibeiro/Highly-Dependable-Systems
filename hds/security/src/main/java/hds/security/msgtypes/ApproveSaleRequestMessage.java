@@ -42,7 +42,7 @@ public class ApproveSaleRequestMessage extends SaleRequestMessage implements Ser
                                      String goodID,
                                      String buyerID,
                                      String sellerID,
-                                     long wts,
+                                     int wts,
                                      Boolean onSale,
                                      String writeOnGoodsSignature,
                                      String writeOnOwnershipsSignature,

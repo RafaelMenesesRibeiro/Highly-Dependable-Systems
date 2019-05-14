@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 public class OwnerDataMessage extends GoodDataMessage implements Serializable {
     @NotNull(message = "The write timestamp cannot be null.")
-    private long writeTimestamp;
+    private int writeTimestamp;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private boolean onSale;
@@ -30,7 +30,7 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
                             String signature,
                             String goodID,
                             String owner,
-                            long writeTimestamp,
+                            int writeTimestamp,
                             boolean onSale,
                             String writeOperationSignature) {
 
@@ -43,11 +43,11 @@ public class OwnerDataMessage extends GoodDataMessage implements Serializable {
 
     public OwnerDataMessage() {}
 
-    public long getWriteTimestamp() {
+    public int getWriteTimestamp() {
         return writeTimestamp;
     }
 
-    public void setWriteTimestamp(long writeTimestamp) {
+    public void setWriteTimestamp(int writeTimestamp) {
         this.writeTimestamp = writeTimestamp;
     }
 

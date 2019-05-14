@@ -19,8 +19,7 @@ public class SaleRequestMessage extends GoodDataMessage implements Serializable 
     private String sellerID;
 
     @NotNull(message = "The write timestamp cannot be null.")
-    @NotFutureTimestamp
-    private long wts;
+    private int wts;
 
     @NotNull(message = "The on sale boolean cannot be null.")
     private Boolean onSale;
@@ -42,7 +41,7 @@ public class SaleRequestMessage extends GoodDataMessage implements Serializable 
                               String goodID,
                               String buyerID,
                               String sellerID,
-                              long wts,
+                              int wts,
                               Boolean onSale,
                               String writeOnGoodsSignature,
                               String writeOnOwnershipsSignature) {
@@ -76,11 +75,11 @@ public class SaleRequestMessage extends GoodDataMessage implements Serializable 
     }
 
 
-    public long getWts() {
+    public int getWts() {
         return wts;
     }
 
-    public void setWts(long wts) {
+    public void setWts(int wts) {
         this.wts = wts;
     }
 
