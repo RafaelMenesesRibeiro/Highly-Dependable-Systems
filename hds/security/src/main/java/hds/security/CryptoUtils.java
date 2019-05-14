@@ -64,7 +64,11 @@ public class CryptoUtils {
      ***********************************************************/
 
     public static boolean authenticateSignatureWithPubKey(PublicKey key, String signedData, String payloadString) throws SignatureException {
-        return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), payloadString.getBytes(Charset.forName("UTF-8")));
+        try {
+            return authenticateSignature(key, ConvertUtils.base64StringToBytes(signedData), payloadString.getBytes(Charset.forName("UTF-8")));
+        } catch (NullPointerException npe){
+            throw new SignatureException(npe.getMessage());
+        }
     }
 
     public static boolean authenticateSignatureWithCert(X509Certificate certificate, String signedData, String payloadString)

@@ -20,6 +20,7 @@ abstract class BaseUT {
     static String testData = "TEST";
 
     static String wrongData = "WRONG_TEST";
+    static String malformedSignature = "MalformedSignature";
 
     static {
         try {
