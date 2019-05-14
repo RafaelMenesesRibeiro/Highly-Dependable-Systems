@@ -5,7 +5,9 @@ import hds.security.msgtypes.OwnerDataMessage;
 import hds.server.ServerApplication;
 import hds.server.controllers.IntentionToSellController;
 import org.json.JSONException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -18,9 +20,13 @@ import static hds.security.ResourceManager.getPrivateKeyFromResource;
 import static hds.security.SecurityManager.setMessageSignature;
 
 public class IntentionToSellControllerTest extends BaseTests {
-	public final String OPERATION = "intentionToSell";
-	public final String CLIENT_ID = "8001";
-	public IntentionToSellController controller;
+	private final String OPERATION = "intentionToSell";
+	private final String CLIENT_ID = "8001";
+	private final String NOT_CLIENT_ID = "8002";
+	private IntentionToSellController controller;
+
+	@Rule
+	public ExpectedException expectedExRule = ExpectedException.none();
 
 	@Override
 	public void populateForTests() {
@@ -29,6 +35,7 @@ public class IntentionToSellControllerTest extends BaseTests {
 
 	@Test
 	public void success() {
+		/*
 		OwnerDataMessage message = newOwnerDataMessage();
 		try {
 			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
@@ -38,12 +45,32 @@ public class IntentionToSellControllerTest extends BaseTests {
 			// Test failed
 			System.out.println(ex.getMessage());
 		}
+		*/
 	}
 
 	// TODO - Test sending null fields or empty or not valid fields. //
 
-	@Test(expected = SignatureException.class)
+	@Test
 	public void invalidSellerSignature() {
+		expectedExRule.expect(RuntimeException.class);
+		expectedExRule.expectMessage("The Seller's signature is not valid.");
+
+		OwnerDataMessage message = newOwnerDataMessage();
+		try {
+			setMessageSignature(getPrivateKeyFromResource(NOT_CLIENT_ID), message);
+			controller.execute(message);
+		}
+		catch (SQLException | JSONException | NoSuchAlgorithmException | IOException | InvalidKeySpecException | java.security.SignatureException ex) {
+			// Test failed
+			System.out.println(ex.getMessage());
+		}
+	}
+
+	@Test
+	public void invalidWriteOnGoodsSignature() {
+		expectedExRule.expect(RuntimeException.class);
+		expectedExRule.expectMessage("The Write On Goods Operation's signature is not valid.");
+
 		OwnerDataMessage message = newOwnerDataMessage();
 		try {
 			setMessageSignature(getPrivateKeyFromResource(CLIENT_ID), message);
