@@ -6,8 +6,8 @@ import org.json.JSONException;
 
 import java.security.SignatureException;
 
-import static hds.client.helpers.ClientProperties.*;
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
+import static hds.client.helpers.ClientProperties.printError;
 import static hds.security.SecurityManager.*;
 
 public class ClientSecurityManager {

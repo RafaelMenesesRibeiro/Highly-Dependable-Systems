@@ -3,7 +3,10 @@ package hds.server.helpers;
 import hds.server.ServerApplication;
 import hds.server.exception.DBInitException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import static hds.server.ServerApplication.*;
 

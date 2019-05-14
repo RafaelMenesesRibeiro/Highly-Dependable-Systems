@@ -1,7 +1,6 @@
 package hds.server.helpers;
 
 import hds.security.msgtypes.BasicMessage;
-import hds.server.ServerApplication;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

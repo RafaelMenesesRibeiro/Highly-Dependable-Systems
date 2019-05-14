@@ -11,10 +11,10 @@ import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyClientPort;
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
-import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.ConvertUtils.bytesToBase64String;
 import static hds.security.SecurityManager.newWriteOnGoodsData;
 import static hds.security.SecurityManager.setMessageSignature;
+import static hds.security.helpers.managers.ConnectionManager.*;
 
 /**
  * The type get intention to sell callable performs a PUT request to the end point /stateOfGood of a notary replica

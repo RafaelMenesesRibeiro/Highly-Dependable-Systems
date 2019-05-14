@@ -1,14 +1,11 @@
 package hds.server.controllers;
 
 import hds.security.exceptions.SignatureException;
-import hds.security.helpers.ControllerErrorConsts;
 import hds.security.msgtypes.BasicMessage;
-import hds.security.msgtypes.ErrorResponse;
 import hds.security.msgtypes.OwnerDataMessage;
 import hds.security.msgtypes.WriteResponse;
 import hds.server.ServerApplication;
 import hds.server.controllers.controllerHelpers.GeneralControllerHelper;
-import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.controllers.security.InputValidation;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
@@ -22,14 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.security.acl.NotOwnerException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 
-import static hds.security.DateUtils.*;
+import static hds.security.DateUtils.generateTimestamp;
 import static hds.security.SecurityManager.verifyWriteOnGoodsOperationSignature;
-import static hds.server.helpers.TransactionValidityChecker.*;
+import static hds.server.helpers.TransactionValidityChecker.getCurrentOwner;
+import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
 
 /**
  * Responsible for handling POST requests for the endpoint /intentionToSell.

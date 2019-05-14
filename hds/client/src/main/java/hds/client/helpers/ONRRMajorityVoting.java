@@ -9,7 +9,8 @@ import java.util.List;
 
 import static hds.client.helpers.ClientProperties.print;
 import static hds.client.helpers.ClientProperties.printError;
-import static hds.security.SecurityManager.*;
+import static hds.security.SecurityManager.verifyWriteOnGoodsDataResponseSignature;
+import static hds.security.SecurityManager.verifyWriteOnOwnershipSignature;
 
 @SuppressWarnings("Duplicates")
 public class ONRRMajorityVoting {

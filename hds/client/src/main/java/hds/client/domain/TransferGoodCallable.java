@@ -9,8 +9,8 @@ import java.net.HttpURLConnection;
 import java.util.concurrent.Callable;
 
 import static hds.client.helpers.ClientProperties.getMyPrivateKey;
-import static hds.security.helpers.managers.ConnectionManager.*;
 import static hds.security.SecurityManager.setMessageWrappingSignature;
+import static hds.security.helpers.managers.ConnectionManager.*;
 
 /**
  * The type transfer good callable performs a PUT request to the end point /transferGood of a notary replica
