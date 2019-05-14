@@ -8,28 +8,28 @@ import static hds.security.ResourceManager.getPublicKeyFromResource;
 import static org.junit.Assert.fail;
 
 public abstract class BaseTests {
-    private static final String C_1_PORT = "8001";
-    private static final String C_2_PORT = "8002";
-    private static final String C_3_PORT = "8003";
-    private static final String S_1_PORT = "9000";
-    private static final String S_2_PORT = "9001";
-    private static final String S_3_PORT = "9002";
-    private static final String S_4_PORT = "9003";
+    public static final String C_1_PORT = "8001";
+    public static final String C_2_PORT = "8002";
+    public static final String C_3_PORT = "8003";
+    public static final String S_1_PORT = "9000";
+    public static final String S_2_PORT = "9001";
+    public static final String S_3_PORT = "9002";
+    public static final String S_4_PORT = "9003";
 
-    private static PrivateKey c1PrivateKey;
-    private static PublicKey c1PublicKey;
-    private static PrivateKey c2PrivateKey;
-    private static PublicKey c2PublicKey;
-    private static PrivateKey c3PrivateKey;
-    private static PublicKey c3PublicKey;
-    private static PrivateKey s1PrivateKey;
-    private static PublicKey s1PublicKey;
-    private static PrivateKey s2PrivateKey;
-    private static PublicKey s2PublicKey;
-    private static PrivateKey s3PrivateKey;
-    private static PublicKey s3PublicKey;
-    private static PrivateKey s4PrivateKey;
-    private static PublicKey s4PublicKey;
+    public static PrivateKey c1PrivateKey;
+    public static PublicKey c1PublicKey;
+    public static PrivateKey c2PrivateKey;
+    public static PublicKey c2PublicKey;
+    public static PrivateKey c3PrivateKey;
+    public static PublicKey c3PublicKey;
+    public static PrivateKey s1PrivateKey;
+    public static PublicKey s1PublicKey;
+    public static PrivateKey s2PrivateKey;
+    public static PublicKey s2PublicKey;
+    public static PrivateKey s3PrivateKey;
+    public static PublicKey s3PublicKey;
+    public static PrivateKey s4PrivateKey;
+    public static PublicKey s4PublicKey;
 
     static {
         try {
