@@ -28,7 +28,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(JMockit.class)
 public class GetStateOfGoodCallableMethodTest extends BaseTests {
-	// private Callable<BasicMessage> job1 = new GetStateOfGoodCallable(S_1_PORT, GOOD_1, RID_1);
+
 	private static int thresholdMajority = 3;
 
 	@Test
