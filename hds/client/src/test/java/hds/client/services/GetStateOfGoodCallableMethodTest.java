@@ -29,6 +29,8 @@ import static org.junit.Assert.fail;
 @RunWith(JMockit.class)
 public class GetStateOfGoodCallableMethodTest extends BaseTests {
 	// private Callable<BasicMessage> job1 = new GetStateOfGoodCallable(S_1_PORT, GOOD_1, RID_1);
+	private static int thresholdMajority = 3;
+
 	@Test
 	public void getStateOfGoodSuccess(@Mocked final CallableManager callableMgrMock, @Mocked final ClientProperties clientProperties) {
 		new Expectations() {{
@@ -46,7 +48,7 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 
 		new Expectations() {{
 			callableMgrMock.call(); returns(res1, res2, res3, res4);
-			ClientProperties.getMajorityThreshold(); returns (3);
+			ClientProperties.getMajorityThreshold(); returns (thresholdMajority);
 			ClientProperties.print(anyString); returns(null, null, null);
 		}};
 
@@ -64,6 +66,43 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 
 		executorService.shutdown();
 	}
+
+	@Test
+	public void getStateOfGoodError(@Mocked final CallableManager callableMgrMock, @Mocked final ClientProperties clientProperties) {
+		new Expectations() {{
+			ClientProperties.getMyPrivateKey(); returns(
+					c1PrivateKey, c1PrivateKey,
+					c1PrivateKey, c1PrivateKey,
+					c1PrivateKey, c1PrivateKey);
+		}};
+
+		GoodStateResponse res1 = newMockedGoodStateResponse(C_1_PORT, S_1_PORT, s1PrivateKey);
+		GoodStateResponse res2 = newMockedGoodStateResponse(C_1_PORT, S_2_PORT, s2PrivateKey);
+		GoodStateResponse res3 = newMockedGoodStateResponse(C_1_PORT, S_3_PORT, s3PrivateKey);
+		ErrorResponse res4 = newMockedErrorResponse(C_1_PORT, S_4_PORT, s4PrivateKey);
+
+		new Expectations() {{
+			callableMgrMock.call(); returns(res1, res2, res3, res4);
+			ClientProperties.printError(anyString); returns(null);
+			ClientProperties.getMajorityThreshold(); returns (thresholdMajority);
+			ClientProperties.print(anyString); returns(null, null, null);
+		}};
+
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
+
+		completionService.submit(callableMgrMock);
+		completionService.submit(callableMgrMock);
+		completionService.submit(callableMgrMock);
+		completionService.submit(callableMgrMock);
+
+		if (ClientApplication.processGetStateOfGoodResponses(RID_1,4, completionService) != null) {
+			fail("getStateOfGoodSuccess test failed");
+		}
+
+		executorService.shutdown();
+	}
+
 
 	/** Helpers */
 
@@ -101,8 +140,8 @@ public class GetStateOfGoodCallableMethodTest extends BaseTests {
 					DateUtils.generateTimestamp(),
 					CryptoUtils.newUUIDString(),
 					"mock",
-					clientPort,
 					replicaPort,
+					clientPort,
 					"",
 					"a_mock_message",
 					"a_mock_reason"
