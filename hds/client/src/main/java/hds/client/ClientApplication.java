@@ -74,7 +74,7 @@ public class ClientApplication {
 
     private static void runClientInterface() {
         while (true) {
-            print("Press '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
+            print("\nPress '1' to get state of good, '2' to buy a good, '3' to put good on sale, '4' to quit: ");
             int input;
             try {
                 input = inputScanner.nextInt();
@@ -163,64 +163,6 @@ public class ClientApplication {
             printError("");
         }
         return -1;
-    }
-
-    public static int readWtsWriteBack(final int rid, ReadWtsResponse readWtsResponse) {
-        print("Initiating read wts write back phase to all known replicas...");
-
-        final List<String> replicasList = ClientProperties.getReplicasList();
-        final ExecutorService executorService = Executors.newFixedThreadPool(replicasList.size());
-        final ExecutorCompletionService<BasicMessage> completionService = new ExecutorCompletionService<>(executorService);
-
-        long timestamp = generateTimestamp();
-        String requestId = newUUIDString();
-        for (String replicaId : replicasList) {
-            Callable<BasicMessage> job =
-                    new ReadWtsWriteBackCallable(timestamp, requestId, replicaId, rid, readWtsResponse);
-            completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
-        }
-
-        if (processReadWtsWriteBackResponses(rid, replicasList.size(), completionService)) {
-            executorService.shutdown();
-            return readWtsResponse.getWts();
-        }
-        executorService.shutdown();
-        return -1;
-    }
-
-    private static boolean processReadWtsWriteBackResponses(final int rid,
-                                                            final int replicasCount,
-                                                            ExecutorCompletionService<BasicMessage> completionService) {
-
-        int ackCount = 0;
-
-        for (int i = 0; i < replicasCount; i++) {
-            try {
-                Future<BasicMessage> futureResult = completionService.take();
-                if (!futureResult.isCancelled()) {
-                    BasicMessage message = futureResult.get();
-                    if (message == null) {
-                        continue;
-                    }
-                    if (!ClientSecurityManager.isMessageFreshAndAuthentic(message)) {
-                        continue;
-                    }
-                    ackCount += ONRRMajorityVoting.isReadWtsWriteBackAcknowledge(rid, message);
-                }
-            } catch (ExecutionException ee) {
-                Throwable cause = ee.getCause();
-                printError(cause.getMessage());
-            } catch (InterruptedException ie) {
-                printError(ie.getMessage());
-            }
-        }
-
-        if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "readWtsWriteBack")) {
-            print("Read wts write with rid: " + rid + "had a successful write back phase... wts can be commit!");
-            return true;
-        }
-
-        return false;
     }
 
     /***********************************************************
@@ -409,16 +351,23 @@ public class ClientApplication {
 
     private static void buyGood() {
         try {
+            String to = requestSellerId();
+            String goodId = requestGoodId();
+
             int wts = readWts();
             if (wts == 0) {
                 print("Invalid wts, can't proceed with buy good operation...");
                 return;
             }
 
-            SaleRequestMessage message = (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(wts));
+            long timestamp = generateTimestamp();
+            String requestId = newUUIDString();
+            SaleRequestMessage message =
+                    (SaleRequestMessage)setMessageSignature(getMyPrivateKey(), newSaleRequestMessage(timestamp, requestId, wts, to, goodId));
             HttpURLConnection connection = initiatePOSTConnection(HDS_BASE_HOST + message.getTo() + "/wantToBuy");
             sendPostRequest(connection, newJSONObject(message));
             JSONArray jsonArray = (JSONArray) getResponseMessage(connection, Expect.SALE_CERT_RESPONSES);
+
             if (jsonArray == null) {
                 printError("Failed to deserialize json array (null) on buyGood with SALE_CERT_RESPONSES");
             } else {
@@ -462,17 +411,14 @@ public class ClientApplication {
         ONRRMajorityVoting.assertOperationSuccess(ackCount, "buyGood");
     }
 
-    private static SaleRequestMessage newSaleRequestMessage(int wts) {
-        String to = requestSellerId();
-        String goodId = requestGoodId();
+    private static SaleRequestMessage newSaleRequestMessage(long timestamp, String requestId, int wts, String to, String goodId) {
         Boolean onSale = Boolean.FALSE;
-
         try {
             byte[] writeOnGoodsSignature = ClientSecurityManager.newWriteOnGoodsDataSignature(goodId, onSale, getMyClientPort(), wts);
             byte[] writeOnOwnershipsSignature = ClientSecurityManager.newWriteOnOwnershipsDataSignature(goodId, getMyClientPort(), wts);
             return new SaleRequestMessage(
-                    generateTimestamp(),
-                    newUUIDString(),
+                    timestamp,
+                    requestId,
                     "buyGood",
                     ClientProperties.getMyClientPort(), // from
                     to,

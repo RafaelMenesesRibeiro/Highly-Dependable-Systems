@@ -3,7 +3,10 @@ package hds.security;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+@SuppressWarnings("Duplicates")
 public class DateUtils {
+    private static final int INNER_PAST_TOLERANCE = 160;
+    private static final int PAST_TOLERANCE = 30;
     private static final int FUTURE_TOLERANCE = 10;
 
     /**
@@ -22,9 +25,16 @@ public class DateUtils {
     public static boolean isFreshTimestamp(long receivedTimestamp) {
         Instant instantNow = Instant.now();
         Instant receivedInstant = Instant.ofEpochSecond(receivedTimestamp);
-        // if instantNow-Tolerance < rcvTimestamp < instantNow, then it's fresh, else it's old and should be discarded
-        boolean isNotOld = receivedInstant.isAfter(instantNow.minus(60, ChronoUnit.SECONDS));
-        boolean isNotFuture = receivedInstant.isBefore(instantNow.plus(10, ChronoUnit.SECONDS));
+        boolean isNotOld = receivedInstant.isAfter(instantNow.minus(PAST_TOLERANCE, ChronoUnit.SECONDS));
+        boolean isNotFuture = receivedInstant.isBefore(instantNow.plus(FUTURE_TOLERANCE, ChronoUnit.SECONDS));
+        return isNotOld && isNotFuture;
+    }
+
+    public static boolean isFreshTimestamp(long receivedTimestamp, int maxOldness, int maxFutureness) {
+        Instant instantNow = Instant.now();
+        Instant receivedInstant = Instant.ofEpochSecond(receivedTimestamp);
+        boolean isNotOld = receivedInstant.isAfter(instantNow.minus(maxOldness, ChronoUnit.SECONDS));
+        boolean isNotFuture = receivedInstant.isBefore(instantNow.plus(maxFutureness, ChronoUnit.SECONDS));
         return isNotOld && isNotFuture;
     }
 
