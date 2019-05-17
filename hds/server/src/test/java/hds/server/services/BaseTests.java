@@ -6,7 +6,6 @@ import org.junit.Before;
 public abstract class BaseTests {
 	@Before
 	public void setUp() {
-		// TODO - Create databases. //
 		populateForTests();
 	}
 

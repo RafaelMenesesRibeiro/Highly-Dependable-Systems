@@ -72,8 +72,6 @@ public class TransferGoodControllerTest extends BaseTests {
 		}
 	}
 
-	// TODO - Test sending null fields or empty or not valid fields. //
-
 	@Test
 	public void success() {
 		requestMessage.setChallengeResponse(CHALLENGE_ANSWER);

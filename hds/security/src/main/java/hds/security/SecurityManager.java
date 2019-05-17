@@ -55,8 +55,13 @@ public class SecurityManager {
             return "message is too old";
         }
 
-        // TODO - Add try here. If from cannot be parsed to int, this might crash the system. //
-        int from = Integer.parseInt(message.getFrom());
+        int from;
+        try {
+            from = Integer.parseInt(message.getFrom());
+        }
+        catch (NumberFormatException ex) {
+            return "invalid from";
+        }
 
         // Hammering for initial value signature validation
         if (message.getSignature().equals("initialSign")){
