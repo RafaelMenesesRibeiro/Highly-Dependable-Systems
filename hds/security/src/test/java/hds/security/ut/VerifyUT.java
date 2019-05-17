@@ -1,12 +1,15 @@
 package hds.security.ut;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.nio.charset.Charset;
 import java.security.SignatureException;
 
 import static hds.security.ConvertUtils.bytesToBase64String;
-import static hds.security.CryptoUtils.*;
+import static hds.security.CryptoUtils.authenticateSignatureWithPubKey;
+import static hds.security.CryptoUtils.signData;
 
 public class VerifyUT extends BaseUT {
 

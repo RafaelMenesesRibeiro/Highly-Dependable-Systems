@@ -1,6 +1,7 @@
 package hds.security.ut;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.nio.charset.Charset;
 import java.security.SignatureException;

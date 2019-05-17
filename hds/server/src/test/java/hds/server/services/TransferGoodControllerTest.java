@@ -18,7 +18,6 @@ import hds.server.helpers.MarkForSale;
 import hds.server.helpers.TransactionValidityChecker;
 import hds.server.helpers.TransferGood;
 import mockit.Expectations;
-import mockit.Mocked;
 import org.json.JSONException;
 import org.junit.Rule;
 import org.junit.Test;
