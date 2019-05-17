@@ -81,6 +81,10 @@ public class GeneralControllerHelper {
 		}
 
 		try {
+			if (!controller.checkIfMessageForThisReplica(requestData)) {
+				throw new IllegalArgumentException("Request's 'To' was not equal to server's port.");
+			}
+
 			metaResponse = controller.execute(requestData);
 		}
 		catch (Exception ex) {

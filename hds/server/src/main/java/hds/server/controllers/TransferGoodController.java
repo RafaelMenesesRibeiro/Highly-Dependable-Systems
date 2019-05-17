@@ -178,4 +178,16 @@ public class TransferGoodController extends BaseController {
 			throw ex; // Handled in transferGood's main method, in the try catch were execute is called.
 		}
 	}
+
+	/**
+	 * Checks if the wrapping 'To' is the same as the replica's port.
+	 *
+	 * @param   requestData		BasicMessage received
+	 * @see     BasicMessage
+	 */
+	@Override
+	public boolean checkIfMessageForThisReplica(BasicMessage requestData) {
+		ApproveSaleRequestMessage message = (ApproveSaleRequestMessage) requestData;
+		return message.getWrappingTo().equals(ServerApplication.getPort());
+	}
 }

@@ -1,10 +1,14 @@
 package hds.server.controllers;
 
+import hds.security.msgtypes.ApproveSaleRequestMessage;
 import hds.security.msgtypes.BasicMessage;
+import hds.security.msgtypes.SaleCertificateResponse;
 import hds.server.ServerApplication;
+import hds.server.controllers.controllerHelpers.UserRequestIDKey;
 import hds.server.domain.MetaResponse;
 import hds.server.exception.*;
 import org.json.JSONException;
+import org.springframework.http.ResponseEntity;
 
 import java.sql.SQLException;
 
@@ -26,4 +30,14 @@ public abstract class BaseController {
 	public abstract MetaResponse execute(BasicMessage requestData)
 			throws JSONException, SQLException, DBClosedConnectionException, DBConnectionRefusedException,
 			DBNoResultsException, OldMessageException, NoPermissionException;
+
+	/**
+	 * Checks if the relevant 'To' (either the inner or the wrapping) is the same as the replica's port.
+	 *
+	 * @param   requestData		BasicMessage received
+	 * @see     BasicMessage
+	 */
+	public boolean checkIfMessageForThisReplica(BasicMessage requestData) {
+		return requestData.getTo().equals(ServerApplication.getPort());
+	}
 }
