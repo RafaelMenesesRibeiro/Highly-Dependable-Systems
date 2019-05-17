@@ -128,7 +128,6 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			// TODO - Check this. //
 			/*
 				The timestamp is not verified against the one in Goods table, is it will be replaced regardless.
 				The only problem is it might break the property of the safety (more specifically ordering).

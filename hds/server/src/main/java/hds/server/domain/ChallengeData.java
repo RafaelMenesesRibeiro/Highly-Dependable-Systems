@@ -7,7 +7,6 @@ package hds.server.domain;
  * @see 		hds.server.controllers.RequestChallengeController
  */
 public class ChallengeData {
-	// TODO - Change after testing. //
 	public static final int POSSIBLE_CHAR_NUMBER = 16;
 	public static final int RANDOM_STRING_LENGTH = 5;
 

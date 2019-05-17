@@ -297,9 +297,9 @@ public class GeneralControllerHelper {
 		for (ObjectError error : errors) {
 			if (error instanceof FieldError) {
 				FieldError ferror = (FieldError) error;
-				reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
+				reason = "\t\tParameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
 						" is not acceptable: " + ferror.getDefaultMessage();
-				logger.info("\t\t" + reason);
+				logger.info(reason);
 			}
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);

@@ -108,7 +108,6 @@ public class IntentionToSellController extends BaseController {
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
-			// TODO - Add same verification up top to be able to refuse faster.
 			// Leave this one here in case someone writes before this.
 			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
 				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");
