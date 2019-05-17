@@ -66,5 +66,15 @@ public class DateUtils {
         return one.isAfter(another);
     }
 
+    public static int getInnerPastTolerance() {
+        return INNER_PAST_TOLERANCE;
+    }
 
+    public static int getPastTolerance() {
+        return PAST_TOLERANCE;
+    }
+
+    public static int getFutureTolerance() {
+        return FUTURE_TOLERANCE;
+    }
 }

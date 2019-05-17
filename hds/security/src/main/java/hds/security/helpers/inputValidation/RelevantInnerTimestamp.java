@@ -11,10 +11,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({FIELD})
 @Retention(RUNTIME)
-@Constraint(validatedBy = NotFutureTimestampValidator.class)
+@Constraint(validatedBy = RelevantInnerTimestampValidator.class)
 @Documented
-public @interface NotFutureTimestamp {
-	String message() default "The timestamp is in the future.";
+public @interface RelevantInnerTimestamp {
+	String message() default "The inner timestamp is in the future.";
 
 	Class<?>[] groups() default {};
 

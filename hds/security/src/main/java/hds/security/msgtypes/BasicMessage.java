@@ -1,6 +1,5 @@
 package hds.security.msgtypes;
 
-import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.RelevantTimestamp;
 
 import javax.validation.constraints.NotEmpty;
