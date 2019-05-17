@@ -52,7 +52,7 @@ public class SecurityManager {
     public static String isValidMessage(BasicMessage message) {
 
         if (!isFreshTimestamp(message.getTimestamp())) {
-            return "message is more than five minutes old";
+            return "message is too old";
         }
 
         // TODO - Add try here. If from cannot be parsed to int, this might crash the system. //
