@@ -1,6 +1,5 @@
 package hds.security.msgtypes;
 
-import hds.security.helpers.inputValidation.NotFutureTimestamp;
 import hds.security.helpers.inputValidation.RelevantTimestamp;
 
 import javax.validation.constraints.NotEmpty;
@@ -10,7 +9,6 @@ import java.io.Serializable;
 public class BasicMessage implements Serializable {
     @NotNull(message = "The timestamp cannot be null.")
     @RelevantTimestamp
-    @NotFutureTimestamp
     private long timestamp;
 
     @NotNull(message = "The requestID cannot be null.")

@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * Marks a GoodID for sale in the database.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @SuppressWarnings("Duplicates")

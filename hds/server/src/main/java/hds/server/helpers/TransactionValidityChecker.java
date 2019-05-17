@@ -26,6 +26,8 @@ import static hds.server.helpers.DatabaseInterface.queryDB;
 /**
  * Verifies if the transaction is valid.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @SuppressWarnings("Duplicates")
@@ -102,17 +104,11 @@ public class TransactionValidityChecker {
 		args.add(goodID);
 
 		String columnName = "userID";
-		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
+		List<String> returnColumns = new ArrayList<>();
+		returnColumns.add(columnName);
 
-		try {
-			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
-			return results.get(0).getString(columnName);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+		List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+		return results.get(0).getString(columnName);
 	}
 
 	/**
@@ -135,16 +131,11 @@ public class TransactionValidityChecker {
 		args.add(goodID);
 
 		String columnName = "onSale";
-		List<String> returnColumns = new ArrayList<String>(){{add(columnName);}};
-		try {
-			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
-			return results.get(0).getString(columnName).equals("t");
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+		List<String> returnColumns = new ArrayList<>();
+		returnColumns.add(columnName);
+
+		List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+		return results.get(0).getString(columnName).equals("t");
 	}
 
 	/**
@@ -171,15 +162,9 @@ public class TransactionValidityChecker {
 		returnColumns.add("userID");
 		returnColumns.add("ts");
 		returnColumns.add("sig");
-		try {
-			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
-			return results.get(0);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+
+		List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+		return results.get(0);
 	}
 
 	/**
@@ -207,15 +192,9 @@ public class TransactionValidityChecker {
 		returnColumns.add("wid");
 		returnColumns.add("ts");
 		returnColumns.add("sig");
-		try {
-			List<JSONObject> results = queryDB(conn, query, returnColumns, args);
-			return results.get(0);
-		}
-		// DBClosedConnectionException | DBConnectionRefusedException | DBNoResultsException
-		// are ignored to be caught up the chain.
-		catch (IndexOutOfBoundsException | NullPointerException ex) {
-			throw new DBNoResultsException("The query \"" + query + "\" returned no results.");
-		}
+
+		List<JSONObject> results = queryDB(conn, query, returnColumns, args);
+		return results.get(0);
 	}
 
 	/**
@@ -300,7 +279,7 @@ public class TransactionValidityChecker {
 			PublicKey buyerPublicKey = getPublicKeyFromResource(clientID);
 			return CryptoUtils.authenticateSignatureWithPubKey(buyerPublicKey, buyerSignature, payload.toString());
 		}
-		catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
+		catch (NullPointerException | IOException | InvalidKeySpecException | NoSuchAlgorithmException | java.security.SignatureException e) {
 			throw new SignatureException(e.getMessage());
 		}
 	}

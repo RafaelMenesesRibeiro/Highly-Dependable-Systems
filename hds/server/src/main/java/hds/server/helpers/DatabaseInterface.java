@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * Responsible for querying the database.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 class DatabaseInterface {
@@ -59,7 +61,7 @@ class DatabaseInterface {
 			}
 
 			ResultSet rs = stmt.executeQuery();
-			while(rs.next()) {
+			if (rs.next()) {
 				JSONObject json = new JSONObject();
 				for (String key: returnColumns) {
 					json.put(key, rs.getString(key));

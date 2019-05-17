@@ -182,13 +182,23 @@ public class ClientApplication {
             completionService.submit(new CallableManager(job,10, TimeUnit.SECONDS));
         }
 
-        processGetStateOfGoodResponses(rid, replicasList.size(), completionService);
+        Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> highestQuartet =
+                processGetStateOfGoodResponses(rid, replicasList.size(), completionService);
+
+        if (highestQuartet == null) {
+            return;
+        } else {
+            getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
+        }
+
         executorService.shutdown();
     }
 
-    private static void processGetStateOfGoodResponses(final int rid,
-                                                       final int replicasCount,
-                                                       ExecutorCompletionService<BasicMessage> completionService) {
+    public static Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> processGetStateOfGoodResponses(
+            final int rid,
+            final int replicasCount,
+            ExecutorCompletionService<BasicMessage> completionService
+    ) {
 
         int ackCount = 0;
         List<GoodStateResponse> readList = new ArrayList<>();
@@ -212,19 +222,18 @@ public class ClientApplication {
                 printError(ie.getMessage());
             }
         }
+
         if (ONRRMajorityVoting.assertOperationSuccess(ackCount, "getStateOfGood")) {
             Quartet<GoodStateResponse, Boolean, GoodStateResponse, String> highestQuartet =
                     ONRRMajorityVoting.selectMostRecentGoodState(readList);
-
             if (highestQuartet == null) {
                 printError("No good state responses were found...");
             } else {
-                print(String.format("Highest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
-                getStateOfGoodWriteBack(rid, highestQuartet.getValue0(), highestQuartet.getValue2());
+                print(String.format("\nHighest good state: %s, Highest owner state: %s\n", highestQuartet.getValue1(), highestQuartet.getValue3()));
+                return highestQuartet;
             }
-        } else {
-            printError("");
         }
+        return null;
     }
 
     private static void getStateOfGoodWriteBack(int rid, GoodStateResponse highestGoodState, GoodStateResponse highestOwnershipState) {

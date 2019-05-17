@@ -32,13 +32,15 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  * Confirms authenticity and integrity of the request.
  * Marks a GoodID for sale in the database.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  * @see 		OwnerDataMessage
  */
 @RestController
 public class IntentionToSellController extends BaseController {
 
-	private IntentionToSellController() {
+	public IntentionToSellController() {
 		OPERATION = "intentionToSell";
 	}
 
@@ -108,7 +110,6 @@ public class IntentionToSellController extends BaseController {
 				throw new NoPermissionException("The user '" + sellerID + "' does not own the good '" + goodID + "'.");
 			}
 
-			// TODO - Add same verification up top to be able to refuse faster.
 			// Leave this one here in case someone writes before this.
 			if (!ServerApplication.tryIncrementMyWts(rcvWts)) {
 				throw new OldMessageException("Write timestamp " + rcvWts + " is too old.");

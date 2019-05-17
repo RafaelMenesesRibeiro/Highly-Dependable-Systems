@@ -10,7 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Stores the Server's Properties
  *
- * @author      Diogo Vilela
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class ServerProperties {
@@ -18,6 +19,10 @@ public class ServerProperties {
     private static PKCS11 pkcs11;
     private static long ccSessionID;
     private static long ccSignatureKey;
+
+    private ServerProperties() {
+        // This is here so the class can't be instantiated. //
+    }
 
     public static PKCS11 getPKCS11() {
         return pkcs11;

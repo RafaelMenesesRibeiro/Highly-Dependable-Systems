@@ -5,7 +5,9 @@ import java.util.Objects;
 /**
  * Represents a unique identifier for each request, base on the sender and the requestID.
  *
+ * @author 		Diogo Vilela
  * @author 		Francisco Barros
+ * @author 		Rafael Ribeiro
  */
 public class UserRequestIDKey {
     private final String caller;

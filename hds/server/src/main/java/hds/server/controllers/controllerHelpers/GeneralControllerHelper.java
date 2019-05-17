@@ -34,8 +34,9 @@ import static hds.security.SecurityManager.setMessageSignature;
 /**
  * Contains methods used by all Server's Controllers.
  *
- * @author 		Rafael Ribeiro
+ * @author 		Diogo Vilela
  * @author 		Francisco Barros
+ * @author 		Rafael Ribeiro
  */
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();
@@ -81,6 +82,10 @@ public class GeneralControllerHelper {
 		}
 
 		try {
+			if (!controller.checkIfMessageForThisReplica(requestData)) {
+				throw new IllegalArgumentException("Request's 'To' was not equal to server's port.");
+			}
+
 			metaResponse = controller.execute(requestData);
 		}
 		catch (Exception ex) {
@@ -203,7 +208,7 @@ public class GeneralControllerHelper {
 			}
 			return new ResponseEntity<>(payload, HttpStatus.valueOf(metaResponse.getStatusCode()));
 		}
-		catch (SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
+		catch (NullPointerException | SignatureException | NoSuchAlgorithmException | IOException | InvalidKeySpecException ex) {
 			ErrorResponse unsignedPayload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.CRASH, ex.getMessage());
 			return new ResponseEntity<>(unsignedPayload, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -293,9 +298,9 @@ public class GeneralControllerHelper {
 		for (ObjectError error : errors) {
 			if (error instanceof FieldError) {
 				FieldError ferror = (FieldError) error;
-				reason = "Parameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
+				reason = "\t\tParameter " + ferror.getField() + " with value " + ferror.getRejectedValue() +
 						" is not acceptable: " + ferror.getDefaultMessage();
-				logger.info("\t\t" + reason);
+				logger.info(reason);
 			}
 		}
 		ErrorResponse payload = new ErrorResponse(generateTimestamp(), requestID, operation, FROM_SERVER, to, "", ControllerErrorConsts.BAD_PARAMS, reason);

@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * Transfers a GoodID from the SellerID to the BuyerID
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @SuppressWarnings("Duplicates")

@@ -27,6 +27,8 @@ import static hds.server.domain.ChallengeData.RANDOM_STRING_LENGTH;
  * With a requestID, returns a computationally intensive challenge needed to interact with TransferGoodController
  * so clients are discouraged of flooding the servers with fake / malicious requests.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @RestController

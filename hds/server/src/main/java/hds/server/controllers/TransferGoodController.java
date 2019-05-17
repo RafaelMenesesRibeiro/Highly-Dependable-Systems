@@ -38,6 +38,8 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  * Confirms the GoodID is on sale.
  * Transfers a GoodID from the SellerID to the BuyerID.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */
@@ -128,7 +130,6 @@ public class TransferGoodController extends BaseController {
 			connection = DatabaseManager.getConnection();
 			connection.setAutoCommit(false);
 
-			// TODO - Check this. //
 			/*
 				The timestamp is not verified against the one in Goods table, is it will be replaced regardless.
 				The only problem is it might break the property of the safety (more specifically ordering).
@@ -177,5 +178,17 @@ public class TransferGoodController extends BaseController {
 			}
 			throw ex; // Handled in transferGood's main method, in the try catch were execute is called.
 		}
+	}
+
+	/**
+	 * Checks if the wrapping 'To' is the same as the replica's port.
+	 *
+	 * @param   requestData		BasicMessage received
+	 * @see     BasicMessage
+	 */
+	@Override
+	public boolean checkIfMessageForThisReplica(BasicMessage requestData) {
+		ApproveSaleRequestMessage message = (ApproveSaleRequestMessage) requestData;
+		return message.getWrappingTo().equals(ServerApplication.getPort());
 	}
 }

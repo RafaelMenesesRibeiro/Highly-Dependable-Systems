@@ -23,7 +23,7 @@ public class ClientProperties {
     private static Integer numberOfReplicas = 0;
     private static Integer maxFailures = 0;
     private static Integer majorityThreshold = 0;
-    private static String myClientPort = "";
+    private static String myClientPort = "8000";
 
     private ClientProperties() {}
 
@@ -89,7 +89,7 @@ public class ClientProperties {
         ClientProperties.majorityThreshold = (numberOfReplicas + maxFailures) / 2;
     }
 
-    static int getMajorityThreshold() {
+    public static int getMajorityThreshold() {
         return majorityThreshold;
     }
 

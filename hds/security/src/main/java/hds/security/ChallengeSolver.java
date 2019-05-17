@@ -8,6 +8,8 @@ import static hds.security.CryptoUtils.hashMD5;
  * Helper to generate and solve the computationally intensive challenge given to the client
  * every time it wants to interact with TransferGoodController.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class ChallengeSolver {
