@@ -32,6 +32,8 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  * Confirms authenticity and integrity of the request.
  * Marks a GoodID for sale in the database.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  * @see 		OwnerDataMessage
  */

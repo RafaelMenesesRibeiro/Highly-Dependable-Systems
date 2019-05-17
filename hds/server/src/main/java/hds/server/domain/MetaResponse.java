@@ -6,6 +6,8 @@ import hds.security.msgtypes.BasicMessage;
  * Contains an HttpStatus code and a BasicMessage as payload.
  * Only used inside the Server module.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class MetaResponse {

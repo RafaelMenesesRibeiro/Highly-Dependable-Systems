@@ -9,6 +9,8 @@ import java.sql.SQLException;
 /**
  * Gets the database connection.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class DatabaseManager {

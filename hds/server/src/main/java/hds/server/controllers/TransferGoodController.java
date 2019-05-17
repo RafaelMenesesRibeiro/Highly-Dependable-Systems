@@ -38,6 +38,8 @@ import static hds.server.helpers.TransactionValidityChecker.isClientWilling;
  * Confirms the GoodID is on sale.
  * Transfers a GoodID from the SellerID to the BuyerID.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  * @see 		ApproveSaleRequestMessage
  */

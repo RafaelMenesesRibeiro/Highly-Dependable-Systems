@@ -5,6 +5,8 @@ package hds.server.exception;
  * and is used for discourage clients to flood the server with TransferGoodController calls; because this challenge
  * is computationally intensive.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class ChallengeFailedException extends RuntimeException {

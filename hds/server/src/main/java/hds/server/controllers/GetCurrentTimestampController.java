@@ -22,6 +22,8 @@ import static hds.server.controllers.BaseController.FROM_SERVER;
  * Responsible for handling GET requests for the endpoint /getCurrentTimestamp.
  * Returns the replica's current write timestamp.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @RestController

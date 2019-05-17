@@ -34,8 +34,9 @@ import static hds.security.SecurityManager.setMessageSignature;
 /**
  * Contains methods used by all Server's Controllers.
  *
- * @author 		Rafael Ribeiro
+ * @author 		Diogo Vilela
  * @author 		Francisco Barros
+ * @author 		Rafael Ribeiro
  */
 public class GeneralControllerHelper {
 	private static final LinkedHashMap<UserRequestIDKey, ResponseEntity<BasicMessage>> recentMessages = new CacheMap<>();

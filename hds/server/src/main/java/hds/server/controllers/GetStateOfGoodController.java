@@ -34,6 +34,8 @@ import static hds.server.helpers.TransactionValidityChecker.getOnOwnershipInfo;
  * Responsible for handling GET requests for the endpoint /stateOfGood.
  * With a GoodID, returns the current owner and if it is on sale.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @RestController

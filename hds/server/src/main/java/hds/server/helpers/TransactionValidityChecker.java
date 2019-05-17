@@ -26,6 +26,8 @@ import static hds.server.helpers.DatabaseInterface.queryDB;
 /**
  * Verifies if the transaction is valid.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @SuppressWarnings("Duplicates")

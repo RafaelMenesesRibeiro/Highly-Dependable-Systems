@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * Responsible for querying the database.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 class DatabaseInterface {

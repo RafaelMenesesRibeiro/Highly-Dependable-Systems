@@ -6,6 +6,8 @@ import org.jsoup.safety.Whitelist;
 /**
  * Responsible for sanitizing input Strings with the Jsoup library.
  *
+ * @author      Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class InputValidation {

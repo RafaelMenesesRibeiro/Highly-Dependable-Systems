@@ -14,6 +14,8 @@ import static hds.server.ServerApplication.*;
 /**
  * Creates and populates a Database for each created server.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class PSQLServerSetup {

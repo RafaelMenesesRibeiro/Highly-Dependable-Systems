@@ -10,7 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Stores the Server's Properties
  *
- * @author      Diogo Vilela
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 public class ServerProperties {

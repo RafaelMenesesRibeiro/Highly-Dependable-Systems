@@ -3,6 +3,8 @@ package hds.server.domain;
 /**
  * Represents the Challenge given to the client.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  * @see 		hds.server.controllers.RequestChallengeController
  */

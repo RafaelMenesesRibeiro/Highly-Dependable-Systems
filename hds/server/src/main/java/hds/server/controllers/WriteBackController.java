@@ -28,6 +28,8 @@ import static hds.server.helpers.TransferGood.changeGoodOwner;
 /**
  * Responsible for handling POST requests for write back operation needed in (1, N) Byzantine Atomic Registers.
  *
+ * @author 		Diogo Vilela
+ * @author 		Francisco Barros
  * @author 		Rafael Ribeiro
  */
 @RestController
